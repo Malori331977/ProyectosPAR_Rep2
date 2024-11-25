@@ -1,0 +1,290 @@
+﻿@page "/parametroemaildetalle"
+
+@layout MainLayout
+
+<div class="container-fluid px-1 py-1">
+	<div class="card shadow mb-4">
+        <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno"></PageReturn>
+
+        <div class="card-body shadow mb-2 shadow h-100 py-1 px-2 text-left">
+            <EditForm Model="@parametroEmail" OnValidSubmit="Guardar">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="row">
+                    <label class="align-content-between lbl-xs">
+                        Tipo de Servicio de Mensajería
+                        <InputSelect class="form-control form-control selectpicker show-menu-arrow "
+                                     data-live-search="true"
+                                     style="font-size:small"
+                                     @bind-Value=parametroEmail.TipoServicio
+                                     @oninput="OnChangeTipoServicio">
+
+                            <option value="0">Servicio SMTP</option>
+                            <option value="1">Azure Send.Mail</option>                            
+                        </InputSelect>
+                    </label>
+                </div>
+
+                @switch (parametroEmail.TipoServicio)
+                {
+                    case 0:
+                        <div class="input-group">
+                            <div class="row">
+                                <label class="align-content-between lbl-xs">
+                                    Servidor Smtp
+                                </label>
+                            </div>
+                            <div class="input-group w-100" id="btnGroupAddon">
+                                <InputText class="form-control" placeholder="Servidor Smtp" id="name" aria-describedby="btnGroupAddonDesc"
+                                           @bind-Value="parametroEmail.SmtpServer" />
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <div class="row">
+                                <label class="align-content-between lbl-xs">
+                                    Puerto Smtp
+                                </label>
+                            </div>
+                            <div class="input-group w-100" id="btnGroupAddon">
+                                <InputNumber class="form-control" placeholder="Id Responsable" id="name" aria-describedby="btnGroupAddon"
+                                             @ref="txtSmtpPort"
+                                             @bind-Value="parametroEmail.SmtpPort" />
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <div class="row">
+                                <label class="align-content-between lbl-xs">
+                                    Correo Electrónico
+                                </label>
+                            </div>
+                            <div class="input-group w-100" id="btnGroupAddon">
+                                <InputText class="form-control" placeholder="Correo Electrónco" id="name" aria-describedby="btnGroupAddon"
+                                           @bind-Value="parametroEmail.DefaultEmail" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="row">
+                                <label class="align-content-between lbl-xs">
+                                    Contraseña
+                                </label>
+                            </div>
+                            <div class="input-group w-100" id="btnGroupAddon">
+                                <InputText type="password" class="form-control" placeholder="Contraseña" id="pass" aria-describedby="btnGroupAddon"
+                                           @bind-Value="parametroEmail.DefaultPassWord" />
+                            </div>
+
+                        </div>
+                        <div class="input-group">
+                            <div class="row">
+                                <label class="align-content-between lbl-xs">
+                                    Nombre de Usuario
+                                </label>
+                            </div>
+                            <div class="input-group w-100" id="btnGroupAddon">
+                                <InputText class="form-control" placeholder="Nombre de Usuario" id="username" aria-describedby="btnGroupAddon"
+                                           @bind-Value="parametroEmail.UserName" />
+                            </div>
+                        </div>
+                        break;
+                    case 1:
+                        <div class="input-group">
+                            <div class="row">
+                                <label class="align-content-between lbl-xs">
+                                    Correo Electrónico
+                                </label>
+                            </div>
+                            <div class="input-group w-100" id="btnGroupAddon">
+                                <InputText class="form-control" placeholder="Correo Electrónco" id="name" aria-describedby="btnGroupAddon"
+                                           @bind-Value="parametroEmail.DefaultEmail" />
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <div class="row">
+                                <label class="align-content-between lbl-xs">
+                                    Client Id
+                                </label>
+                            </div>
+                            <div class="input-group w-100" id="btnGroupAddon">
+                                <InputText class="form-control" placeholder="Client Id" aria-describedby="btnGroupAddon"
+                                           @bind-Value="parametroEmail.ClientId" />
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <div class="row">
+                                <label class="align-content-between lbl-xs">
+                                    Tenant Id
+                                </label>
+                            </div>
+                            <div class="input-group w-100" id="btnGroupAddon">
+                                <InputText class="form-control" placeholder="TenantId" aria-describedby="btnGroupAddon"
+                                           @bind-Value="parametroEmail.TenantId" />
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="row">
+                                <label class="align-content-between lbl-xs">
+                                    Client Secret
+                                </label>
+                            </div>
+                            <div class="input-group w-100" id="btnGroupAddon">
+                                <InputText type="password" class="form-control" placeholder="Secret" aria-describedby="btnGroupAddon"
+                                           @bind-Value="parametroEmail.ClientSecret" />
+                            </div>
+
+                        </div>
+                        break;
+
+                }
+                <br />
+                <div class="row">
+                    <button type="submit" class="btn btn-primary">
+                        Guardar
+                        <span class="oi oi-task" aria-hidden="true" />
+                    </button>
+                </div>
+                <br /> 
+
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private string Titulo { get; set; }
+    private ParametroEmail parametroEmail = new();
+    private string UrlRetorno = "./principal";
+    private InputNumber<int> txtSmtpPort;
+
+
+    protected override async void OnInitialized()
+    {
+
+        var model = await configService.GetParametroEmail(1);
+        Titulo="Modificar Parámetros Email";
+
+        if (model is null){
+            parametroEmail = new ParametroEmail
+                {
+                    Id = 1,
+                    TipoServicio = 0,
+                };
+        }
+        else{
+            parametroEmail = model;
+        }
+
+
+        StateHasChanged();
+    }
+
+    private async Task Guardar()
+    {
+        try
+        {
+            if (await DatosValidos())
+            {
+                parametroEmail.UserName = parametroEmail.UserName is null || parametroEmail.UserName == "" ? null : parametroEmail.UserName;
+
+                switch (parametroEmail.TipoServicio)
+                {
+                    case 0:
+                        parametroEmail.ClientId = "";
+                        parametroEmail.TenantId = "";
+                        parametroEmail.ClientSecret = "";
+                        break;
+                    case 1:
+                        parametroEmail.SmtpServer = "";
+                        parametroEmail.SmtpPort = 0;
+                        parametroEmail.DefaultPassWord = "";                        
+                        break;
+                }
+                var respuesta = await genericService.Post("ParametroEmail", parametroEmail);
+
+                if (respuesta.Id == "0")
+                {
+                    RedirectTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }                    
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            await swal.FireAsync("Error", "Se presentó un error al procesar solicitud: " + e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+    private async Task<bool> DatosValidos()
+    {
+        switch (parametroEmail.TipoServicio)
+        {
+            case 0 :
+                if (String.IsNullOrEmpty(parametroEmail.SmtpServer))
+                {
+                    await swal.FireAsync("Error", "Debe indicar el servidor Smtp.", SweetAlertIcon.Error);
+                    return false;
+                }
+                if (parametroEmail.SmtpPort == 0)
+                {
+                    await swal.FireAsync("Error", "Debe indicar el puerto del servidor Smtp.", SweetAlertIcon.Error);
+                    return false;
+                }
+                if (String.IsNullOrEmpty(parametroEmail.DefaultEmail))
+                {
+                    await swal.FireAsync("Error", "Debe indicar el correo electrónico.", SweetAlertIcon.Error);
+                    return false;
+                }
+                if (String.IsNullOrEmpty(parametroEmail.DefaultPassWord))
+                {
+                    await swal.FireAsync("Error", "Debe indicar la contraseña para la cuenta de correo.", SweetAlertIcon.Error);
+                    return false;
+                }
+                break;
+            case 1:
+                if (String.IsNullOrEmpty(parametroEmail.DefaultEmail))
+                {
+                    await swal.FireAsync("Error", "Debe indicar el correo electrónico.", SweetAlertIcon.Error);
+                    return false;
+                }
+                if (String.IsNullOrEmpty(parametroEmail.ClientId))
+                {
+                    await swal.FireAsync("Error", "Debe indicar el Client Id.", SweetAlertIcon.Error);
+                    return false;
+                }
+                if (String.IsNullOrEmpty(parametroEmail.TenantId))
+                {
+                    await swal.FireAsync("Error", "Debe indicar el Tenant.", SweetAlertIcon.Error);
+                    return false;
+                }
+                if (String.IsNullOrEmpty(parametroEmail.ClientSecret))
+                {
+                    await swal.FireAsync("Error", "Debe indicar el Client Secret.", SweetAlertIcon.Error);
+                    return false;
+                }
+                break;
+        }
+       
+        return true;
+    }
+
+
+    private async Task OnChangeTipoServicio()
+    {
+        StateHasChanged();
+    }
+
+    void RedirectTo(string path) => NavigationManager.NavigateTo(path);
+
+}
+

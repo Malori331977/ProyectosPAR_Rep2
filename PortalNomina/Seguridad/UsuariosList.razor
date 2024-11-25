@@ -1,0 +1,122 @@
+﻿@page "/usuarioslist"
+
+@layout MainLayout
+<div class="card">
+    <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
+    <div class="card-body">
+        @if (InProcess)
+        {
+            <SpinnerControl></SpinnerControl>
+        }
+
+        <Grid @ref="grid" TItem="Usuario" class="table table-hover table-bordered table-striped "
+              DataProvider="modelDataProvider" AllowFiltering="true" Responsive="true"
+              AllowPaging="false" PageSize="10" PageSizeSelectorVisible="false" PageSizeSelectorItems="@(new int[] {10,50,100,200,500})"
+              PaginationItemsTextFormat="{0} - {1} of {2} items" ItemsPerPageText=""
+              HeaderRowCssClass="custom-header border-bottom-0"
+              FiltersRowCssClass="custom-filter text-white border-bottom-0"
+              FiltersTranslationProvider="gridExtensions.GridFiltersTranslationProvider"
+              AllowRowClick="true"
+              FixedHeader="true"
+              Height="500"
+              Unit="Unit.Px"
+              OnRowDoubleClick="OnSelect">
+
+            <GridColumn TItem="Usuario" HeaderText="Código de Usuario" PropertyName="Id">
+                @context.Id
+            </GridColumn>
+            <GridColumn TItem="Usuario" HeaderText="Nombre" PropertyName="Nombre">
+                @context.Nombre
+            </GridColumn>
+            <GridColumn TItem="Usuario" HeaderText="Correo Electrónico" PropertyName="Email">
+                @context.Email
+            </GridColumn>
+            <GridColumn TItem="Usuario" HeaderText="Activo" PropertyName="Estado" TextAlignment="Alignment.Center" HeaderTextAlignment="Alignment.Center" Filterable="false">
+                <Switch @bind-Value="context.Activo" Disabled></Switch>                
+            </GridColumn>
+
+            <GridColumn TItem="Usuario" HeaderText="Seleccionar" PropertyName="selec" Filterable="false">
+                <Tooltip Title="Borrar">
+                    <button class="btn btn-light rounded-circle text-danger" type="submit" @onclick="@((e)=> OnDelete(e, @context))">
+                        <span class="oi oi-trash" aria-hidden="true" />
+                    </button>
+                </Tooltip>
+            </GridColumn>
+        </Grid>
+    </div>
+</div>
+
+
+@code {
+
+    
+    private IEnumerable<Usuario> usuario;
+    BlazorBootstrap.Grid<Usuario>? grid;
+
+    private string Titulo = "Usuarios de Sistema";
+    private string UrlRetorno = "/principal";
+    private bool InProcess = true;
+
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task<GridDataProviderResult<Usuario>> modelDataProvider(GridDataProviderRequest<Usuario> request)
+    {
+        if (usuario is null) // pull sitios only one time for client-side filtering, sorting, and paging
+            usuario = await GetUsuario(); // call a service or an API to pull the sitios
+
+
+        return await Task.FromResult(request.ApplyTo(usuario));
+    }
+
+    private async Task<IEnumerable<Usuario>> GetUsuario()
+    {
+        InProcess = true;
+        List<Usuario> usuarios = new();
+        try
+        {
+            var usuariosList = await configService.GetUsuario();
+
+            if (usuariosList is not null)
+            {
+                usuarios = (from d in usuariosList
+                             select new Usuario
+                                {
+                                    Id = d.Id,
+                                    Nombre = d.Nombre,
+                                    Activo = d.Activo,
+                                    Email = d.Email,
+                                }).ToList();
+            }        
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Atención", e.Message, SweetAlertIcon.Info);
+        }
+
+
+        InProcess = false;
+        StateHasChanged();
+
+        return usuarios;
+    }
+
+    private async Task OnClickAdd()
+    {
+        NavigationManager.NavigateTo("./usuariodetalle/0/1");
+    }
+
+    protected async void OnSelect(GridRowEventArgs<Usuario> args)
+    {
+        NavigationManager.NavigateTo($"./usuariodetalle/{args.Item.Id}/2");
+    }
+
+    protected async void OnDelete(MouseEventArgs mouseEventArgs, Usuario user)
+    {
+        NavigationManager.NavigateTo($"./usuariodetalle/{ user.Id}/3");
+    }
+}

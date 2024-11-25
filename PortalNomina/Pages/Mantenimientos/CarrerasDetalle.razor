@@ -1,0 +1,213 @@
+﻿@page "/carrerasdetalle/{Id}/{Modo:int}"
+
+@layout MainLayout
+
+@inject SweetAlertService swal;
+
+
+<div class="card">
+
+    <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+
+    <div class="card-body">
+        @if (carrera is not null)
+        {
+            <EditForm Model="@carrera" OnSubmit="GuardarCambios">
+             
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Id
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                                    maxlength="15"
+                                    placeholder="Id" id="id"
+                                    Disabled="@soloLecturaAdd"
+                        @ref="txtId"
+                                   @bind-Value="carrera.Id" />
+                    </div>
+                </div>
+               
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Nombre
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                                   maxlength="1024"
+                                   placeholder="Nombre" id="nomb"
+                                   Disabled="@soloLectura"
+                                   @bind-Value="carrera.Nombre" @ref="txtNombre" />
+                    </div>
+                </div>
+
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Descripción
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <textarea class="form-control br8 rounded-border"
+                                   maxlength="100"
+                                   placeholder="Descripción" id="desc"
+                                   Disabled="@soloLectura"
+                                   @bind="carrera.Descripcion"/>
+                    </div>
+                </div>
+                
+                <br />
+                <div class="row">
+                    <div class="col">
+                        @if (Modo == 3)
+                        {
+                            <div class="row" id="btn-borrar">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    Eliminar
+                                    <Icon Name="IconName.Trash" />
+                                </button>
+                            </div>
+
+                        }
+                        else
+                        {
+                            <div class="row">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    Aceptar
+                                    <Icon Name="IconName.Save" />
+                                </button>
+                            </div>
+
+                        }
+                    </div>
+                </div>
+                <br />
+
+            </EditForm>
+
+
+        }
+    </div>
+</div>
+
+
+@code {
+    [Parameter] public string Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Carrera";
+    private string UrlRetorno = "./carreraslist";
+    private InputText txtId = new();
+    private InputText txtNombre = new();
+
+
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private Carrera carrera = new();
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        soloLectura = Modo == 3;
+
+        try
+        {
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;
+                carrera = await mtoService.GetCarrera(Id);
+            }
+            else
+            {
+                carrera = new Carrera
+                    {
+                        Id = "",
+                        Nombre = "",
+                        Descripcion = "",             
+                    };
+            }
+
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task GuardarCambios()
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+                carrera.FechaCreacion = DateTime.Now;
+                carrera.FechaUltModificacion = DateTime.Now;
+                carrera.UsuarioCreacion = loginState.User.Id;
+                carrera.UsuarioUltModificacion = loginState.User.Id;
+
+
+                List<Carrera> listAdd = new List<Carrera> { carrera };
+
+                EventResponse respuesta;
+                if (Modo == 3)
+                {
+                    respuesta = await genericService.Delete("Carrera", carrera.Id.ToString());
+                }
+                else
+                {
+                    respuesta = await genericService.Post("Carrera", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+
+
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+    }
+
+    private async Task<bool> Validaciones()
+    {
+        if (String.IsNullOrEmpty(carrera.Id))
+        {
+            await Utiles.SetFocus(txtId);
+            await swal.FireAsync("Atención", "Debe indicar el Id de la Opción.", SweetAlertIcon.Info);
+            return false;
+        }
+
+        if (String.IsNullOrEmpty(carrera.Nombre))
+        {
+            await Utiles.SetFocus(txtNombre);
+            await swal.FireAsync("Atención", "Debe indicar el nombre.", SweetAlertIcon.Info);
+            return false;
+        }
+        return true;
+    }
+
+}

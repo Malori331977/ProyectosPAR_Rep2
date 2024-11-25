@@ -1,0 +1,125 @@
+﻿@page "/rollist"
+
+@layout MainLayout
+
+<div class="card">
+    <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
+
+    <div class="card-body">
+        @if (InProcess)
+        {
+            <SpinnerControl></SpinnerControl>
+        }
+
+        <Grid @ref="grid" TItem="Rol" class="Color-table custom-table table table-hover table-bordered table-striped "
+            DataProvider="RolesDataProvider" AllowFiltering="true" Responsive="true"
+              AllowPaging="false" PageSize="10" PageSizeSelectorVisible="false" PageSizeSelectorItems="@(new int[] {10,50,100,200,500})"
+              PaginationItemsTextFormat="{0} - {1} of {2} items" ItemsPerPageText=""
+              HeaderRowCssClass="custom-header border-bottom-0"
+              FiltersTranslationProvider="gridExtensions.GridFiltersTranslationProvider"
+              AllowRowClick="true"
+              OnRowDoubleClick="OnEdit"
+              FixedHeader="true"
+              Height="500"
+              Unit="Unit.Px"
+              FiltersRowCssClass="custom-filter text-white border-bottom-0">
+
+            <GridColumn TItem="Rol" HeaderText="Id" PropertyName="Id" HeaderClass="custom-header">
+                @context.Id
+            </GridColumn>
+            <GridColumn TItem="Rol" HeaderText="Descripción" PropertyName="Descripcion"HeaderClass="custom-header">
+                @context.Descripcion
+            </GridColumn>
+            <GridColumn TItem="Rol" HeaderText="Habilitado" PropertyName="Habilitado" HeaderClass="custom-header">
+                <Switch @bind-Value="context.Habilitado" Disabled Class="ml-5" />
+            </GridColumn>
+            <GridColumn TItem="Rol" HeaderText="Tipo de Usuario" PropertyName="TipoUsuario" HeaderClass="custom-header">
+                @context.TipoUsuario
+            </GridColumn>
+    
+            <GridColumn TItem="Rol" HeaderText="Acción" PropertyName="action" Filterable="false" TextAlignment="Alignment.Center">
+                <button class="btn btn-danger rounded-circle text-white" type="submit" @onclick="@((e)=> OnDelete(e, context))">
+                    <Icon Name="IconName.Trash" Size="IconSize.x6" />
+                </button>
+            </GridColumn>
+        </Grid>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Titulo { get; set; }
+
+    BlazorBootstrap.Grid<Rol> grid;
+    private IEnumerable<Rol> roles;
+    private string UrlRetorno = "./Principal";
+    private bool InProcess = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Titulo is null) Titulo = "Roles";
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task<GridDataProviderResult<Rol>> RolesDataProvider(GridDataProviderRequest<Rol> request)
+    {
+        if (roles is null) // pull sitios only one time for client-side filtering, sorting, and paging
+            roles = await GetRol(); // call a service or an API to pull the sitios
+
+
+        return await Task.FromResult(request.ApplyTo(roles));
+    }
+
+    private async Task<IEnumerable<Rol>> GetRol()
+    {
+        List<Rol> listRoles = new();
+        try
+        {
+            var resp = await configService.GetRol();
+            var tipoUsuarios = await configService.GetTipoUsuario();
+            if (resp is not null)
+            {
+                listRoles = (from e in resp
+                             join tu in tipoUsuarios on e.TipoUsuario equals tu.Id
+                             select new Rol
+                                {
+                                     Id = e.Id,
+                                     Descripcion = e.Descripcion,
+                                     TipoUsuario = tu.Descripcion!,
+                                     Habilitado = e.Habilitado,
+                                     FechaUltModifica = e.FechaUltModifica,
+                                     IdUsuarioModifica = e.IdUsuarioModifica,
+
+                                }).ToList();
+            }
+
+        }
+        catch(Exception e)
+        {
+            await swal.FireAsync("Error", $"Ocurrio un error al procesar la solicitud. Detalle de error: {e.Message}", SweetAlertIcon.Error);
+        }
+        
+
+		InProcess = false;
+		StateHasChanged();
+        return listRoles.OrderBy(e => e.Id);
+	}
+
+    private async Task OnClickAdd()
+    {
+        NavigationManager.NavigateTo("./roldetalle/0/1");
+    }
+
+    protected async void OnEdit(GridRowEventArgs<Rol> args)
+    {
+        NavigationManager.NavigateTo($"./roldetalle/{args.Item.Id}/2");
+    }
+
+    protected async void OnDelete(MouseEventArgs mouseEventArgs, Rol args)
+    {
+        NavigationManager.NavigateTo($"./roldetalle/{args.Id}/3");
+
+    }
+
+}

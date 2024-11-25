@@ -1,0 +1,97 @@
+﻿@page "/menuprincipallist"
+
+@layout MainLayout
+
+
+
+<div class="card">
+    <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
+
+    <div class="card-body">
+        @if (InProcess)
+        {
+            <SpinnerControl></SpinnerControl>
+        }
+
+        <Grid @ref="grid" TItem="MenuPrincipal" class="table table-hover table-bordered table-striped "
+              DataProvider="modelDataProvider" AllowFiltering="true" Responsive="true"
+              AllowPaging="false" PageSize="10" PageSizeSelectorVisible="false" PageSizeSelectorItems="@(new int[] {10,50,100,200,500})"
+              PaginationItemsTextFormat="{0} - {1} of {2} items" ItemsPerPageText=""
+              HeaderRowCssClass="custom-header border-bottom-0"
+              FiltersRowCssClass="custom-filter text-white border-bottom-0"
+              FiltersTranslationProvider="gridExtensions.GridFiltersTranslationProvider"
+              AllowRowClick="true"
+              FixedHeader="true"
+              Height="500"
+              Unit="Unit.Px"
+              OnRowDoubleClick="OnSelect">
+            
+            <GridColumn TItem="MenuPrincipal" HeaderText="Id" PropertyName="ID">
+                @context.ID
+            </GridColumn>
+            <GridColumn TItem="MenuPrincipal" HeaderText="Descripción" PropertyName="MENUTEXT">
+                @context.MENUTEXT
+            </GridColumn>
+            <GridColumn TItem="MenuPrincipal" HeaderText="Imagen" PropertyName="ICONID" Filterable="false" TextAlignment="Alignment.Center">
+                @{
+                    IconName iName = (IconName)context.ICONID;
+                 }
+                <Icon Name="@iName" Size="IconSize.x3" />                
+            </GridColumn>   
+        </Grid>
+    </div>
+</div>
+
+
+
+@code {
+    [Parameter]
+    public string Titulo { get; set; }
+
+    BlazorBootstrap.Grid<MenuPrincipal> grid;
+    private IEnumerable<MenuPrincipal> menus;
+    private bool InProcess = true; 
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Titulo is null) Titulo = "Menús de Sistema";
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task<GridDataProviderResult<MenuPrincipal>> modelDataProvider(GridDataProviderRequest<MenuPrincipal> request)
+    {
+        if (menus is null) 
+            menus = await GetMenus();
+        return await Task.FromResult(request.ApplyTo(menus));
+    }
+
+    private async Task<IEnumerable<MenuPrincipal>> GetMenus()
+    {
+        List<MenuPrincipal> model = new();
+        try
+        {
+            model = (await configService.GetMenuPrincipal()).ToList();
+            
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar los menus de sistema.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    private async Task OnClickAdd()
+    {
+        NavigationManager.NavigateTo("./menuprincipaldetalle/0/1");
+    }
+
+    protected async void OnSelect(GridRowEventArgs<MenuPrincipal> args)
+    {
+        NavigationManager.NavigateTo("./menuprincipaldetalle/" + args.Item.ID + "/2");
+
+    }
+
+}

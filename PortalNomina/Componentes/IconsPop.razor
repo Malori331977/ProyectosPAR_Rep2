@@ -1,0 +1,72 @@
+﻿@page "/iconspop"
+
+
+<Grid @ref="grid" TItem="Iconos" class="table custom-table table-hover table-bordered table-striped"
+      DataProvider="DataProvider" AllowFiltering="true" AllowPaging="false" PageSize="10" PageSizeSelectorVisible="false" PageSizeSelectorItems="@(new int[] {10,50,100,200,500})"
+      PaginationItemsTextFormat="{0} - {1} of {2} items" ItemsPerPageText=""
+      HeaderRowCssClass="custom-header border-bottom-0"
+      FiltersRowCssClass="custom-filter text-white border-bottom-0"
+      AllowRowClick="true"
+      OnRowClick="OnRowClick">
+
+    <GridColumn TItem="Iconos" HeaderText="Id" PropertyName="Id">
+        <Icon Name="@context.id" Size="IconSize.x3" />
+    </GridColumn>
+    <GridColumn TItem="Iconos" HeaderText="Descripción" PropertyName="descripcion">
+        @context.descripcion
+    </GridColumn>
+</Grid>
+
+
+
+
+
+@code {
+    [Parameter] public EventCallback<IconName> OnItemSelected { get; set; }
+
+    public class Iconos
+    {
+        public IconName id { get; set; }
+        public string descripcion { get; set; }
+    }
+
+    BlazorBootstrap.Grid<Iconos>? grid;
+    private IEnumerable<Iconos>? listaItems = null;
+
+
+
+    private async Task<GridDataProviderResult<Iconos>> DataProvider(GridDataProviderRequest<Iconos> request)
+    {
+        if (listaItems is null)
+            listaItems = await GetListaItems();
+
+        return await Task.FromResult(request.ApplyTo(listaItems));
+    }
+
+    private async Task<IEnumerable<Iconos>> GetListaItems()
+    {
+        List<Iconos>? Items = new();
+
+        foreach (var item in Enum.GetValues<IconName>().Where(x => x != IconName.None))
+        {
+            Iconos icono = new Iconos
+            {
+                id = item,
+                descripcion = item.ToString(),
+
+            };
+            Items.Add(icono);
+        }
+
+        return Items;
+    }
+
+
+    private async Task OnRowClick(GridRowEventArgs<Iconos> args)
+    {
+        IconName iconSeleccionado = args.Item.id;
+        await OnItemSelected.InvokeAsync(iconSeleccionado);
+    }
+
+    
+}

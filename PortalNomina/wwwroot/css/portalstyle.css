@@ -1,0 +1,320 @@
+﻿
+/*ajustes personalizados*/
+
+.rectangle3 {
+    width: 2px;
+    height: 717px;
+    flex-shrink: 0;
+    background: #2192FF;
+}
+
+/*customizar barra de menu*/
+:root {
+    --bb-sidebar-width: 270px;
+    --bb-sidebar-collapsed-width: 50px;
+    --bb-sidebar-brand-image-width: 32px;
+    --bb-sidebar-brand-image-height: 32px;
+    --bb-sidebar-top-row-background-color: #2192FF;
+    --bb-sidebar-top-row-border-color: #265AE8;
+    --bb-sidebar-background-color: #ffffff;
+    --bb-sidebar-title-text-color: #ffffff;
+    --bb-sidebar-brand-icon-color: #265AE8;
+    --bb-sidebar-title-badge-text-color: rgb(255,255,255);
+    --bb-sidebar-title-badge-background-color: rgba(25,135,84,var(--bs-bg-opacity,1));
+    --bb-sidebar-navbar-toggler-icon-color: #265AE8;
+    --bb-sidebar-navbar-toggler-background-color: rgba(0,0,0,0.08);
+    --bb-sidebar-content-border-color: #5770b4;
+    --bb-sidebar-nav-item-text-color: #265AE8;
+    --bb-sidebar-nav-item-text-active-color-rgb: 9,2,61;
+    --bb-sidebar-nav-item-text-hover-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb),0.9);
+    --bb-sidebar-nav-item-text-active-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb),0.9);
+    --bb-sidebar-nav-item-background-hover-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb),0.08);
+    --bb-sidebar-nav-item-group-background-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb),0.08);
+}
+
+/*COLORES DE HEADER DE TABLAS Y FILTROS*/
+
+.custom-header {
+    background-color: #5770b4;
+    color: white;
+}
+
+.custom-filter {
+    background-color: #deeef6;
+}
+
+.custom-tooltip {
+    --bs-tooltip-bg: var(--bd-violet-bg);
+    --bs-tooltip-color: var(--bs-white);
+}
+
+/*fin customizar barra de menu*/
+
+/*FUNETES Y BOTONES*/
+.label-roboto20 {
+    font-family: 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    line-height: 23px;
+    letter-spacing: 0em;
+    text-align: center;
+}
+
+.label-roboto24 {
+    font-family: Roboto;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 28px;
+    letter-spacing: 0em;
+    text-align: center;
+}
+
+#txt-container {
+    width: 250px;
+    height: 45px;
+    border-radius: 10px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #2192FF;
+    align-content: center;
+}
+
+    #txt-container:hover {
+        border-width: 3px;
+        border-color: #2192FF;
+    }
+
+    #txt-container > input {
+        background-color: transparent;
+        border: none;
+        font-family: 'Roboto', sans-serif;
+        font-size: 16px;
+        font-weight: 400;
+        letter-spacing: 0em;
+        text-align: left;
+        color: #878787;
+        border-radius: 10px;
+        border-color: transparent;
+        width: 210px;
+    }
+
+        #txt-container > input:focus {
+            outline: none;
+        }
+
+    #txt-container > select {
+        background-color: transparent;
+        border: none;
+        font-family: 'Roboto', sans-serif;
+        font-size: 16px;
+        font-weight: 400;
+        letter-spacing: 0em;
+        text-align: left;
+        color: #878787;
+        border-radius: 10px;
+        border-color: transparent;
+        width: 210px;
+    }
+
+        #txt-container > select:focus {
+            outline: none;
+        }
+
+
+#btn-principal {
+    width: 250px;
+    height: 45px;
+    border-radius: 10px;
+    border: 1px;
+    background: #2192FF;
+    border: 1px solid #2192FF;
+    color: white;
+}
+
+    #btn-principal:hover {
+        border: 3px solid #265AE8;
+    }
+
+    #btn-principal > button {
+        width: 250px;
+        height: 45px;
+        border-radius: 10px;
+        border: 1px;
+        background: #2192FF;
+        border: 1px solid #2192FF;
+        color: white;
+    }
+
+        #btn-principal > button:focus:hover {
+            background: #2961FA;
+            border: 3px solid #265AE8;
+        }
+
+/* ***********************   NUEVOS ESTILOS **************************** */
+
+/* Sobreados para los componenetes */
+
+.ShadowCard {
+    box-shadow: 20px 20px 70px rgba(0, 0, 0, 0.2);
+}
+
+.ShasowFormCard {
+    box-shadow: 0px 0px 50px rgba(0, 0, 0, 0.4);
+    border-radius: 5px; /* Opcional: para bordes redondeados */
+}
+
+.btn-shadow {
+    /* Estilos para el botón */
+    box-shadow: 0px 4px 0px rgba(0, 0, 0, 0.1); /* Sombra pequeña */
+}
+
+/* Modificación Color encabezados Grids */
+.table th {
+    background-color: #1a76cb !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+/* Estilos para los tabs */
+/* tabs de Turno */
+.custom-tabs {
+    background-color: #d9e1fa; /* Color de fondo */
+    /*box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);*/ /* Sombra */
+    /* Otros estilos personalizados */
+}
+
+/* Elementos Extras en las páginas */
+
+.chip {
+    display: inline-block;
+    padding: 0 11px;
+    height: 46px;
+    font-size: 16px;
+    line-height: 42px;
+    border-radius: 25px;
+    background-color: #ffffff;
+}
+
+.linea-divisoria { /* Estilo para la linea divisoria */
+    border-top: 1.5px solid black;
+    margin: 2px 0;
+}
+
+.linea {
+    /* Estilos para la línea divisoria */
+    border: none; /* Sin borde */
+    border-top: 2px solid #666; /* Estilo de línea */
+    width: 50%; /* Ancho de la línea */
+    margin: 5px auto; /* Margen*/
+}
+
+.componenteprocesos {
+    /* Estilos para el componente */
+    text-align: center; /* Centrar contenido horizontalmente */
+}
+
+.tituloprocesos {
+    /* Estilos para el título */
+    /*display: block; /* Convertir en bloque para aplicar ancho y margen automático */
+    /*margin: 0 auto; /* Margen automático a los lados para centrarlo horizontalmente */
+
+    font-family: Arial, sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+    color: #333; /* Color del texto */
+    margin-bottom: 10px; /* Espaciado inferior */
+}
+
+.Borde-div {
+    border: 0.1px solid black; /* Borde negro delgado */
+    padding: 25px; /* Margen interno de 25px */
+    margin: 15px; /* Margen externo de 25px */
+    border-radius: 10px; /* Borde redondeado de 10px */
+    background-color: #f5f5f5; /* Color de fondo tipo gris claro */
+}
+
+#bienvenida {
+    background-color: #f9f9f9; /* Color de fondo */
+    padding: 10px; /* Espaciado interno */
+    border-radius: 10px; /* Borde redondeado */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.01); /* Sombra */
+    text-align: center; /* Alineación del texto al centro */
+    margin: 0 auto; /* Centrar horizontalmente */
+    margin-top: 0px; /* Margen superior */
+    margin-bottom: 10px; /* Margen superior */
+}
+
+    /* Estilos para el título */
+    #bienvenida h1 {
+        color: #333; /* Color del texto */
+        font-size: 30px; /* Tamaño de fuente */
+    }
+
+/* Animación CARDS */
+
+
+/*border de cards*/
+
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-bottom-primary {
+    border-bottom: 0.25rem solid #4e73df !important;
+}
+
+.border-left-secondary {
+    border-left: 0.25rem solid #858796 !important;
+}
+
+.border-bottom-secondary {
+    border-bottom: 0.25rem solid #858796 !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-bottom-success {
+    border-bottom: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+    border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-bottom-info {
+    border-bottom: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.border-bottom-warning {
+    border-bottom: 0.25rem solid #f6c23e !important;
+}
+
+.border-left-danger {
+    border-left: 0.25rem solid #e74a3b !important;
+}
+
+.border-bottom-danger {
+    border-bottom: 0.25rem solid #e74a3b !important;
+}
+
+.border-left-light {
+    border-left: 0.25rem solid #f8f9fc !important;
+}
+
+.border-bottom-light {
+    border-bottom: 0.25rem solid #f8f9fc !important;
+}
+
+.border-left-dark {
+    border-left: 0.25rem solid #5a5c69 !important;
+}
+
+.border-bottom-dark {
+    border-bottom: 0.25rem solid #5a5c69 !important;
+}
