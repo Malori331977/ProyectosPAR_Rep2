@@ -1,0 +1,98 @@
+﻿@page "/tipoincapacidadeslist"
+
+@layout MainLayout
+
+<div class="card">
+    <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
+    <div class="card-body">
+        @if (InProcess)
+        {
+            <SpinnerControl></SpinnerControl>
+        }
+        <Grid @ref="grid" TItem="TipoIncapacidad" class="table table-hover table-bordered table-striped "
+              DataProvider="modelDataProvider" AllowFiltering="true" Responsive="true"
+              AllowPaging="false" PageSize="10" PageSizeSelectorVisible="false" PageSizeSelectorItems="@(new int[] {10,50,100,200,500})"
+              PaginationItemsTextFormat="{0} - {1} of {2} items" ItemsPerPageText=""
+              HeaderRowCssClass="custom-header border-bottom-0"
+              FiltersRowCssClass="custom-filter text-white border-bottom-0"
+              FiltersTranslationProvider="gridExtensions.GridFiltersTranslationProvider"
+              AllowRowClick="true"
+              FixedHeader="true"
+              Height="500"
+              Unit="Unit.Px"
+              OnRowDoubleClick="OnSelect">
+
+            <GridColumn TItem="TipoIncapacidad" HeaderText="Id" PropertyName="Id" Style="width:200px">
+                @context.Id
+            </GridColumn>
+            <GridColumn TItem="TipoIncapacidad" HeaderText="Descripción" PropertyName="Descripcion">
+                @context.Descripcion
+            </GridColumn>
+            <GridColumn TItem="TipoIncapacidad" HeaderText="Activo" PropertyName="Activo">
+                <Switch Class="ml-5" @bind-Value="@context.Activo" Disabled />
+            </GridColumn>            
+            <GridColumn TItem="TipoIncapacidad" HeaderText="Acción" PropertyName="action" Filterable="false" TextAlignment="Alignment.Center">
+                <button class="btn btn-danger rounded-circle text-white" type="submit" @onclick="@((e)=> OnDelete(e, context))">
+                    <Icon Name="IconName.Trash" Size="IconSize.x6" />
+                </button>
+            </GridColumn>
+        </Grid>
+    </div>
+</div>
+
+@code {
+    public string Titulo { get; set; }
+
+    BlazorBootstrap.Grid<TipoIncapacidad> grid;
+    private IEnumerable<TipoIncapacidad> dataList;
+    private bool InProcess = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Titulo is null) Titulo = "Tipo Incapacidades";
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task<GridDataProviderResult<TipoIncapacidad>> modelDataProvider(GridDataProviderRequest<TipoIncapacidad> request)
+    {
+        if (dataList is null)
+            dataList = await GetDataList();
+        return await Task.FromResult(request.ApplyTo(dataList));
+    }
+
+    private async Task<IEnumerable<TipoIncapacidad>> GetDataList()
+    {
+        List<TipoIncapacidad> model = new();
+        try
+        {
+            model = (await mtoService.GetTipoIncapacidad()).ToList();
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    private async Task OnClickAdd()
+    {
+        NavigationManager.NavigateTo("./tipoincapacidadesdetalle/0/1");
+    }
+    protected async void OnSelect(GridRowEventArgs<TipoIncapacidad> args)
+    {
+        NavigationManager.NavigateTo("./tipoincapacidadesdetalle/" + args.Item.Id + "/2");
+    }
+    protected async void OnDelete(MouseEventArgs mouseEventArgs, TipoIncapacidad args)
+    {
+        NavigationManager.NavigateTo($"./tipoincapacidadesdetalle/{args.Id}/3");
+    }
+}
+
+
+
+
+
+

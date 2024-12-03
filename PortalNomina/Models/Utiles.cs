@@ -15,6 +15,16 @@ namespace PortalNomina.Models
             }
         }
 
+        public static async Task SetFocus(InputTextArea txt)
+        {
+            if (txt == null) return;
+
+            if (txt.Element.HasValue)
+            {
+                await txt.Element.Value.FocusAsync();
+            }
+        }
+
         public static async Task SetFocus(InputNumber<decimal> txt)
         {
             if (txt == null) return;

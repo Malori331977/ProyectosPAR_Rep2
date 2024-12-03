@@ -1,0 +1,321 @@
+﻿@page "/puestosdetalle/{Id}/{Modo:int}"
+
+@layout MainLayout
+
+@inject SweetAlertService swal;
+
+<div class="card">
+    <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+    <div class="card-body">
+        @if (puesto is not null)
+        {
+            <EditForm Model="@puesto" OnSubmit="GuardarCambios">
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Id
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                                   maxlength="25"
+                                   placeholder="Id" id="id"
+                                   Disabled="@soloLecturaAdd"
+                                   @ref="txtId"
+                                   @bind-Value="puesto.Id"
+                                   oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Descripción
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputTextArea class="form-control br8 rounded-border"
+                                       maxlength="200"
+                                       placeholder="Descripción" id="desc"
+                                       Disabled="@soloLectura"
+                                       @ref="txtDescripcion"
+                                       @bind-Value="puesto.Descripcion"
+                                       oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Salario Mínimo
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Salario Mínimo" id="salarioMinimo"
+                                     Disabled="@soloLectura"
+                                     @bind-Value="puesto.SalarioMinimo"/>
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Salario Intermedio 1
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Salario Intermedio 1" id="salInter1"
+                                     Disabled="@soloLectura"
+                                     @bind-Value="puesto.SalarioInterm1" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Salario Intermedio 2
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Salario Intermedio 2" id="salInter2"
+                                     Disabled="@soloLectura"
+                                     @bind-Value="puesto.SalarioInterm2" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Salario Máximo
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Salario Máximo" id="salarioMaximo"
+                                     Disabled="@soloLectura"
+                                     @bind-Value="puesto.SalarioMaximo" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Salario Actual
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Salario Actual" id="salarioActual"
+                                     Disabled="@soloLectura"                                 
+                                     @bind-Value="puesto.SalarioActual" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Consecutivo Plaza
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                                   maxlength="8"
+                                   placeholder="Consecutivo Plaza" id="consecutivoPlaza"
+                                   Disabled="@soloLectura"
+                                   @ref="txtConsecutivoPlaza"
+                                   @bind-Value="puesto.ConsecutivoPlaza"
+                                   oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Notas
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputTextArea class="form-control br8 rounded-border"
+                                   maxlength="200"
+                                       placeholder="Notas" id="notas"
+                                   Disabled="@soloLectura"
+                                   @bind-Value="puesto.Notas" />
+                    </div>
+                </div>            
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Activo
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <div class="d-block text-dark text-decoration-none">
+                            <Switch @bind-Value="@puesto.Activo" Disabled="@soloLectura" />
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col">
+                        @if (Modo == 3)
+                        {
+                            <div class="row" id="btn-borrar">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    Eliminar
+                                    <Icon Name="IconName.Trash" />
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    Aceptar
+                                    <Icon Name="IconName.Save" />
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <br />
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Puesto";
+    private string UrlRetorno = "./puestoslist";
+    private InputText txtId = new();
+    private InputTextArea txtDescripcion = new();   
+    private InputText txtConsecutivoPlaza = new();
+
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private Puesto puesto = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        soloLectura = Modo == 3;
+        try
+        {
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;
+                puesto = await mtoService.GetPuesto(Id);
+            }
+            else
+            {
+                puesto = new Puesto
+                    {
+                        Id = "",
+                        Descripcion = "",
+                        Activo = false,
+                        SalarioMinimo = 0.0M,
+                        SalarioInterm1 = 0.0M,
+                        SalarioInterm2 = 0.0M,
+                        SalarioMaximo = 0.0M,
+                        SalarioActual = 0.0M,
+                        ConsecutivoPlaza = "",
+                        Notas = ""
+                    };
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task GuardarCambios()
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+                puesto.FechaCreacion = DateTime.Now;
+                puesto.FechaActualizacion = DateTime.Now;
+                puesto.UsuarioCreacion = loginState.User.Id;
+                puesto.UsuarioActualizacion = loginState.User.Id;
+
+                List<Puesto> listAdd = new List<Puesto> { puesto };
+
+                EventResponse respuesta;
+                if (Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = "Atención",
+                            Text = $"¿Está seguro(a) que desea eliminar la actual opción?",
+                            Icon = SweetAlertIcon.Error,
+                            ShowCancelButton = true,
+                            ConfirmButtonText = "Sí",
+                            CancelButtonText = "No"
+                        });
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("Puesto", puesto.Id.ToString());
+                    }
+                    else
+                    {
+                        NavigationManager.NavigateTo(UrlRetorno);
+                        return;
+                    }
+                }
+                else
+                {
+                    respuesta = await genericService.Post("Puesto", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+    }
+
+    private async Task<bool> Validaciones()
+    {
+        if (String.IsNullOrEmpty(puesto.Id))
+        {
+            await Utiles.SetFocus(txtId);
+            await swal.FireAsync("Atención", "Debe indicar el Id de la Opción.", SweetAlertIcon.Info);
+            return false;
+        }
+        if (String.IsNullOrEmpty(puesto.Descripcion))
+        {
+            await Utiles.SetFocus(txtDescripcion);
+            await swal.FireAsync("Atención", "Debe indicar la descripción.", SweetAlertIcon.Info);
+            return false;
+        }
+        if (String.IsNullOrEmpty(puesto.ConsecutivoPlaza))
+        {
+            await Utiles.SetFocus(txtConsecutivoPlaza);
+            await swal.FireAsync("Atención", "Debe indicar el Consecutivo Plaza.", SweetAlertIcon.Info);
+            return false;
+        }
+        return true;
+    }
+}
+
+
+
+

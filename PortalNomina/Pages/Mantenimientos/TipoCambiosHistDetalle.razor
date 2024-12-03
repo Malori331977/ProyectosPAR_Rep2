@@ -1,0 +1,260 @@
+﻿@page "/tipocambioshistdetalle/{Id}/{Modo:int}"
+
+@layout MainLayout
+
+@inject SweetAlertService swal;
+
+<div class="card">
+    <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+    <div class="card-body">
+        @if (tipoCambioHist is not null)
+        {
+            <EditForm Model="@tipoCambioHist" OnSubmit="GuardarCambios">
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Id
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                        maxlength="25"
+                        placeholder="Id" id="id"
+                        Disabled="@soloLecturaAdd"
+                        @ref="txtId"
+                        @bind-Value="tipoCambioHist.Id"
+                        oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Fecha
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputDate class="form-control br8 rounded-border"
+                        placeholder="Fecha" id="fecha"
+                        Disabled="@soloLecturaAdd"
+                        Required
+                        @bind-Value="tipoCambioHist.Fecha" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Descripción
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputTextArea class="form-control br8 rounded-border"
+                        maxlength="200"
+                        placeholder="Descripción" id="desc"
+                        Disabled="@soloLectura"
+                        @ref="txtDescripcion"
+                        @bind-Value="tipoCambioHist.Descripcion"
+                        oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Usuario
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                        maxlength="25"
+                        placeholder="Usuario" id="usuario"
+                        Disabled="@soloLectura"
+                        @ref="txtUsuario"
+                        @bind-Value="tipoCambioHist.Usuario" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Monto
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                        placeholder="Monto" id="monto"
+                        Disabled="@soloLectura"
+                        @bind-Value="tipoCambioHist.Monto" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Activo
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <div class="d-block text-dark text-decoration-none">
+                            <Switch @bind-Value="@tipoCambioHist.Activo" Disabled="@soloLectura" />
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col">
+                        @if (Modo == 3)
+                        {
+                            <div class="row" id="btn-borrar">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    Eliminar
+                                    <Icon Name="IconName.Trash" />
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    Aceptar
+                                    <Icon Name="IconName.Save" />
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <br />
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Tipo Cambio Histórico";
+    private string UrlRetorno = "./tipocambioshistlist";
+    private InputText txtId = new();
+    private InputTextArea txtDescripcion = new();
+    private InputText txtUsuario = new();
+
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private TipoCambioHist tipoCambioHist = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        soloLectura = Modo == 3;
+        try
+        {
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;
+                tipoCambioHist = await mtoService.GetTipoCambioHist(Id);
+            }
+            else
+            {
+                tipoCambioHist = new TipoCambioHist
+                    {
+                        Id = "",
+                        Descripcion = "",
+                        Activo = false,
+                        Usuario = "",
+                        Monto = 0.0M
+                    };
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task GuardarCambios()
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+                tipoCambioHist.FechaCreacion = DateTime.Now;
+                tipoCambioHist.FechaActualizacion = DateTime.Now;
+                tipoCambioHist.UsuarioCreacion = loginState.User.Id;
+                tipoCambioHist.UsuarioActualizacion = loginState.User.Id;
+
+                List<TipoCambioHist> listAdd = new List<TipoCambioHist> { tipoCambioHist };
+
+                EventResponse respuesta;
+                if (Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = "Atención",
+                            Text = $"¿Está seguro(a) que desea eliminar la actual opción?",
+                            Icon = SweetAlertIcon.Error,
+                            ShowCancelButton = true,
+                            ConfirmButtonText = "Sí",
+                            CancelButtonText = "No"
+                        });
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("TipoCambioHist", $"{tipoCambioHist.Id.ToString()}|{tipoCambioHist.Fecha.ToString().Replace("/","-")}");
+                    }
+                    else
+                    {
+                        NavigationManager.NavigateTo(UrlRetorno);
+                        return;
+                    }
+                }
+                else
+                {
+                    respuesta = await genericService.Post("TipoCambioHist", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+    }
+
+    private async Task<bool> Validaciones()
+    {
+        if (String.IsNullOrEmpty(tipoCambioHist.Id))
+        {
+            await Utiles.SetFocus(txtId);
+            await swal.FireAsync("Atención", "Debe indicar el Id de la Opción.", SweetAlertIcon.Info);
+            return false;
+        }
+        if (String.IsNullOrEmpty(tipoCambioHist.Descripcion))
+        {
+            await Utiles.SetFocus(txtDescripcion);
+            await swal.FireAsync("Atención", "Debe indicar la descripción.", SweetAlertIcon.Info);
+            return false;
+        }
+        if (String.IsNullOrEmpty(tipoCambioHist.Usuario))
+        {
+            await Utiles.SetFocus(txtUsuario);
+            await swal.FireAsync("Atención", "Debe indicar el usuario.", SweetAlertIcon.Info);
+            return false;
+        }
+        return true;
+    }
+}
+

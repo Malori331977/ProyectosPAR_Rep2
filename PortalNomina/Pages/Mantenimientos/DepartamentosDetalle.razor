@@ -1,0 +1,208 @@
+﻿@page "/departamentosdetalle/{Id}/{Modo:int}"       
+
+@layout MainLayout
+
+@inject SweetAlertService swal;
+
+<div class="card">
+    <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+    <div class="card-body">
+        @if (departamento is not null)
+        {
+            <EditForm Model="@departamento" OnSubmit="GuardarCambios">
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Id
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                        maxlength="25"
+                        placeholder="Id" id="id"
+                        Disabled="@soloLecturaAdd"
+                        @ref="txtId"
+                        @bind-Value="departamento.Id"
+                        oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Descripción
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputTextArea class="form-control br8 rounded-border"
+                        maxlength="200"
+                        placeholder="Descripción" id="desc"
+                        Disabled="@soloLectura"
+                        @ref="txtDescripcion"
+                        @bind-Value="departamento.Descripcion"
+                        oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Activo
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <div class="d-block text-dark text-decoration-none">
+                            <Switch @bind-Value="@departamento.Activo" Disabled="@soloLectura" />
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col">
+                        @if (Modo == 3)
+                        {
+                            <div class="row" id="btn-borrar">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    Eliminar
+                                    <Icon Name="IconName.Trash" />
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    Aceptar
+                                    <Icon Name="IconName.Save" />
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <br />
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Departamento";
+    private string UrlRetorno = "./departamentoslist";
+    private InputText txtId = new();
+    private InputTextArea txtDescripcion = new();
+
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private Departamento departamento = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        soloLectura = Modo == 3;
+        try
+        {
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;
+                departamento = await mtoService.GetDepartamento(Id);
+            }
+            else
+            {
+                departamento = new Departamento
+                    {
+                        Id = "",
+                        Descripcion = "",
+                        Activo = false
+                    };
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task GuardarCambios()
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+                departamento.FechaCreacion = DateTime.Now;
+                departamento.FechaActualizacion = DateTime.Now;
+                departamento.UsuarioCreacion = loginState.User.Id;
+                departamento.UsuarioActualizacion = loginState.User.Id;
+
+                List<Departamento> listAdd = new List<Departamento> { departamento };
+
+                EventResponse respuesta;
+                if (Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Atención",
+                            Text = $"¿Está seguro(a) que desea eliminar la actual opción?",
+                        Icon = SweetAlertIcon.Error,
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "Sí",
+                        CancelButtonText = "No"
+                    });
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("Departamento", departamento.Id.ToString());
+                    }
+                    else
+                    {
+                        NavigationManager.NavigateTo(UrlRetorno);
+                        return;
+                    }
+                }
+                else
+                {
+                    respuesta = await genericService.Post("Departamento", listAdd);                 
+                }  
+                
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }                
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+    }
+
+    private async Task<bool> Validaciones()
+    {
+        if (String.IsNullOrEmpty(departamento.Id))
+        {
+            await Utiles.SetFocus(txtId);
+            await swal.FireAsync("Atención", "Debe indicar el Id de la Opción.", SweetAlertIcon.Info);
+            return false;
+        }
+        if (String.IsNullOrEmpty(departamento.Descripcion))
+        {
+            await Utiles.SetFocus(txtDescripcion);
+            await swal.FireAsync("Atención", "Debe indicar la descripción.", SweetAlertIcon.Info);
+            return false;
+        }
+        return true;
+    }
+}

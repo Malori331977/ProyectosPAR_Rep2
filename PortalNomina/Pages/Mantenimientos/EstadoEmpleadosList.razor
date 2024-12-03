@@ -1,19 +1,15 @@
-﻿@page "/carreraslist"
+﻿@page "/estadoempleadoslist"
 
 @layout MainLayout
 
-
-
 <div class="card">
     <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
-
     <div class="card-body">
         @if (InProcess)
         {
             <SpinnerControl></SpinnerControl>
         }
-
-        <Grid @ref="grid" TItem="Carrera" class="table table-hover table-bordered table-striped "
+        <Grid @ref="grid" TItem="EstadoEmpleado" class="table table-hover table-bordered table-striped "
               DataProvider="modelDataProvider" AllowFiltering="true" Responsive="true"
               AllowPaging="false" PageSize="10" PageSizeSelectorVisible="false" PageSizeSelectorItems="@(new int[] {10,50,100,200,500})"
               PaginationItemsTextFormat="{0} - {1} of {2} items" ItemsPerPageText=""
@@ -25,17 +21,23 @@
               Height="500"
               Unit="Unit.Px"
               OnRowDoubleClick="OnSelect">
-            
-            <GridColumn TItem="Carrera" HeaderText="Id" PropertyName="Id" Style="width:200px">
+
+            <GridColumn TItem="EstadoEmpleado" HeaderText="Id" PropertyName="Id" Style="width:200px">
                 @context.Id
             </GridColumn>
-            <GridColumn TItem="Carrera" HeaderText="Nombre" PropertyName="Nombre">
-                @context.Nombre
-            </GridColumn>
-            <GridColumn TItem="Carrera" HeaderText="Descripción" PropertyName="Descripcion">
+            <GridColumn TItem="EstadoEmpleado" HeaderText="Descripción" PropertyName="Descripcion">
                 @context.Descripcion
             </GridColumn>
-            <GridColumn TItem="Carrera" HeaderText="Acción" PropertyName="action" Filterable="false" TextAlignment="Alignment.Center">
+            <GridColumn TItem="EstadoEmpleado" HeaderText="Activo" PropertyName="Activo">
+                <Switch Class="ml-5" @bind-Value="@context.Activo" Disabled />
+            </GridColumn>
+            <GridColumn TItem="EstadoEmpleado" HeaderText="Pago" PropertyName="Pago">
+                @context.Pago
+            </GridColumn>
+            <GridColumn TItem="EstadoEmpleado" HeaderText="Temporal" PropertyName="Temporal">
+                @context.Temporal
+            </GridColumn>
+            <GridColumn TItem="EstadoEmpleado" HeaderText="Acción" PropertyName="action" Filterable="false" TextAlignment="Alignment.Center">
                 <button class="btn btn-danger rounded-circle text-white" type="submit" @onclick="@((e)=> OnDelete(e, context))">
                     <Icon Name="IconName.Trash" Size="IconSize.x6" />
                 </button>
@@ -44,35 +46,32 @@
     </div>
 </div>
 
-
-
 @code {
     public string Titulo { get; set; }
 
-    BlazorBootstrap.Grid<Carrera> grid;
-    private IEnumerable<Carrera> dataList;
-    private bool InProcess = true; 
+    BlazorBootstrap.Grid<EstadoEmpleado> grid;
+    private IEnumerable<EstadoEmpleado> dataList;
+    private bool InProcess = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (Titulo is null) Titulo = "Carreras";
+        if (Titulo is null) Titulo = "Estado Empleados";
         await base.OnAfterRenderAsync(firstRender);
     }
 
-    private async Task<GridDataProviderResult<Carrera>> modelDataProvider(GridDataProviderRequest<Carrera> request)
+    private async Task<GridDataProviderResult<EstadoEmpleado>> modelDataProvider(GridDataProviderRequest<EstadoEmpleado> request)
     {
-        if (dataList is null) 
+        if (dataList is null)
             dataList = await GetDataList();
         return await Task.FromResult(request.ApplyTo(dataList));
     }
 
-    private async Task<IEnumerable<Carrera>> GetDataList()
+    private async Task<IEnumerable<EstadoEmpleado>> GetDataList()
     {
-        List<Carrera> model = new();
+        List<EstadoEmpleado> model = new();
         try
         {
-            model = (await mtoService.GetCarrera()).ToList();
-            
+            model = (await mtoService.GetEstadoEmpleado()).ToList();
         }
         catch (Exception)
         {
@@ -86,18 +85,17 @@
 
     private async Task OnClickAdd()
     {
-        NavigationManager.NavigateTo("./carrerasdetalle/0/1");
+        NavigationManager.NavigateTo("./estadoempleadosdetalle/0/1");
     }
-
-    protected async void OnSelect(GridRowEventArgs<Carrera> args)
+    protected async void OnSelect(GridRowEventArgs<EstadoEmpleado> args)
     {
-        NavigationManager.NavigateTo("./carrerasdetalle/" + args.Item.Id + "/2");
-
+        NavigationManager.NavigateTo("./estadoempleadosdetalle/" + args.Item.Id + "/2");
     }
-    protected async void OnDelete(MouseEventArgs mouseEventArgs, Carrera args)
+    protected async void OnDelete(MouseEventArgs mouseEventArgs, EstadoEmpleado args)
     {
-        NavigationManager.NavigateTo($"./carrerasdetalle/{args.Id}/3");
-
+        NavigationManager.NavigateTo($"./estadoempleadosdetalle/{args.Id}/3");
     }
-
 }
+
+
+

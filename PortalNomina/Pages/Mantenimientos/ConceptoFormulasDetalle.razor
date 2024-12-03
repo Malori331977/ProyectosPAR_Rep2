@@ -1,0 +1,366 @@
+﻿@page "/ConceptoFormulasdetalle/{Id}/{Modo:int}"
+
+@layout MainLayout
+
+@inject SweetAlertService swal;
+
+<div class="card">
+    <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+    <div class="card-body">
+        @if (conceptoFormula is not null)
+        {
+            <EditForm Model="@conceptoFormula" OnSubmit="GuardarCambios">
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Id
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                                   maxlength="20"
+                                   placeholder="Id" id="id"
+                                   Disabled="@soloLecturaAdd"
+                                   @ref="txtId"
+                                   @bind-Value="conceptoFormula.Id"
+                                   oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Secuencia
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Secuencia" id="secuencia"
+                                     Disabled="@soloLecturaAdd"
+                                     @bind-Value="conceptoFormula.Secuencia" Required />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Descripción
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputTextArea class="form-control br8 rounded-border"
+                                       maxlength="200"
+                                       placeholder="Descripción" id="desc"
+                                       Disabled="@soloLectura"
+                                       @ref="txtDescripcion"
+                                       @bind-Value="conceptoFormula.Descripcion"
+                                       oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>             
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Valor Inicial
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Valor Inicial" id="valorInic"
+                                     Disabled="@soloLectura"
+                                     @bind-Value="conceptoFormula.ValorInicial" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Valor Final
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Valor Final" id="valorFin"
+                                     Disabled="@soloLectura"
+                                     @bind-Value="conceptoFormula.ValorFinal" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Cantidad
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Cantidad" id="cantidad"
+                                     Disabled="@soloLectura"
+                                     @bind-Value="conceptoFormula.Cantidad" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Monto
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Monto" id="monto"
+                                     Disabled="@soloLectura"
+                                     @bind-Value="conceptoFormula.Monto"/>
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Fórmula
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputTextArea class="form-control br8 rounded-border"
+                                   maxlength="200"
+                                   placeholder="Fórmula" id="formula"
+                                   @ref="txtFormula"
+                                   @bind-Value="conceptoFormula.Formula"
+                                   Disabled="@soloLectura"
+                                   oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Nivel Fórmula
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputNumber class="form-control br8 rounded-border"
+                                     placeholder="Nivel Fórmula" id="nivelFormu"
+                                     Disabled="@soloLectura"
+                                     @bind-Value="conceptoFormula.NivelFormula" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Usa Cantidad
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                                   maxlength="1"
+                                   placeholder="Usa Cantidad" id="usaCantidad"
+                                   Disabled="@soloLectura"
+                                   @ref="txtUsaCantidad"
+                                   @bind-Value="conceptoFormula.UsaCantidad"
+                                   oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Usa Monto
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                                   maxlength="1"
+                                   placeholder="Usa Monto" id="usaMonto"
+                                   @ref="txtUsaMonto"
+                                   Disabled="@soloLectura"
+                                   @bind-Value="conceptoFormula.UsaMonto"
+                                   oninput="this.value=this.value.toUpperCase()" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Activo
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <div class="d-block text-dark text-decoration-none">
+                            <Switch @bind-Value="@conceptoFormula.Activo" Disabled="@soloLectura" />
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col">
+                        @if (Modo == 3)
+                        {
+                            <div class="row" id="btn-borrar">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    Eliminar
+                                    <Icon Name="IconName.Trash" />
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    Aceptar
+                                    <Icon Name="IconName.Save" />
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <br />
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Concepto Formula";
+    private string UrlRetorno = "./conceptoformulaslist";
+    private InputText txtId = new();
+    private InputTextArea txtDescripcion = new();
+    private InputTextArea txtFormula = new();
+    private InputText txtUsaCantidad = new();
+    private InputText txtUsaMonto= new();
+
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private ConceptoFormula conceptoFormula = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        soloLectura = Modo == 3;
+        try
+        {
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;
+                conceptoFormula = await mtoService.GetConceptoFormula(Id);
+            }
+            else
+            {
+                conceptoFormula = new ConceptoFormula
+                    {
+                        Id = "",
+                        Secuencia = 0,
+                        Descripcion = "",
+                        Activo = false,
+                        ValorInicial = 0.0M,
+                        ValorFinal = 0.0M,
+                        Cantidad = 0.0M,
+                        Monto = 0.0M,
+                        Formula = "",
+                        NivelFormula = 0,
+                        UsaCantidad = "",
+                        UsaMonto = "",
+                    };
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task GuardarCambios()
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+                conceptoFormula.FechaCreacion = DateTime.Now;
+                conceptoFormula.FechaActualizacion = DateTime.Now;
+                conceptoFormula.UsuarioCreacion = loginState.User.Id;
+                conceptoFormula.UsuarioActualizacion = loginState.User.Id;
+
+                List<ConceptoFormula> listAdd = new List<ConceptoFormula> { conceptoFormula };
+
+                EventResponse respuesta;
+                if (Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = "Atención",
+                            Text = $"¿Está seguro(a) que desea eliminar la actual opción?",
+                            Icon = SweetAlertIcon.Error,
+                            ShowCancelButton = true,
+                            ConfirmButtonText = "Sí",
+                            CancelButtonText = "No"
+                        });
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("ConceptoFormula", $"{conceptoFormula.Id.ToString()}|{conceptoFormula.Secuencia.ToString()}");
+                    }
+                    else
+                    {
+                        NavigationManager.NavigateTo(UrlRetorno);
+                        return;
+                    }
+                }
+                else
+                {
+                    respuesta = await genericService.Post("ConceptoFormula", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+    }
+
+    private async Task<bool> Validaciones()
+    {
+        if (String.IsNullOrEmpty(conceptoFormula.Id))
+        {
+            await Utiles.SetFocus(txtId);
+            await swal.FireAsync("Atención", "Debe indicar el Id de la Opción.", SweetAlertIcon.Info);
+            return false;
+        }
+        if (String.IsNullOrEmpty(conceptoFormula.Descripcion))
+        {
+            await Utiles.SetFocus(txtDescripcion);
+            await swal.FireAsync("Atención", "Debe indicar la descripción.", SweetAlertIcon.Info);
+            return false;
+        }
+        if (String.IsNullOrEmpty(conceptoFormula.Formula))
+        {
+            await Utiles.SetFocus(txtFormula);
+            await swal.FireAsync("Atención", "Debe indicar la fórmula.", SweetAlertIcon.Info);
+            return false;
+        }
+        if (String.IsNullOrEmpty(conceptoFormula.UsaCantidad))
+        {
+            await Utiles.SetFocus(txtUsaCantidad);
+            await swal.FireAsync("Atención", "Debe indicar el usa cantidad.", SweetAlertIcon.Info);
+            return false;
+        }
+        if (String.IsNullOrEmpty(conceptoFormula.UsaMonto))
+        {
+            await Utiles.SetFocus(txtUsaMonto);
+            await swal.FireAsync("Atención", "Debe indicar el usa monto.", SweetAlertIcon.Info);
+            return false;
+        }
+        return true;
+    }
+}
+
+
