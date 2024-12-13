@@ -14,32 +14,30 @@
         }
 
         <Grid @ref="grid" TItem="CentroCosto" class="table table-hover table-bordered table-striped "
-              DataProvider="modelDataProvider" AllowFiltering="true" Responsive="true"
-              AllowPaging="false" PageSize="10" PageSizeSelectorVisible="false" PageSizeSelectorItems="@(new int[] {10,50,100,200,500})"
-              PaginationItemsTextFormat="{0} - {1} of {2} items" ItemsPerPageText=""
+              DataProvider="modelDataProvider" AllowFiltering="true" Responsive="true" AllowPaging="true" PageSize="10" Height="500" Unit="Unit.Px"             
               HeaderRowCssClass="custom-header border-bottom-0"
               FiltersRowCssClass="custom-filter text-white border-bottom-0"
               FiltersTranslationProvider="gridExtensions.GridFiltersTranslationProvider"
               AllowRowClick="true"
-              FixedHeader="true"
-              Height="500"
-              Unit="Unit.Px"
+              FixedHeader="true"           
               OnRowDoubleClick="OnSelect">
-            
-            <GridColumn TItem="CentroCosto" HeaderText="Id" PropertyName="Id" Style="width:200px">
-                @context.Id
-            </GridColumn>
-            <GridColumn TItem="CentroCosto" HeaderText="Descripción" PropertyName="Descripción">
-                @context.Descripcion
-            </GridColumn>
-            <GridColumn TItem="CentroCosto" HeaderText="Acción" PropertyName="Activo" Filterable="false" TextAlignment="Alignment.Center">
-                <Switch Class="ml-5" @bind-Value="@context.Activo" Disabled/>
-            </GridColumn>
-            <GridColumn TItem="CentroCosto" HeaderText="Acción" PropertyName="action" Filterable="false" TextAlignment="Alignment.Center">
-                <button class="btn btn-danger rounded-circle text-white" type="submit" @onclick="@((e)=> OnDelete(e, context))">
-                    <Icon Name="IconName.Trash" Size="IconSize.x6" />
-                </button>
-            </GridColumn>
+            <GridColumns>
+                <GridColumn TItem="CentroCosto" HeaderText="Id" PropertyName="Id" Style="width:200px" SortKeySelector="item => item.Id">
+                    @context.Id
+                </GridColumn>
+                <GridColumn TItem="CentroCosto" HeaderText="Descripción" PropertyName="Descripción" SortKeySelector="item => item.Descripcion">
+                    @context.Descripcion
+                </GridColumn>
+                <GridColumn TItem="CentroCosto" HeaderText="Acción" PropertyName="Activo" Filterable="false" TextAlignment="Alignment.Center" SortKeySelector="item => item.Activo">
+                    <Switch Class="ml-5" @bind-Value="@context.Activo" Disabled />
+                </GridColumn>
+                <GridColumn TItem="CentroCosto" HeaderText="Acción" PropertyName="action" Filterable="false" TextAlignment="Alignment.Center">
+                    <button class="btn btn-danger rounded-circle text-white" type="submit" @onclick="@((e)=> OnDelete(e, context))">
+                        <Icon Name="IconName.Trash" Size="IconSize.x6" />
+                    </button>
+                </GridColumn>
+            </GridColumns>
+           
         </Grid>
     </div>
 </div>
