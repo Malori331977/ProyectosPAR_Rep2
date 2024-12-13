@@ -1,8 +1,5 @@
 ﻿@page "/centrocostoslist"
-
 @layout MainLayout
-
-
 
 <div class="card">
     <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
@@ -39,8 +36,6 @@
         </Grid>
     </div>
 </div>
-
-
 
 @code {
     public string Titulo { get; set; }
@@ -88,12 +83,9 @@
     protected async void OnSelect(GridRowEventArgs<CentroCosto> args)
     {
         NavigationManager.NavigateTo("./centrocostosdetalle/" + args.Item.Id + "/2");
-
     }
     protected async void OnDelete(MouseEventArgs mouseEventArgs, CentroCosto args)
     {
         NavigationManager.NavigateTo($"./centrocostosdetalle/{args.Id}/3");
-
     }
-
 }
