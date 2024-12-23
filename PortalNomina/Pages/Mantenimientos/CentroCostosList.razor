@@ -1,8 +1,5 @@
 ﻿@page "/centrocostoslist"
-
 @layout MainLayout
-
-
 
 <div class="card">
     <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
@@ -12,23 +9,22 @@
         {
             <SpinnerControl></SpinnerControl>
         }
-
-        <Grid @ref="grid" TItem="CentroCosto" class="table table-hover table-bordered table-striped "
-              DataProvider="modelDataProvider" AllowFiltering="true" Responsive="true" AllowPaging="true" PageSize="10" Height="500" Unit="Unit.Px"             
+        <Grid @ref="grid" TItem="CentroCosto" class="table custom-table table-hover table-bordered table-striped"
+              DataProvider="modelDataProvider" AllowFiltering="true" Responsive="true"
+              AllowPaging="true" PageSize="10" AllowSorting="true" Height="600"
               HeaderRowCssClass="custom-header border-bottom-0"
               FiltersRowCssClass="custom-filter text-white border-bottom-0"
-              FiltersTranslationProvider="gridExtensions.GridFiltersTranslationProvider"
               AllowRowClick="true"
-              FixedHeader="true"           
-              OnRowDoubleClick="OnSelect">
+              OnRowClick="OnSelect">
+
             <GridColumns>
-                <GridColumn TItem="CentroCosto" HeaderText="Id" PropertyName="Id" Style="width:200px" SortKeySelector="item => item.Id">
+                <GridColumn TItem="CentroCosto" HeaderText="Id" PropertyName="Id" SortKeySelector="item => item.Id">
                     @context.Id
                 </GridColumn>
-                <GridColumn TItem="CentroCosto" HeaderText="Descripción" PropertyName="Descripción" SortKeySelector="item => item.Descripcion">
+                <GridColumn TItem="CentroCosto" HeaderText="Descripción" PropertyName="Descripcion" SortKeySelector="item => item.Descripcion">
                     @context.Descripcion
                 </GridColumn>
-                <GridColumn TItem="CentroCosto" HeaderText="Acción" PropertyName="Activo" Filterable="false" TextAlignment="Alignment.Center" SortKeySelector="item => item.Activo">
+                <GridColumn TItem="CentroCosto" HeaderText="Activo" PropertyName="Activo" SortKeySelector="item => item.Activo">
                     <Switch Class="ml-5" @bind-Value="@context.Activo" Disabled />
                 </GridColumn>
                 <GridColumn TItem="CentroCosto" HeaderText="Acción" PropertyName="action" Filterable="false" TextAlignment="Alignment.Center">
@@ -37,12 +33,9 @@
                     </button>
                 </GridColumn>
             </GridColumns>
-           
         </Grid>
     </div>
 </div>
-
-
 
 @code {
     public string Titulo { get; set; }
@@ -90,12 +83,9 @@
     protected async void OnSelect(GridRowEventArgs<CentroCosto> args)
     {
         NavigationManager.NavigateTo("./centrocostosdetalle/" + args.Item.Id + "/2");
-
     }
     protected async void OnDelete(MouseEventArgs mouseEventArgs, CentroCosto args)
     {
         NavigationManager.NavigateTo($"./centrocostosdetalle/{args.Id}/3");
-
     }
-
 }
