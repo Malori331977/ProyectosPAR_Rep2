@@ -7,6 +7,7 @@
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.JSInterop
 @using PortalNomina
+@using PortalNomina.Data
 @using PortalNomina.Data.Interfaces
 @using PortalNomina.Shared
 @using PortalNomina.Models
@@ -18,9 +19,12 @@
 @using PortalNominaLibs.Models.Response
 @using PortalNominaLibs.Models.Securidad
 
-
+@using Radzen
+@using Radzen.Blazor
 @using BlazorBootstrap;
 @using CurrieTechnologies.Razor.SweetAlert2
+
+
 
 @inject SweetAlertService swal;
 @inject NavigationManager NavigationManager;
@@ -31,3 +35,5 @@
 @inject IMantenimientoService mtoService;
 @inject LoginState loginState;
 @inject IEmailRepository emailRepo;
+@inject CookieThemeService CookieThemeService
+@inject ExportData exportData

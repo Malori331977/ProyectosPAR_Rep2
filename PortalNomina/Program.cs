@@ -1,5 +1,6 @@
 using PortalNomina.DependencyInjection;
 using PortalNomina.Models;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +44,15 @@ if (withCors.Value == "S")
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddRadzenComponents();
 builder.Services.AddApplicationService();
+
+builder.Services.AddRadzenCookieThemeService(options =>
+{
+    options.Name = "PortalNominaTheme"; // The name of the cookie
+    options.Duration = TimeSpan.FromDays(365); // The duration of the cookie
+});
+
 
 var app = builder.Build();
 

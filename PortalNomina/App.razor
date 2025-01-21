@@ -10,3 +10,30 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; }
+
+    [Inject]
+    private ThemeService ThemeService { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (HttpContext != null)
+        {
+            var theme = HttpContext.Request.Cookies["PortalNominaTheme"];
+
+            if (!string.IsNullOrEmpty(theme))
+            {
+                ThemeService.SetTheme(theme, false);
+            }
+            else
+            {
+                ThemeService.SetTheme("default");
+            }
+        }
+    }
+}

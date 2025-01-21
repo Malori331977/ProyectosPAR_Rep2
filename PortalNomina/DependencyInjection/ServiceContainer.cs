@@ -16,7 +16,8 @@ namespace PortalNomina.DependencyInjection
             Services.AddScoped<IGridExtensions, GridExtensions>();
             Services.AddScoped<LoginState>();
             Services.AddScoped<IEmailRepository, EmailRepository>();
-
+            Services.AddScoped<ExportData>();
+            
             Services.AddSweetAlert2();
             Services.AddBlazorBootstrap();
 
