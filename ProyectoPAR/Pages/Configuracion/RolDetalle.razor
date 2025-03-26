@@ -1,0 +1,325 @@
+﻿@page "/roldetalle/{Id}/{Modo:int}"
+
+
+@layout MainLayout
+
+<div class="container-fluid px-1 py-1">
+	<div class="card shadow mb-4">
+        <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno"></PageReturn>
+
+        <div class="card-body shadow mb-2 shadow h-100 py-1 px-2 text-left">
+             <EditForm Model="@rol" OnSubmit="GuardarCambios">
+
+            @if (InProcess)
+            {
+            <SpinnerControl></SpinnerControl>
+            }
+
+        
+
+            <div class="row">
+
+                    <div class="input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Id
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                                        maxlength="4"
+                                        placeholder="Id" id="id"
+                                        Disabled="@soloLecturaAdd"
+                                           @bind-Value="rol.Id"/>
+                        </div>
+                    </div>
+
+                    <div class="input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Descripción
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                                       maxlength="50"
+                                       placeholder="Descripción" id="descripcion"
+                                       Disabled="@soloLectura"
+                                       @bind-Value="rol.Descripcion"
+                                       @ref="txtDescripcion" />
+                        </div>
+                    </div>
+                   
+
+                    <div class="row ml-5">
+                        <div class="col w-100 ml-5">
+                            <Switch @bind-Value="rol.Habilitado" Label="Habilitado" Disabled="@soloLectura" />
+                        </div>
+                        
+                    </div>
+
+            </div>
+
+        
+
+            <br />
+            <div class="row">
+                <div class="col">                
+                
+                    @if (Modo == 3)
+                    {
+                        <button type="submit" class="btn btn-danger w-100">
+                            Eliminar
+                            <span class="oi oi-trash" aria-hidden="true" />
+                        </button>
+                    }
+                    else{
+                        <button type="submit" class="btn btn-primary w-100">
+                            Aceptar
+                            <span class="oi oi-refresh" aria-hidden="true" />
+                        </button>                       
+                    }
+                
+                </div>            
+            </div>
+        </EditForm>
+        </div>
+
+       
+        <br />
+
+        <div style="--max-height:48vh">
+            <Grid @ref="grid" TItem="OpcionSistemaExt" class="custom-table table table-hover table-bordered table-striped" DataProvider="RolDetDataProvider" AllowFiltering="true" Responsive="true"
+                    AllowPaging="false" PageSize="10" PageSizeSelectorVisible="false" PageSizeSelectorItems="@(new int[] {10,50,100,200,500})"
+                    PaginationItemsTextFormat="{0} - {1} of {2} items" ItemsPerPageText=""
+                    HeaderRowCssClass="custom-header border-bottom-0"
+                    FiltersTranslationProvider="gridExtensions.GridFiltersTranslationProvider"
+                    FiltersRowCssClass="custom-filter text-white border-bottom-0">
+
+                <GridColumn TItem="OpcionSistemaExt" HeaderText="Habilitado" PropertyName="Habilitado" HeaderClass="custom-header" Filterable="false">
+                    <Switch @bind-Value="@context.Habilitado" Disabled="@(Modo==3)" @onclick="@((e)=>OnClickHabilitado(e,context))" />
+                </GridColumn>
+                <GridColumn TItem="OpcionSistemaExt" HeaderText="Id Rol" PropertyName="DescMenuPrincipal" HeaderClass="custom-header">
+                    @context.DescMenuPrincipal
+                </GridColumn>
+                <GridColumn TItem="OpcionSistemaExt" HeaderText="Descripción de Rol" PropertyName="MenuText" HeaderClass="custom-header">
+                    @context.MenuText 
+                </GridColumn>            
+            
+
+            </Grid>
+        </div>
+
+    </div>
+
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Roles";
+    private string UrlRetorno = "./rollist";
+    Rol rol = new();
+    private bool InProcess = true;
+    private InputText txtDescripcion;
+    private InputText txtId;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+
+    private IEnumerable<OpcionSistemaExt> listOpcionesSistema;
+    private BlazorBootstrap.Grid<OpcionSistemaExt> grid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InicializaValores();
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task InicializaValores()
+    {
+        soloLectura = (Modo == 3);
+        soloLecturaAdd = (Modo != 1);
+        //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+        if (Modo != 1)
+        {
+            rol = await configService.GetRol(Id);
+
+        }
+        else
+        {
+            rol = new();
+        }
+        InProcess = false;
+    }
+
+    private async Task<GridDataProviderResult<OpcionSistemaExt>> RolDetDataProvider(GridDataProviderRequest<OpcionSistemaExt> request)
+    {
+        while (InProcess)
+        {
+            await InicializaValores();
+        }
+
+        if (listOpcionesSistema is null) // pull only one time for client-side filtering, sorting, and paging
+            listOpcionesSistema = await getOpcionesSistema(); // call a service or an API to pull the sitios
+
+        return await Task.FromResult(request.ApplyTo(listOpcionesSistema));
+    }
+
+    private async Task<IEnumerable<OpcionSistemaExt>> getOpcionesSistema()
+    {
+        List<OpcionSistemaExt> listaOpciones;
+        var mnOpcionesSistema = await configService.GetOpcionSistema();
+
+
+
+        if (Modo == 1)
+        {
+            listaOpciones = (from ms in mnOpcionesSistema
+                             select new OpcionSistemaExt
+                             {
+                                 ParentId = ms.ParentId,
+                                 DescMenuPrincipal = ms.MenuPrincipal!.MenuText,
+                                 Id = ms.Id,
+                                 MenuText = ms.MenuText,
+                                 Habilitado = false,
+                             }).ToList();
+        }
+        else
+        {
+
+            var OpcionesRolesDetLeftJoin = from ms in mnOpcionesSistema
+                                           join rd in rol.RolDet
+                                                  on new { menuPrincipal = ms.ParentId, menuSecundario = ms.Id } equals new { menuPrincipal = rd.MenuPrincipalId, menuSecundario = rd.OpcionSistemaId }
+                                          into datosMsRd
+                                           from opc in datosMsRd.DefaultIfEmpty()
+                                           select new { ms, opc };
+
+            listaOpciones = new();
+
+            foreach (var item in OpcionesRolesDetLeftJoin)
+            {
+                OpcionSistemaExt nuevo = new();
+
+                nuevo.ParentId = item.ms.ParentId;
+                nuevo.DescMenuPrincipal = item.ms.MenuPrincipal!.MenuText;
+                nuevo.Id = item.ms.Id;
+                nuevo.MenuText = item.ms.MenuText;
+
+                if (item.opc is null)
+                {
+                    nuevo.Habilitado = false;
+                }
+                else
+                {
+                    nuevo.Habilitado = item.opc.Habilitado;
+                }
+                listaOpciones.Add(nuevo);
+            }
+
+        }
+
+        listOpcionesSistema = listaOpciones.OrderBy(e=>e.DescMenuPrincipal).ToList();
+
+        return listaOpciones.OrderBy(e => e.ParentId).ThenBy(e => e.Id).ToList();
+    }
+
+    private async Task GuardarCambios()
+    {
+        InProcess = true;
+        try
+        {
+            if (String.IsNullOrEmpty(rol.Id))
+            {
+                await swal.FireAsync("Error", "Debe indicar el Id del Rol.", SweetAlertIcon.Error);
+                await setFocus(txtId);
+                return;
+            }
+            if (String.IsNullOrEmpty(rol.Descripcion))
+            {
+                await swal.FireAsync("Error", "Debe indicar la descripción del Rol.", SweetAlertIcon.Error);
+                await setFocus(txtDescripcion);
+                return;
+            }
+            if (rol.Id=="-1")
+            {
+                await swal.FireAsync("Error", "Debe indicar el tipo de usuario para el que va dirigido el rol.", SweetAlertIcon.Error);
+                return;
+            }
+
+            var rolDet = (from o in listOpcionesSistema
+                          select new RolDet
+                              {
+                                  RolId = rol.Id,
+                                  MenuPrincipalId = o.ParentId!,
+                                  OpcionSistemaId = o.Id,
+                                  UsuarioCreacion=loginState.User.consultor!.Id.ToString(),
+                                  FechaCreacion = DateTime.Now,
+                                  UsuarioModificacion = loginState.User.consultor!.Id.ToString(),
+                                  FechaModificacion = DateTime.Now,
+                                  Habilitado = o.Habilitado,
+
+                              }).ToList();
+
+            rol.RolDet = rolDet;
+            rol.UsuarioModificacion = loginState.User.consultor!.Id.ToString();
+            rol.FechaModificacion = DateTime.Now;
+
+
+            EventResponse respuesta;
+            if (Modo == 3)
+            {
+                respuesta = await genericService.Delete("Rol", rol.Id.ToString());
+            }
+            else
+            {
+                respuesta = await genericService.Post("Rol", rol);
+            }
+
+            if (respuesta.Id == "0")
+            {
+                NavigationManager.NavigateTo("./rollist");
+            }
+            else
+            {
+                await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+    }
+
+    private async Task OnClickHabilitado(MouseEventArgs e, OpcionSistemaExt context)
+    {
+        var valor = listOpcionesSistema.Where(x => x.ParentId == context.ParentId
+                                           && x.Id == context.Id).FirstOrDefault();
+
+        listOpcionesSistema.Where(x => x.ParentId == context.ParentId
+                                  && x.Id == context.Id).ToList()
+            .ForEach(x => x.Habilitado = !valor!.Habilitado);
+
+    }
+
+    private async Task setFocus(InputText txt)
+    {
+        if (txt.Element.HasValue)
+        {
+            await txt.Element.Value.FocusAsync();
+        }
+    }
+
+    private async Task OnClickRetorno()
+    {
+        NavigationManager.NavigateTo(UrlRetorno);
+    }
+
+}
+

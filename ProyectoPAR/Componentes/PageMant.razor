@@ -1,0 +1,44 @@
+@inject NavigationManager NavigationManager
+<div class="card-header rz-background-color-base rz-text-contrast-color">
+    <RadzenRow>
+         <RadzenColumn>
+         </RadzenColumn>
+        <RadzenColumn>
+            <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0">
+                <h3>@Titulo</h3>
+            </RadzenStack>
+        </RadzenColumn>
+        <RadzenColumn>
+            <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.End" Wrap="FlexWrap.Wrap">
+                <RadzenButton ButtonStyle="ButtonStyle.Secondary" Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter"
+                    Icon="add_circle"  class="rounded-circle rz-my-1 rz-ms-1"
+                    Click=@(args => OnClickAdd()) />
+            </RadzenStack>
+        </RadzenColumn>
+
+    </RadzenRow>
+</div>
+   
+
+    
+    
+
+
+   
+
+@code {
+    [Parameter]
+    public string Titulo { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnClickAddSelected { get; set; }
+
+    private async Task OnClickAdd()
+    {
+        await OnClickAddSelected.InvokeAsync();
+    }
+
+    
+}
+
+

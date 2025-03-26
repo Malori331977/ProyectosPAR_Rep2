@@ -1,0 +1,332 @@
+﻿@page "/opcionsistemadetalle/{Id}/{Modo:int}"
+@layout MainLayout
+
+
+<div class="card">
+
+    <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+
+    <div class="card-body">
+        @if (opcionSistema is not null)
+        {
+            <EditForm Model="@opcionSistema" OnSubmit="GuardarCambios">
+
+
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Menu Principal
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputSelect class="form-control form-control selectpicker show-menu-arrow "
+                        data-live-search="true"
+                        style="font-size:medium"
+                        disabled="@soloLectura"
+                        @bind-Value="opcionSistema.ParentId">
+
+                            @if (listMenuPrincipal is not null)
+                            {
+                                @if (listMenuPrincipal.Count() > 0)
+                                {
+                                    <option value="0">Seleccione Menú Principal</option>
+                                    @foreach (var item in listMenuPrincipal)
+                                    {
+                                        <option value=@item.Id>@item.Id - @item.MenuText</option>
+                                    }
+                                }
+                            }
+
+                        </InputSelect>
+                    </div>
+                </div>
+
+
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Id
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                        maxlength="4"
+                        placeholder="Id" id="id"
+                        Disabled="@soloLecturaAdd"
+                        @ref="txtId"
+                        @bind-Value="opcionSistema.Id" />
+                    </div>
+                </div>
+
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Descripción
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                        maxlength="50"
+                        placeholder="Descripción" id="desc"
+                        Disabled="@soloLectura"
+                        @bind-Value="opcionSistema.MenuText" @ref="txtDescripcion" />
+                    </div>
+                </div>
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            HRef
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                        maxlength="100"
+                        placeholder="HRef" id="HRef"
+                        Disabled="@soloLectura"
+                        @bind-Value="opcionSistema.Href" @ref="txtHref" />
+                    </div>
+                </div>
+
+
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Icono
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <InputText class="form-control br8 rounded-border"
+                                   maxlength="50"
+                                   placeholder="Icono" id="IconId"
+                                   Disabled="@soloLectura"
+                                   @bind-Value="opcionSistema.IconId" />
+                    </div>
+
+                    @* <div class="input-group w-100" id="btnGroupAddon">
+                        <div class="d-block text-dark text-decoration-none">
+                            <div class="p-3 py-4 mb-2 bg-light text-center rounded">
+                                @{
+                                    IconName iName = (IconName)opcionSistema.IconId;
+                                }
+                                <a @onclick="(e)=>OnShowModalIcon(e)">
+                                    <Icon Name="@iName" Size="IconSize.x3" />
+                                </a>
+                            </div>
+                            <div class="name text-muted text-decoration-none text-center pt-1">@iName.ToString()</div>
+                        </div>
+
+                    </div> *@
+                </div>
+
+                <div class="input-group rounded-border">
+                    <div class="row">
+                        <label class="align-content-between lbl-xs">
+                            Activo
+                        </label>
+                    </div>
+                    <div class="input-group w-100" id="btnGroupAddon">
+                        <div class="d-block text-dark text-decoration-none">
+                            <Switch @bind-Value="@opcionSistema.Activo" Disabled="@soloLectura" />
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <br />
+                <div class="row">
+                    <div class="col">
+                        @if (Modo == 3)
+                        {
+                            <div class="row" id="btn-borrar">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    Eliminar
+                                    <Icon Name="IconName.Trash" />
+                                </button>
+                            </div>
+
+                        }
+                        else
+                        {
+                            <div class="row">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    Aceptar
+                                    <Icon Name="IconName.Save" />
+                                </button>
+                            </div>
+
+                        }
+                    </div>
+                </div>
+                <br />
+
+            </EditForm>
+
+
+        }
+    </div>
+</div>
+
+<Modal @ref="modalIcons" Size="ModalSize.Large" IsVerticallyCentered="true" IsScrollable="true" Class="my-modal" />
+
+
+@code {
+    [Parameter] public string Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Menú Secundario";
+    private string UrlRetorno = "./opcionsistemalist";
+    private InputText txtId = new();
+    private InputText txtDescripcion = new();
+    private InputText txtHref = new();
+
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private OpcionSistema opcionSistema = new();
+    List<IconName> ListOfIcons = new();
+    private Modal? modalIcons = default!;
+    private List<MenuPrincipal> listMenuPrincipal = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        soloLectura = Modo == 3;
+
+        foreach (var item in Enum.GetValues<IconName>().Where(x => x != IconName.None))
+        {
+            ListOfIcons.Add(item);
+        }
+
+        try
+        {
+            listMenuPrincipal = (await configService.GetMenuPrincipal()).ToList();
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;
+                opcionSistema = await configService.GetOpcionSistema(Id);
+            }
+            else
+            {
+                opcionSistema = new OpcionSistema
+                    {
+                        ParentId = "0",
+                        Id = "",
+                        MenuText = "",
+                        Href = "",
+                        IconId = "help",
+                        Activo = false,
+                    };
+            }
+
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task GuardarCambios()
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+
+                opcionSistema.MenuPrincipal = null;
+                opcionSistema.FechaModificacion = DateTime.Now;
+                opcionSistema.FechaCreacion = DateTime.Now;
+                opcionSistema.UsuarioCreacion = loginState.User.consultor?.Id.ToString();
+                opcionSistema.UsuarioModificacion = loginState.User.consultor?.Id.ToString();
+
+
+                //opcionSistema.RolDet = null;
+                EventResponse respuesta;
+
+                List<OpcionSistema> listOpciones = new List<OpcionSistema> { opcionSistema };
+
+                respuesta = await genericService.Post("OpcionSistema", listOpciones);
+
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+
+
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+    }
+
+    private async Task<bool> Validaciones()
+    {
+        if (opcionSistema.ParentId == "0" || opcionSistema.ParentId is null)
+        {
+            await Utiles.SetFocus(txtId);
+            await swal.FireAsync("Atención", "Debe indicar a que Menú Principal pertenece la opción.", SweetAlertIcon.Info);
+            return false;
+        }
+        if (opcionSistema.Id == "" || opcionSistema.Id is null)
+        {
+            await Utiles.SetFocus(txtId);
+            await swal.FireAsync("Atención", "Debe indicar el Id de la Opción.", SweetAlertIcon.Info);
+            return false;
+        }
+
+        if (opcionSistema.MenuText == "" || opcionSistema.MenuText is null)
+        {
+            await Utiles.SetFocus(txtDescripcion);
+            await swal.FireAsync("Atención", "Debe indicar la descripción.", SweetAlertIcon.Info);
+            return false;
+        }
+        return true;
+    }
+
+    // Metodo que permite mostrar y enviar los parametros necesarios al componente ListaModal
+    protected async Task OnShowModalIcon(MouseEventArgs mouseEventArgs)
+    {
+        try
+        {
+            if (soloLectura)
+                return;
+
+            var parameters = new Dictionary<string, object>();
+            parameters.Add("OnItemSelected", EventCallback.Factory.Create<IconName>(this, HideModalIcons));
+
+            await modalIcons!.ShowAsync<IconsPop>(title: "Iconos disponibles", parameters: parameters);
+
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+    private async Task HideModalIcons(IconName icon)
+    {
+
+        // opcionSistema.IconId = (int)icon;
+        
+        await modalIcons!.HideAsync();
+
+
+    }
+
+}

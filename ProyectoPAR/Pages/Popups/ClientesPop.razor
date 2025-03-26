@@ -1,0 +1,120 @@
+﻿@page "/clientespop"
+
+<div class="card">
+    <div class="card-body">
+
+        <RadzenStack Gap="1rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+
+            <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                            TItem="Cliente"
+                            AllowFiltering="true" 
+                            AllowColumnResize="true" 
+                            FilterMode="FilterMode.SimpleWithMenu" 
+                            PageSize="10"
+                            AllowPaging="true"
+                            AllowSorting="true" 
+                            AllowMultiColumnSorting="true" 
+                            ShowMultiColumnSortingIndex="true"
+                            Data="@dataList"
+                            ColumnWidth="300px"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"                           
+                            FilterCleared=@FilterCleared
+                            SelectionMode="DataGridSelectionMode.Single" 
+                            @bind-Value=@selectedData
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            RowDoubleClick="@OnSelect"
+                            AllowColumnPicking="true"
+                            AllowColumnReorder="true" 
+                            ColumnReordering="@OnColumnReordering">               
+                <Columns>
+
+                    <RadzenDataGridColumn Property="@nameof(Cliente.Id)"
+                                          FilterValue="@ClienteID" 
+                                          Filterable="true" Title="ID" 
+                                          Frozen="true" 
+                                          Width="100px" 
+                                          TextAlign="TextAlign.Center">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(Cliente.Nombre)" Title="Nombre" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(Cliente.Cedula)" Title="Cédula" Width="150px" />                                      
+                    <RadzenDataGridColumn Property="@nameof(Cliente.Contacto)" Title="Contacto" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(Cliente.Email)" Title="Email" Width="200px" />
+                    <RadzenDataGridColumn Property="@nameof(Cliente.Telefono)" Title="Teléfono" Width="150px" />                   
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenStack>
+        
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<Cliente> OnItemSelected { get; set; }
+
+    private bool InProcess = true; 
+
+    string? ClienteID;
+    RadzenDataGrid<Cliente> grid;
+    IEnumerable<Cliente> dataList;
+    IList<Cliente> selectedData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        dataList = await GetDataList();
+    }
+
+
+    async Task FilterCleared()
+    {
+        ClienteID = null;
+        await grid.FirstPage();
+    }
+
+    void OnRender(DataGridRenderEventArgs<Cliente> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
+
+        }
+    }
+
+
+    private async Task<IEnumerable<Cliente>> GetDataList()
+    {
+        List<Cliente> model = new();
+        try
+        {
+            model = (await mtoService.GetCliente()).ToList();
+
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<Cliente> args)
+    {
+        if (args.ToColumn.Property == nameof(Cliente.Id))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    
+    protected async Task OnSelect(DataGridRowMouseEventArgs<Cliente> args)
+    {
+        await OnItemSelected.InvokeAsync(args.Data);
+    }
+   
+}

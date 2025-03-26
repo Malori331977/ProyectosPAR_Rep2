@@ -1,0 +1,275 @@
+﻿@page "/"
+@page "/login"
+
+@layout IndexLayout
+@implements IDisposable
+
+<style media="screen">
+    *,
+    *:before,
+    *:after {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    }
+
+    body {
+    background-color: #808080;
+    }
+
+    .background {
+    width: 430px;
+    height: 520px;
+    position: absolute;
+    transform: translate(-50%,-50%);
+    left: 50%;
+    top: 50%;
+    }
+
+    .background .shape {
+    height: 200px;
+    width: 200px;
+    position: absolute;
+    border-radius: 50%;
+    }
+
+
+    form {
+    height: 520px;
+    width: 400px;
+    background-color: rgba(255,255,255,0.13);
+    position: absolute;
+    transform: translate(-50%,-50%);
+    top: 50%;
+    left: 75%;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 0 40px rgba(8,7,16,0.6);
+    padding: 50px 35px;
+    }
+
+    form * {
+    font-family: 'Poppins',sans-serif;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    outline: none;
+    border: none;
+    }
+
+    form h3 {
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 42px;
+    text-align: center;
+    }
+
+    form h5 {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    text-align: center;
+    }
+
+    label {
+    display: block;
+    margin-top: 30px;
+    font-size: 16px;
+    font-weight: 500;
+    }
+
+    input {
+    display: block;
+    height: 50px;
+    width: 100%;
+    background-color: azure;
+    border-radius: 999px;
+    padding: 0 10px;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 300;
+    color: black;
+    }
+
+    ::placeholder {
+    color: #e5e5e5;
+    }
+
+    button {
+    margin-top: 50px;
+    width: 100%;
+    background-color: #ffffff;
+    border-radius: 999px;
+    color: #080710;
+    padding: 15px 0;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    }
+
+    img {
+    margin-top: -50px;
+    margin-left: -50px;
+    width: 50%;
+    height: 105vh;
+    padding: 0 0;
+    cursor: pointer;
+    }
+
+
+
+</style>
+
+<img src="img/ImagenInicio.jpg" />
+<div class="background">
+</div>
+<EditForm Model="@usuario" OnValidSubmit="IniciarSesion">
+    <h3>
+        <Icon CustomIconName="fa-solid fa-user" Size="IconSize.x2" /> Ingresa tu cuenta
+    </h3>
+
+    <label for="username">Usuario</label>
+    <InputText placeholder="Tu nombre de usuario" id="username"
+    @bind-Value="usuario.consultor!.Usuario"
+    @ref="txtUsuario" />
+
+    <label for="password">Contraseña</label>
+    <InputText type="password" maxlength="50" placeholder="Password" id="password"
+    @bind-Value="usuario.userLogin!.Clave" @ref="txtPassword" />
+
+    <button type="submit" class="mb-3">
+        Iniciar Sesión
+    </button>
+
+    <div class="row">
+        <a class="nav-link text-center text-white lbl-xs" value="Olvidaste tu contraseña" @onclick="@LossPassword">
+            ¿Olvidaste tu contraseña?
+        </a>
+    </div>
+
+</EditForm>
+
+
+
+
+
+<Preload LoadingText="Iniciando sesión en portal..." />
+@code {
+    [Inject] protected PreloadService PreloadService { get; set; } = default!;
+
+
+    private UserData usuario = new();
+    private Consultor consultor = new();
+    InputText txtUsuario = new();
+    InputText txtPassword = new();
+    private bool habilitarControles = true;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        loginState.OnChange += StateHasChanged;
+
+        usuario = new UserData
+        {
+            consultor = new Consultor
+            {
+                Id=0,
+                Usuario="",
+            },
+            userLogin = new UserLogin
+            {
+                Clave="",
+            },
+
+        };
+
+        loginState.SetLogin(usuario);
+        StateHasChanged();
+
+    }
+
+    private async Task IniciarSesion()
+    {
+        PreloadService.Show();
+        try
+        {
+            StateHasChanged();
+
+            if (String.IsNullOrEmpty(usuario!.consultor!.Usuario))
+            {
+                PreloadService.Hide();
+                await swal.FireAsync("Atención", "Debe indicar el Id del usuario.", SweetAlertIcon.Error);
+                return;
+            }
+            if (String.IsNullOrEmpty(usuario!.userLogin!.Clave))
+            {
+                PreloadService.Hide();
+                await swal.FireAsync("Atención", "Debe indicar la contraseña.", SweetAlertIcon.Error);
+                return;
+            }
+
+            var consultor = await mtoService.GetConsultorByUsuario(usuario.consultor.Usuario);
+
+            if (consultor is not null)
+            {
+                usuario.consultor = consultor;
+                var userlogin = await configService.GetUserLogin(usuario.consultor.Id);
+
+                if (consultor.Activo)
+                {
+                    userlogin.Clave = usuario.userLogin.Clave;
+                    var respuesta = await genericService.Post("UsuarioValidaClave", userlogin);
+                    //respuesta.Id = "0";
+
+                    if (respuesta.Id == "0")
+                    {
+                        usuario.consultor = consultor;
+                        usuario.userLogin = userlogin;
+                        loginState.SetLogin(usuario);
+                        var parametros=await configService.GetParametro();
+                        RedirectTo("./principal");                       
+
+                    }
+                    else
+                    {
+                        PreloadService.Hide();
+                        await swal.FireAsync("Atención", "Se presentó un error al procesar solicitud: " + respuesta.Descripcion, SweetAlertIcon.Error);
+                    }
+                }
+                else
+                {
+                    PreloadService.Hide();
+                    await swal.FireAsync("Atención", "El empleado se encuentra INACTIVO.", SweetAlertIcon.Error);
+                }
+
+            }
+            else
+            {
+                PreloadService.Hide();
+                await swal.FireAsync("Atención", "El usuario o la contraseña son incorrectos.", SweetAlertIcon.Error);
+
+            }
+        }
+        catch (Exception e)
+        {
+            PreloadService.Hide();
+            Console.WriteLine(e);
+            await swal.FireAsync("Error", "Se presentó un error al procesar solicitud: " + e.Message, SweetAlertIcon.Error);
+            RedirectTo("./");
+        }
+    }
+
+    //Change Password
+    void LossPassword() => RedirectTo("./userOlvidoContrasena");
+
+    void Configuracion() => RedirectTo("./configuracionapisinicial");
+
+    void RedirectTo(string path) => NavigationManager.NavigateTo(path);
+
+    public void Dispose()
+    {
+        loginState.OnChange -= StateHasChanged;
+    }
+
+}

@@ -1,0 +1,43 @@
+﻿@using System.Net.Http
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using ProyectoPAR
+@using ProyectoPAR.Data
+@using ProyectoPAR.Data.Interfaces
+@using ProyectoPAR.Shared
+@using ProyectoPAR.Models
+@using ProyectoPAR.Componentes
+
+@using ProyectoParLibs.Models.Configuracion
+@using ProyectoParLibs.Models.Mantenimiento
+@using ProyectoParLibs.Models.Request
+@using ProyectoParLibs.Models.Response
+@using ProyectoParLibs.Models.Securidad
+@using ProyectoParLibs.Models.Procesos
+
+
+@using Radzen
+@using Radzen.Blazor
+@using BlazorBootstrap;
+@using CurrieTechnologies.Razor.SweetAlert2
+
+
+
+@inject SweetAlertService swal;
+@inject NavigationManager NavigationManager;
+@inject IGridExtensions gridExtensions
+
+@inject IGenericService genericService;
+@inject IConfigurationService configService;
+@inject IMantenimientoService mtoService;
+@inject IProcesoService processService;
+
+@inject LoginState loginState;
+@inject IEmailRepository emailRepo;
+@inject CookieThemeService CookieThemeService
+@inject ExportData exportData

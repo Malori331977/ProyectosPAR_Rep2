@@ -1,0 +1,223 @@
+﻿@inherits LayoutComponentBase
+@using System.ComponentModel;
+
+@if (data is not null)
+{
+    <RadzenLayout>
+        <RadzenHeader>
+            <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+                <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+                <RadzenLabel Text="Par+" />
+            </RadzenStack>
+        </RadzenHeader>
+        <RadzenSidebar Responsive="false" Style="width: max-content">
+            <RadzenPanelMenu DisplayStyle="@(sidebarExpanded? MenuItemDisplayStyle.IconAndText: MenuItemDisplayStyle.Icon)" ShowArrow="false">
+                @foreach (var item in data)
+                {
+                    @if (item.Items is not null)
+                    {
+                        <RadzenPanelMenuItem Text="@item.Text" Icon="@item.Icon" @bind-Expanded="@item.Expanded">
+                            <ChildContent>
+                                @foreach (var subItem in item.Items)
+                                {
+                                    <RadzenPanelMenuItem Text="@subItem.Text" Icon="@subItem.Icon" Click="(e) => MenuClick(e, subItem.Href)" />
+                                }
+                            </ChildContent>
+                        </RadzenPanelMenuItem>
+                    }
+
+                }
+            </RadzenPanelMenu>
+        </RadzenSidebar>
+        <RadzenBody>
+            <div class="rz-p-4">
+                @Body
+            </div>
+        </RadzenBody>
+        <RadzenFooter>
+            <PieDePagina></PieDePagina>
+        </RadzenFooter>
+    </RadzenLayout>
+
+}
+
+
+
+
+@code {
+    private List<MenuModel> data; 
+    bool sidebarExpanded = true;
+
+    protected override async void OnInitialized()
+    {
+        data = await GetNavItems();
+        StateHasChanged();
+
+    }
+
+    public class MenuModel : INotifyPropertyChanged
+    {
+        Func<List<MenuModel>> collection;
+        public MenuModel()
+        {
+
+        }
+        public MenuModel(Func<List<MenuModel>> collection)
+        {
+            this.collection = collection;
+        }
+
+        public string Id { get; set; }
+        public string Text { get; set; }
+        public string Icon { get; set; }
+        public string Href { get; set; }
+
+        bool _expanded;
+        public bool Expanded
+        {
+            get
+            {
+                return _expanded;
+            }
+            set
+            {
+                if (_expanded != value)
+                {
+                    if (collection is not null)
+                    {
+                        collection()?.Where(i => i != this).ToList().ForEach(s => s.Expanded = false);
+                    }
+
+
+                    _expanded = value;
+                    OnPropertyChanged(nameof(Expanded));
+                }
+            }
+        }
+
+        public IEnumerable<MenuModel> Items { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+
+
+    private async Task<List<MenuModel>> GetNavItems()
+    {
+
+        List<MenuModel> navItems = new();
+
+
+        IEnumerable<OpcionSistema> listOpcionesUsuario;
+        try
+        {
+            var menuPrincipal = await configService.GetMenuPrincipal();
+
+            var login = loginState.User;
+            listOpcionesUsuario = await GetOpcionesUsuario();
+
+            if (menuPrincipal is not null)
+            {
+                foreach (var mp in menuPrincipal)
+                {
+                    List<MenuModel> subItemsMenu = new();
+                    if (listOpcionesUsuario.Any(e => e.ParentId == mp.Id))
+                    {
+                        foreach (var itemOpc in mp.OpcionSistema!.Where(e => e.Activo == true))
+                        {
+                            if (listOpcionesUsuario.Any(e => e.ParentId == mp.Id && e.Id == itemOpc.Id))
+                            {
+                                subItemsMenu.Add(new MenuModel
+                                {
+                                    Id = itemOpc.Id,
+                                    Text = itemOpc.MenuText,
+                                    Expanded = false,
+                                    Icon = itemOpc.IconId,
+                                    Href = itemOpc.Href!
+                                });
+                            }
+                        }
+
+                        navItems.Add(new MenuModel
+                        {
+                            Id = mp.Id,
+                            Text = mp.MenuText,
+                            Expanded = false,
+                            Icon = mp.IconId,
+                            Href = "",
+                            Items = subItemsMenu,
+                        });
+
+
+
+
+                    }
+
+                }
+            }
+
+            
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+
+        return navItems;
+    }
+
+    private async Task<IEnumerable<OpcionSistema>> GetOpcionesUsuario()
+    {
+        List<OpcionSistema> listOpcionesRol = new();
+        try
+        {
+
+            var usuario = await mtoService.GetConsultor(loginState.User.consultor!.Id);
+            if (usuario is not null)
+            {
+                foreach (var rol in usuario.ConsultorRol!.Where(e => e.Habilitado == true))
+                {
+                    var rolBuscar = await configService.GetRol(rol.RolId);
+
+                    if (rolBuscar.Habilitado)
+                    {
+                        if (rolBuscar.RolDet is not null)
+                        {
+                            var ops = (from e in rolBuscar.RolDet.Where(e => e.Habilitado == true)
+                                       select new OpcionSistema
+                                       {
+                                           ParentId = e.MenuPrincipalId,
+                                           Id = e.OpcionSistemaId,
+                                       }).ToList();
+
+                            listOpcionesRol.AddRange(ops);
+                        }
+                    }
+                    listOpcionesRol = (listOpcionesRol.Distinct()).ToList();
+                }
+            }
+
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+
+        return listOpcionesRol;
+
+
+    }
+
+    private void MenuClick(MenuItemEventArgs e, string href)
+    {
+        NavigationManager.NavigateTo(href);
+    }
+}

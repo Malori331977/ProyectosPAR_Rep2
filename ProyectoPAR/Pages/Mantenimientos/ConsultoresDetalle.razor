@@ -1,0 +1,313 @@
+﻿@page "/consultoresdetalle/{Id:int}/{Modo:int}"
+
+@layout MainLayout
+
+@inject SweetAlertService swal;
+
+
+<div class="card">
+
+    <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+
+    <div class="card-body">
+        @if (consultor is not null)
+        {
+            <EditForm Model="@consultor" OnSubmit="GuardarCambios">
+                <div class="row">
+
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Código de Usuario
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                            maxlength="50"
+                            placeholder="Usuario" id="usuario"
+                            Disabled="@soloLecturaAdd"
+                            @bind-value="consultor.Usuario" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Primer Apellido
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                            maxlength="50"
+                            placeholder="Primer Apellido" id="primerApellido"
+                            Disabled="@soloLectura"
+                            @bind-value="consultor.PrimerApellido" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Segundo Apellido
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                            maxlength="50"
+                            placeholder="Segundo Apellido" id="segundoApellido"
+                            Disabled="@soloLectura"
+                            @bind-value="consultor.SegundoApellido" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Nombre
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                            maxlength="50"
+                            placeholder="Nombre" id="nombre"
+                            Disabled="@soloLectura"
+                            @bind-value="consultor.Nombre" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Email
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                            maxlength="100"
+                            placeholder="Email" id="email"
+                            Disabled="@soloLectura"
+                            @bind-value="consultor.Email" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Teléfono
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                            maxlength="100"
+                            placeholder="Teléfono" id="telefono"
+                            Disabled="@soloLectura"
+                            @bind-value="consultor.Telefono" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Activo
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <div class="d-block text-dark text-decoration-none">
+                                <Switch @bind-Value="@consultor.Activo" Disabled="@soloLectura" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <br />
+                <div class="row">
+                    <div class="col">
+                        @if (Modo == 3)
+                        {
+                            <div class="row" id="btn-borrar">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    Eliminar
+                                    <Icon Name="IconName.Trash" />
+                                </button>
+                            </div>
+
+                        }
+                        else
+                        {
+                            <div class="row">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    Aceptar
+                                    <Icon Name="IconName.Save" />
+                                </button>
+                            </div>
+
+                        }
+                    </div>
+                </div>
+                <br />
+
+            </EditForm>
+        }
+    </div>
+</div>
+
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Consultores";
+    private string UrlRetorno = "./consultoreslist";
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private Consultor consultor = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        soloLectura = Modo == 3;
+        try
+        {
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;
+                consultor = await mtoService.GetConsultor(Id);
+            }
+            else
+            {
+                consultor = new Consultor
+                {
+                    Id = 0,
+                    Usuario = "",
+                    PrimerApellido = "",                    
+                    SegundoApellido = "",
+                    Nombre = "",
+                    Email="",
+                    Telefono = "",
+                    Activo = false,
+
+
+                };
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task GuardarCambios()
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+                consultor.FechaCreacion = DateTime.Now;
+                consultor.FechaModificacion = DateTime.Now;
+                consultor.UsuarioCreacion = loginState.User.consultor!.Id.ToString();
+                consultor.UsuarioModificacion = loginState.User.consultor.Id.ToString();
+
+                List<Consultor> listAdd = new List<Consultor> { consultor };
+
+                EventResponse respuesta;
+                if (Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = "Atención",
+                            Text = $"¿Está seguro(a) que desea eliminar el usuario actual?",
+                            Icon = SweetAlertIcon.Error,
+                            ShowCancelButton = true,
+                            ConfirmButtonText = "Sí",
+                            CancelButtonText = "No"
+                        });
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("Consultor", consultor.Id.ToString());
+                    }
+                    else
+                    {
+                        NavigationManager.NavigateTo(UrlRetorno);
+                        return;
+                    }
+                }
+                else
+                {
+                    respuesta = await genericService.Post("Consultor", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+    }
+
+    private async Task<bool> Validaciones()
+    {
+
+        if (String.IsNullOrEmpty(consultor.Usuario))
+        {
+            await swal.FireAsync("Atención", "Debe indicar el código de usuario.", SweetAlertIcon.Info);
+            return false;
+        }
+
+        if (Modo != 3)
+        {
+            var existeUsuario = await mtoService.GetConsultorByUsuario(consultor.Usuario);
+
+            if (existeUsuario is not null)
+            {
+                await swal.FireAsync("Atención", $"Ya existe un consultor con el código de usuario {consultor.Usuario}.", SweetAlertIcon.Info);
+                return false;
+            }
+            if (String.IsNullOrEmpty(consultor.PrimerApellido))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el Primer Apellido.", SweetAlertIcon.Info);
+                return false;
+            }
+            if (String.IsNullOrEmpty(consultor.SegundoApellido))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el Segundo Apellido.", SweetAlertIcon.Info);
+                return false;
+            }
+            if (String.IsNullOrEmpty(consultor.Nombre))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el Nombre.", SweetAlertIcon.Info);
+                return false;
+            }
+            if (String.IsNullOrEmpty(consultor.Email))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el Email.", SweetAlertIcon.Info);
+                return false;
+            }
+            if (String.IsNullOrEmpty(consultor.Telefono))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el Teléfono.", SweetAlertIcon.Info);
+                return false;
+            }
+        }
+        
+        
+        return true;
+    }
+}

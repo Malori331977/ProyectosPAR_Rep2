@@ -1,0 +1,158 @@
+﻿@inherits LayoutComponentBase
+<RadzenComponents />
+
+<div class="bb-page">
+   
+    <Sidebar @ref="sidebar"
+            ImageSrc="img/logoblanco.png"
+            Title="PAR"
+            DataProvider="SidebarDataProvider"
+            Href="./principal" />
+   
+    
+
+    <main>
+        <div class="bb-top-row px-4 d-flex" style="background-color:#EBEDF2">
+            <div class="col-1 text-start">               
+                <Button Color="ButtonColor.Light" Style="border-radius: 25px;" @onclick="ToogleSidebar">
+                    <Icon Name="IconName.List" Size="IconSize.x5" />
+                </Button>               
+            </div>
+
+            <div class="col-11 text-end">
+                <label>
+                    @loginState.User.consultor!.Usuario
+                </label>
+                <Button Color="ButtonColor.Light" Style="border-radius: 25px;" @onclick="CerrarSesion">
+                    <Icon Name="IconName.Person" Size="IconSize.x5" Color="IconColor.Info" />
+                </Button>
+
+               @*  <Button Color="ButtonColor.Light" Style="border-radius: 25px;" @onclick="CerrarSesion">
+                    <Icon Name="IconName.DoorOpenFill" Size="IconSize.x5" Color="IconColor.Danger" />
+                    </Button> *@
+            </div>
+        </div>
+
+        <article class="content px-4">
+            <div class="py-2">
+                @Body
+            </div>
+        </article>
+    </main>
+
+</div>
+
+<Preload LoadingText="Iniciando sesión en portal..." />
+
+@code {
+    private Sidebar sidebar = default!;
+    private IEnumerable<NavItem> navItems = default!;
+    [Inject] protected PreloadService PreloadService { get; set; } = default!;
+
+    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request)
+    {
+        if (navItems is null)
+            navItems = await GetNavItems();
+
+        return await Task.FromResult(request.ApplyTo(navItems));
+    }
+
+    private async Task<IEnumerable<NavItem>> GetNavItems()
+    {
+        PreloadService.Show();
+        List<NavItem> navItems = new();
+        navItems.Add(new NavItem { Id = "0", Href = "./principal", IconName = IconName.HouseDoorFill, Text = "Inicio" });
+
+        IEnumerable<OpcionSistema> listOpcionesUsuario;
+        try
+        {
+            var menuPrincipal = await configService.GetMenuPrincipal();
+
+            var login = loginState.User;
+            listOpcionesUsuario = await GetOpcionesUsuario();
+
+            if (menuPrincipal is not null)
+            {
+                foreach (var mp in menuPrincipal)
+                {
+                    if (listOpcionesUsuario.Any(e => e.ParentId == mp.Id))
+                    {
+                        navItems.Add(new NavItem { Id = mp.Id, IconName = (IconName)1400, Text = mp.MenuText, IconColor = IconColor.Primary });
+
+                        foreach (var itemOpc in mp.OpcionSistema!.Where(e => e.Activo == true))
+                        {
+                            if (listOpcionesUsuario.Any(e => e.ParentId == mp.Id && e.Id==itemOpc.Id))
+                            {
+                                navItems.Add(new NavItem { Id = itemOpc.Id, Href = $"./{itemOpc.Href}", IconName = (IconName)1400, Text = itemOpc.MenuText, ParentId = mp.Id });
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            navItems.Add(new NavItem { Id = "9999", Href = "./", IconName = IconName.DoorClosedFill, Text = "Salir", IconColor = IconColor.Danger });
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+        finally
+        {
+            PreloadService.Hide();
+        }
+
+        return navItems;
+    }
+
+    private async Task<IEnumerable<OpcionSistema>> GetOpcionesUsuario()
+    {
+        List<OpcionSistema> listOpcionesRol = new();
+        try
+        {
+
+            var usuario = await mtoService.GetConsultor(loginState.User.consultor!.Id);
+            if (usuario is not null)
+            {
+                foreach (var rol in usuario.ConsultorRol!.Where(e => e.Habilitado == true))
+                {
+                    var rolBuscar = await configService.GetRol(rol.RolId);
+
+                    if (rolBuscar.Habilitado)
+                    {
+                        if (rolBuscar.RolDet is not null)
+                        {
+                            var ops = (from e in rolBuscar.RolDet.Where(e => e.Habilitado == true)
+                                       select new OpcionSistema
+                                           {
+                                               ParentId = e.MenuPrincipalId,
+                                               Id = e.OpcionSistemaId,
+                                           }).ToList();
+
+                            listOpcionesRol.AddRange(ops);
+                        }
+                    }
+                    listOpcionesRol = (listOpcionesRol.Distinct()).ToList();
+                }
+            }
+
+            
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    
+        return listOpcionesRol;
+
+
+    }
+
+    private async Task CerrarSesion()
+    {
+        NavigationManager.NavigateTo("./");
+    }
+
+    private void ToogleSidebar() => sidebar.ToggleSidebar();
+
+}

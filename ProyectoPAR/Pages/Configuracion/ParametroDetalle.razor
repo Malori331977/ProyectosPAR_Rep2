@@ -1,0 +1,114 @@
+﻿@page "/parametrodetalle"
+
+@layout MainLayout
+
+<div class="container-fluid px-1 py-1">
+	<div class="card shadow mb-4">
+        <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno"></PageReturn>
+
+        <div class="card-body shadow mb-2 shadow h-100 py-1 px-2 text-left">
+            <EditForm Model="@parametro" OnValidSubmit="Guardar">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+
+                <div class="row">
+                    <button type="submit" class="btn btn-primary">
+                        Guardar
+                        <span class="oi oi-task" aria-hidden="true" />
+                    </button>
+                </div> 
+
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+
+    private string Titulo { get; set; }
+    private Parametro parametro = new();
+    private string UrlRetorno = "./principal";
+    private InputNumber<int> txtSmtpPort;
+
+
+    protected override async void OnInitialized()
+    {
+
+        var model = await configService.GetParametro();
+        Titulo="Modificar Parámetros de Sistema";
+
+        if (model is null){
+            parametro = new Parametro
+                {
+                    Sistema = 1,
+                };
+        }
+        else{
+            parametro = model;
+        }
+
+
+        StateHasChanged();
+    }
+
+    private async Task Guardar()
+    {
+        try
+        {
+            if (await DatosValidos())
+            {
+
+                var respuesta = await genericService.Post("Parametro", parametro);
+
+                if (respuesta.Id == "0")
+                {
+                    RedirectTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }                    
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            await swal.FireAsync("Error", "Se presentó un error al procesar solicitud: " + e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+    private async Task<bool> DatosValidos()
+    {
+
+        // if (parametro.AnosVigenciaEstablecimiento == 0)
+        // {
+        //     await swal.FireAsync("Error", "Debe indicar la vigencia de los Establecimientos.", SweetAlertIcon.Error);
+        //     return false;
+        // }
+        // if (parametro.AnosVigenciaRegencia == 0)
+        // {
+        //     await swal.FireAsync("Error", "Debe indicar la vigencia de las Regencias.", SweetAlertIcon.Error);
+        //     return false;
+        // }
+
+        // if (parametro.UsaGeoReferencia)
+        // {
+        //     if (String.IsNullOrEmpty(parametro.GoogleMapApiKey))
+        //     {
+        //         await swal.FireAsync("Error", "Debe indicar la clave para utilizar Api de Google Maps.", SweetAlertIcon.Error);
+        //         return false;
+        //     }
+        // }
+        // else
+        //     parametro.GoogleMapApiKey = null;
+
+        return true;
+    }
+
+    void RedirectTo(string path) => NavigationManager.NavigateTo(path);
+
+}
+

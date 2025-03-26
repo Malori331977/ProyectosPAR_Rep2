@@ -1,0 +1,376 @@
+﻿@page "/clientesdetalle/{Id}/{Modo:int}"
+
+@layout MainLayout
+
+@inject SweetAlertService swal;
+
+
+<div class="card">
+
+    <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+
+    <div class="card-body">
+        @if (cliente is not null)
+        {
+            <EditForm Model="@cliente" OnSubmit="GuardarCambios">
+                <div class="row">
+
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Id de Cliente
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                            maxlength="50"
+                            placeholder="Id de Cliente" id="id"
+                            Disabled="@soloLecturaAdd"
+                            @bind-value="cliente.Id" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Nombre
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                                maxlength="255"
+                                placeholder="Nombre" id="Nombre"
+                                Disabled="@soloLectura"
+                                @bind-value="cliente.Nombre" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Teléfono
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                                maxlength="50"
+                                placeholder="Telefono" id="Telefono"
+                                Disabled="@soloLectura"
+                                @bind-value="cliente.Telefono" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Cédula
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                                maxlength="25"
+                                placeholder="Cédula" id="Cedula"
+                                Disabled="@soloLectura"
+                                @bind-value="cliente.Cedula" />
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-12 input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Dirección
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                                maxlength="500"
+                                placeholder="Dirección" id="Direccion"
+                                Disabled="@soloLectura"
+                                @bind-value="cliente.Direccion" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Contacto
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                                maxlength="100"
+                                placeholder="Contacto" id="Contacto"
+                                Disabled="@soloLectura"
+                                @bind-value="cliente.Contacto" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Email
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                                       maxlength="100"
+                                       placeholder="Email" id="Email"
+                                       Disabled="@soloLectura"
+                                       @bind-value="cliente.Email" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between ibm-plex-serif-medium">
+                                Estado
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputSelect class="form-control ibm-plex-serif-medium selectpicker show-menu-arrow "
+                                         disabled="@soloLectura"
+                                         @bind-Value=cliente.EstadoId>
+
+                                <option value="0">Seleccione Estado</option>
+                                @if (listEstado is not null)
+                                {
+                                    @foreach (var item in listEstado)
+                                    {
+                                        <option value=@item.Id>@item.Descripcion</option>
+                                    }
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-2 input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Subsidiaria
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <div class="d-block text-dark text-decoration-none">
+                                <Switch @bind-Value="@cliente.Subsidiaria" Disabled="@soloLectura" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-10 input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Cliente Padre
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputNumber class="form-control br8 rounded-border"
+                                       maxlength="100"
+                                       placeholder="ClientePadre" id="ClientePadre"
+                                       Disabled="@soloLectura"
+                                       @bind-value="cliente.ClientePadre" />
+                        </div>
+                    </div>
+                </div>
+
+
+                <br />
+                <div class="row">
+                    <div class="col">
+                        @if (Modo == 3)
+                        {
+                            <div class="row" id="btn-borrar">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    Eliminar
+                                    <Icon Name="IconName.Trash" />
+                                </button>
+                            </div>
+
+                        }
+                        else
+                        {
+                            <div class="row">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    Aceptar
+                                    <Icon Name="IconName.Save" />
+                                </button>
+                            </div>
+
+                        }
+                    </div>
+                </div>
+                <br />
+
+            </EditForm>
+        }
+    </div>
+</div>
+
+
+@code {
+    [Parameter] public string Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Clientes";
+    private string UrlRetorno = "./clienteslist";
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private Cliente cliente = new();
+    private IEnumerable<CatalogoGenerico>? listEstado;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        soloLectura = Modo == 3;
+        try
+        {
+            listEstado = await configService.GetCatalogoGenerico("ESTADO_GLOBAL");
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;
+                cliente = await mtoService.GetCliente(Id);
+            }
+            else
+            {
+                cliente = new Cliente
+                {
+                    Id = "",
+                    Cedula = "",
+                    Contacto = "",
+                    Direccion = "",                    
+                    EstadoId = "A",
+                    Nombre = "",
+                    Email="",
+                    Telefono = "",                    
+                    FechaCreacion = DateTime.Now,
+                    FechaModificacion = DateTime.Now,
+                    UsuarioCreacion = "",
+                    UsuarioModificacion = "",
+                    Subsidiaria = false,
+                    ClientePadre = null,
+                };
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task GuardarCambios()
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+                cliente.FechaCreacion = DateTime.Now;
+                cliente.FechaModificacion = DateTime.Now;
+                cliente.UsuarioCreacion = loginState.User.consultor!.Id.ToString();
+                cliente.UsuarioModificacion = loginState.User.consultor.Id.ToString();
+
+                List<Cliente> listAdd = new List<Cliente> { cliente };
+
+                EventResponse respuesta;
+                if (Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                        {
+                            Title = "Atención",
+                            Text = $"¿Está seguro(a) que desea eliminar el cliente actual?",
+                            Icon = SweetAlertIcon.Error,
+                            ShowCancelButton = true,
+                            ConfirmButtonText = "Sí",
+                            CancelButtonText = "No"
+                        });
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("Cliente", cliente.Id.ToString());
+                    }
+                    else
+                    {
+                        NavigationManager.NavigateTo(UrlRetorno);
+                        return;
+                    }
+                }
+                else
+                {
+                    respuesta = await genericService.Post("Cliente", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+    }
+
+    private async Task<bool> Validaciones()
+    {
+
+        if (String.IsNullOrEmpty(cliente.Id))
+        {
+            await swal.FireAsync("Atención", "Debe indicar el código de Cliente.", SweetAlertIcon.Info);
+            return false;
+        }
+
+        if (Modo != 3)
+        {
+            
+            if (String.IsNullOrEmpty(cliente.Nombre))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el Nombre del Cliente.", SweetAlertIcon.Info);
+                return false;
+            }
+            // if (String.IsNullOrEmpty(cliente.Cedula))
+            // {
+            //     await swal.FireAsync("Atención", "Debe indicar la Cédula.", SweetAlertIcon.Info);
+            //     return false;
+            // }
+            // if (String.IsNullOrEmpty(cliente.Telefono))
+            // {
+            //     await swal.FireAsync("Atención", "Debe indicar el Telefono.", SweetAlertIcon.Info);
+            //     return false;
+            // }
+            if (String.IsNullOrEmpty(cliente.Direccion))
+            {
+                await swal.FireAsync("Atención", "Debe indicar la Dirección.", SweetAlertIcon.Info);
+                return false;
+            }
+            if (String.IsNullOrEmpty(cliente.Contacto))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el Contacto.", SweetAlertIcon.Info);
+                return false;
+            }
+            if (cliente.EstadoId=="0")
+            {
+                await swal.FireAsync("Atención", "Debe indicar el Estado.", SweetAlertIcon.Info);
+                return false;
+            }
+            if (cliente.Subsidiaria && cliente.ClientePadre is null)
+            {
+                await swal.FireAsync("Atención", "Debe indicar el Cliente Padre.", SweetAlertIcon.Info);
+                return false;
+            }
+        }
+        
+        
+        return true;
+    }
+}

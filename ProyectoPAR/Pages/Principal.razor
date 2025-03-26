@@ -1,0 +1,55 @@
+﻿@page "/principal"
+
+@layout MainLayout
+
+<style>
+
+    .card_img {
+        width: 10rem;
+        height: 10rem;
+        overflow: hidden;
+        border-radius: 100%;
+        max-width: 10rem;
+    }
+</style>
+
+<PageTitle>Principal</PageTitle>
+
+
+@code {
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        try
+        {
+            if (loginState.User is null)
+            {
+                NavigationManager.NavigateTo("./");
+                return;
+            }
+            else
+            {
+                if (loginState.User.consultor.Id == null)
+                {
+                    NavigationManager.NavigateTo("./");
+                    return;
+                }
+            }
+
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Atención", "Se presentó un error al cargar el Menú Principal: " + e.Message, SweetAlertIcon.Error);
+            NavigationManager.NavigateTo("./");
+            Console.WriteLine(e.Message);
+        }
+
+        StateHasChanged();
+    }
+
+
+
+
+}
