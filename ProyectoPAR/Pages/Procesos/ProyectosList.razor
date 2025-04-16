@@ -1,0 +1,223 @@
+﻿@page "/proyectoslist"
+@layout MainLayout
+
+<div class="card rz-background-color-base-200">
+    <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
+
+    <div class="card-body">
+        <RadzenStack Gap="0.5rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+
+            <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+            TItem="ProyectoExt"
+            AllowFiltering="true"
+            AllowColumnResize="true"
+            FilterMode="FilterMode.SimpleWithMenu"
+            PageSize="7"
+            AllowPaging="true"
+            AllowSorting="true"
+            AllowMultiColumnSorting="true"
+            ShowMultiColumnSortingIndex="true"
+            Data="@dataList"
+            ColumnWidth="300px"
+            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+            FilterCleared=@FilterCleared
+            SelectionMode="DataGridSelectionMode.Single"
+            @bind-Value=@selectedData
+            LogicalFilterOperator="LogicalFilterOperator.Or"
+            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+            RowDoubleClick="@OnSelect"
+            AllowColumnPicking="true"
+            AllowColumnReorder="true"
+            ColumnReordering="@OnColumnReordering">
+                <HeaderTemplate>
+                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
+                        <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Success" Text="Exportar a XLS" Icon="grid_on" Click="@(args => Export("excel"))" />
+                        <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Secondary" Text="Exportar a CSV" Icon="wrap_text" Click="@(args => Export("csv"))" />
+                    </RadzenStack>
+                </HeaderTemplate>
+                <Columns>
+
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.Id)"
+                    FilterValue="@ProyectoID"
+                    Filterable="true" Title="ID"
+                    Frozen="true"
+                    Width="100px"
+                    TextAlign="TextAlign.Center">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.NombreCliente)" Title="Cliente" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.Descripcion)" Title="Descripcion" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.DescEstado)" Title="Estado" Width="200px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Context="Proyecto" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
+                        <Template Context="ProyectoExt">
+                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger"
+                            Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
+                            Click="@(args => OnDelete(ProyectoExt))" />
+                        </Template>
+
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenStack>
+    </div>
+</div>
+
+
+
+
+
+@code {
+    public string Titulo { get; set; }
+    private bool InProcess = true;
+
+    string? ProyectoID;
+    RadzenDataGrid<ProyectoExt> grid;
+    IEnumerable<ProyectoExt> dataList;
+    IList<ProyectoExt> selectedData;
+    private IEnumerable<CatalogoGenerico>? listEstadoProyecto;
+
+    private async Task LoadEstadoProyecto() => listEstadoProyecto = await configService.GetCatalogoGenerico("ESTADO_PROYECTO");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (Titulo is null) Titulo = "Proyectos";
+        dataList = await GetDataList();
+    }
+
+
+    async Task FilterCleared()
+    {
+        ProyectoID = null;
+        await grid.FirstPage();
+    }
+
+    void OnRender(DataGridRenderEventArgs<ProyectoExt> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
+
+        }
+    }
+
+
+    private async Task<IEnumerable<ProyectoExt>> GetDataList()
+    {
+        List<ProyectoExt> model = new();
+        try
+        {
+            await LoadEstadoProyecto();
+            var Proyectos = await processService.GetProyecto();
+
+            if (Proyectos is not null)
+            {
+                model = (from e in Proyectos
+                         join st in listEstadoProyecto! on e.EstadoId equals st.Id
+                         select new ProyectoExt
+                         {
+                             Id = e.Id,
+                             Descripcion = e.Descripcion,
+                             ClienteId = e.ClienteId,
+                             FechaInicio = e.FechaInicio,
+                             FechaFin = e.FechaFin,
+                             EstadoId = e.EstadoId,
+                             Observaciones = e.Observaciones,
+                             FechaCreacion = e.FechaCreacion,
+                             UsuarioCreacion = e.UsuarioCreacion,
+                             FechaModificacion = e.FechaModificacion,
+                             UsuarioModificacion = e.UsuarioModificacion,
+                             NombreCliente = e.Cliente!.Nombre,
+                             DescEstado = st.Descripcion,
+                             Cliente = e.Cliente == null ? null :
+                                    new Cliente
+                                    {
+                                        Id = e.Cliente.Id,
+                                        Nombre = e.Cliente.Nombre,
+                                        Telefono = e.Cliente.Telefono,
+                                        Cedula = e.Cliente.Cedula,
+                                        Direccion = e.Cliente.Direccion,
+                                        Contacto = e.Cliente.Contacto,
+                                        Email = e.Cliente.Email,
+                                        EstadoId = e.Cliente.EstadoId,
+                                        Subsidiaria = e.Cliente.Subsidiaria,
+                                        ClientePadre = e.Cliente.ClientePadre,
+                                        FechaCreacion = e.Cliente.FechaCreacion,
+                                        UsuarioCreacion = e.Cliente.UsuarioCreacion,
+                                        FechaModificacion = e.Cliente.FechaModificacion,
+                                        UsuarioModificacion = e.Cliente.UsuarioModificacion,
+                                    },
+
+
+                         }).ToList();
+            }
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<ProyectoExt> args)
+    {
+        if (args.ToColumn.Property == nameof(ProyectoExt.Id))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    private async Task OnClickAdd()
+    {
+        NavigationManager.NavigateTo("./proyectosdetalle/0/1");
+    }
+
+    protected async Task OnSelect(DataGridRowMouseEventArgs<ProyectoExt> args)
+    {
+        NavigationManager.NavigateTo("./proyectosdetalle/" + args.Data.Id + "/2");
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+
+    protected async void OnDelete(ProyectoExt Proyecto)
+    {
+        NavigationManager.NavigateTo($"./proyectosdetalle/{Proyecto.Id}/3");
+    }
+
+    public async Task Export(string type)
+    {
+        var queryableList = dataList.AsQueryable();
+
+        var query = new Query()
+        {
+            OrderBy = grid.Query.OrderBy,
+            Filter = grid.Query.Filter,
+            Select = string.Join(",", grid.ColumnsCollection.Where(c => c.GetVisible() && !string.IsNullOrEmpty(c.Property))
+                                .Select(c => c.Property.Contains(".") ? $"{c.Property} as {c.Property.Replace(".", "_")}" : c.Property))
+        };
+
+        await ExportFile(queryableList, type, query);
+    }
+
+    public async Task ExportFile(IQueryable<ProyectoExt> Proyecto, string type, Radzen.Query? query = null)
+    {
+        string fileName = "Proyectos";
+        if (type == "csv")
+        {
+            fileName = $"{fileName}.csv";
+            await exportData.ToCSV(exportData.ApplyQuery(Proyecto, query), fileName);
+        }
+        else
+        {
+            fileName = $"{fileName}.xlsx";
+            await exportData.ToExcel(exportData.ApplyQuery(Proyecto, query), fileName);
+        }
+    }
+}

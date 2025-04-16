@@ -1,0 +1,318 @@
+﻿@page "/licenciaslist"
+@layout MainLayout
+
+<div class="card rz-background-color-base-200">
+    <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
+
+    <div class="card-body">
+        <RadzenStack Gap="0.5rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+
+            <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                            TItem="LicenciaExt"
+                            AllowFiltering="true"
+                            AllowColumnResize="true"
+                            FilterMode="FilterMode.SimpleWithMenu"
+                            PageSize="7"
+                            AllowPaging="true"
+                            AllowSorting="true"
+                            AllowMultiColumnSorting="true"
+                            ShowMultiColumnSortingIndex="true"
+                            Data="@dataList"
+                            ColumnWidth="300px"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            FilterCleared=@FilterCleared
+                            SelectionMode="DataGridSelectionMode.Single"
+                            @bind-Value=@selectedData
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            RowDoubleClick="@OnSelect"
+                            AllowColumnPicking="true"
+                            AllowColumnReorder="true"
+                            RowRender="@RowRender"
+                            ColumnReordering="@OnColumnReordering">
+                <HeaderTemplate>
+                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
+                        <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Success" Text="Exportar a XLS" Icon="grid_on" Click="@(args => Export("excel"))" />
+                        <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Secondary" Text="Exportar a CSV" Icon="wrap_text" Click="@(args => Export("csv"))" />
+                    </RadzenStack>
+                </HeaderTemplate>
+                <Columns>
+
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.Id)"
+                        FilterValue="@LicenciaID"
+                        Filterable="true" Title="ID"
+                        Frozen="true"
+                        Width="100px"
+                        TextAlign="TextAlign.Center">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.DescProducto)" Title="Producto" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.ContratoId)" Title="# Contrato" Width="120px" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.ClienteId)" Title="Cliente" Width="100px" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.NombreCliente)" Title="Nombre de Cliente" Width="300px" /> 
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.FechaExpiracion)" Title="Fecha Expira" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.NoExpira)" Title="No Expira" Width="100px">
+                        <Template Context="LicenciaExt">
+                            <RadzenSwitch @bind-Value=@LicenciaExt.NoExpira Disabled="true"></RadzenSwitch>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.CantidadUsuarios)" Title="Empleados Contratados" FormatString="{0:N0}" Width="100px" TextAlign="TextAlign.Right" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.Ilimitado)" Title="Ilimitado" Width="100px">
+                        <Template Context="LicenciaExt">
+                            <RadzenSwitch @bind-Value=@LicenciaExt.Ilimitado Disabled="true"></RadzenSwitch>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.BaseDatos)" Title="Base de Datos" Width="100px"/>
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.DescEstado)" Title="Estado" Width="100px" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Context="LicenciaExt" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
+                        <Template Context="LicenciaExt">
+                            <RadzenButton  Icon="delete" ButtonStyle="ButtonStyle.Danger"
+                            Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
+                            Click="@(args => OnDelete(LicenciaExt))" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenStack>
+    </div>
+</div>
+
+
+
+
+
+@code {
+    public string Titulo { get; set; }
+    private bool InProcess = true; 
+
+    string? LicenciaID;
+    RadzenDataGrid<LicenciaExt> grid;
+    IEnumerable<LicenciaExt> dataList;
+    IList<LicenciaExt> selectedData;
+
+
+    private IEnumerable<CatalogoGenerico>? listEstadoLicencia;
+
+    private async Task LoadEstadoLicencia() => listEstadoLicencia = await configService.GetCatalogoGenerico("ESTADO_GLOBAL");
+
+    private List<Task> GetLoadTasks()
+    {
+        return new List<Task>
+        {
+            LoadEstadoLicencia(),
+        };
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (Titulo is null) Titulo = "Licencias";
+
+        // Definir la lista de tareas a llamar
+        var tasks = GetLoadTasks();
+
+        // Esperar a que todas las tareas se completen
+        await Task.WhenAll(tasks);
+
+        dataList = await GetDataList();
+    }
+
+
+    async Task FilterCleared()
+    {
+        LicenciaID = null;
+        await grid.FirstPage();
+    }
+
+    void OnRender(DataGridRenderEventArgs<LicenciaExt> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
+
+        }
+    }
+
+
+    private async Task<IEnumerable<LicenciaExt>> GetDataList()
+    {
+        List<LicenciaExt> model = new();
+        try
+        {
+            var licencias = (await processService.GetLicencia()).ToList();
+
+            if (licencias is not null)
+            {
+                model = (from e in licencias
+                         join st in listEstadoLicencia! on e.EstadoId equals st.Id
+                         select new LicenciaExt
+                         {
+                             Id = e.Id,
+                             ProductoId = e.ProductoId,
+                             ContratoId = e.ContratoId,
+                             LicenciaId = e.LicenciaId,
+                             FechaExpiracion = e.FechaExpiracion,
+                             CantidadUsuarios = e.CantidadUsuarios,
+                             Ilimitado = e.Ilimitado,
+                             NoExpira = e.NoExpira,
+                             EstadoId = e.EstadoId,
+                             BaseDatos = e.BaseDatos,
+                             FechaCreacion = e.FechaCreacion,
+                             UsuarioCreacion = e.UsuarioCreacion,
+                             FechaModificacion = e.FechaModificacion,
+                             UsuarioModificacion = e.UsuarioModificacion,
+                             Producto = e.Producto == null ? null :
+                                 new Producto
+                                 {
+                                     Id = e.Producto.Id,
+                                     Aplicacion = e.Producto.Aplicacion,
+                                     Nombre = e.Producto.Nombre,
+                                     Version = e.Producto.Version,
+                                     EstadoId = e.Producto.EstadoId,
+                                     FechaCreacion = e.Producto.FechaCreacion,
+                                     UsuarioCreacion = e.Producto.UsuarioCreacion,
+                                     FechaModificacion = e.Producto.FechaModificacion,
+                                     UsuarioModificacion = e.Producto.UsuarioModificacion,
+                                 },
+                             Contrato = e.Contrato == null ? null :
+                                 new Contrato
+                                 {
+                                     Id = e.Contrato.Id,
+                                     ClienteId = e.Contrato.ClienteId,
+                                     Descripcion = e.Contrato.Descripcion,
+                                     FechaInicio = e.Contrato.FechaInicio,
+                                     FechaFin = e.Contrato.FechaFin,
+                                     FormaPagoId = e.Contrato.FormaPagoId,
+                                     CantidadHorasContratadas = e.Contrato.CantidadHorasContratadas,
+                                     CantidadHorasConsumidas = e.Contrato.CantidadHorasConsumidas,
+                                     EstadoId = e.Contrato.EstadoId,
+                                     Monto = e.Contrato.Monto,
+                                     FechaCreacion = e.Contrato.FechaCreacion,
+                                     UsuarioCreacion = e.Contrato.UsuarioCreacion,
+                                     FechaModificacion = e.Contrato.FechaModificacion,
+                                     UsuarioModificacion = e.Contrato.UsuarioModificacion,
+                                     NivelContratoId = e.Contrato.NivelContratoId,
+                                     Cliente = new Cliente
+                                     {
+                                         Id = e.Contrato.Cliente!.Id,
+                                         Nombre = e.Contrato.Cliente.Nombre,
+                                         Telefono = e.Contrato.Cliente.Telefono,
+                                         Cedula = e.Contrato.Cliente.Cedula,
+                                         Direccion = e.Contrato.Cliente.Direccion,
+                                         Contacto = e.Contrato.Cliente.Contacto,
+                                         Email = e.Contrato.Cliente.Email,
+                                         EstadoId = e.Contrato.Cliente.EstadoId,
+                                         Subsidiaria = e.Contrato.Cliente.Subsidiaria,
+                                         ClientePadre = e.Contrato.Cliente.ClientePadre,
+                                         FechaCreacion = e.Contrato.Cliente.FechaCreacion,
+                                         UsuarioCreacion = e.Contrato.Cliente.UsuarioCreacion,
+                                         FechaModificacion = e.Contrato.Cliente.FechaModificacion,
+                                         UsuarioModificacion = e.Contrato.Cliente.UsuarioModificacion,
+                                     },
+                                 },
+                             DescEstado = st.Descripcion!,
+                             NombreCliente = e.Contrato!.Cliente!.Nombre,
+                             ClienteId = e.Contrato.Cliente.Id,
+                             DescProducto = e.Producto!.Nombre,
+
+
+                         }).ToList();
+            }
+
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<LicenciaExt> args)
+    {
+        if (args.ToColumn.Property == nameof(LicenciaExt.Id))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    private async Task OnClickAdd()
+    {
+        NavigationManager.NavigateTo("./licenciasdetalle/0/1");
+    }
+
+    protected async Task OnSelect(DataGridRowMouseEventArgs<LicenciaExt> args)
+    {
+        NavigationManager.NavigateTo("./licenciasdetalle/" + args.Data.Id + "/2");
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+
+    protected async void OnDelete(LicenciaExt LicenciaExt)
+    {
+        NavigationManager.NavigateTo($"./licenciasdetalle/{LicenciaExt.Id}/3");
+    }
+
+    public async Task Export(string type)
+    {
+        var queryableList = dataList.AsQueryable();
+
+        var query=new Query()
+            {
+                OrderBy = grid.Query.OrderBy,
+                Filter = grid.Query.Filter,
+                Select = string.Join(",", grid.ColumnsCollection.Where(c => c.GetVisible() && !string.IsNullOrEmpty(c.Property))
+                                .Select(c => c.Property.Contains(".") ? $"{c.Property} as {c.Property.Replace(".", "_")}" : c.Property))
+            };
+
+        await ExportFile(queryableList, type, query);
+    }
+
+    public async Task ExportFile(IQueryable<LicenciaExt> LicenciaExt, string type, Radzen.Query? query = null)
+    {
+        string fileName = "Licencias";
+        if (type == "csv")
+        {
+            fileName = $"{fileName}.csv";
+            await exportData.ToCSV(exportData.ApplyQuery(LicenciaExt, query), fileName);
+        }
+        else
+        {
+            fileName = $"{fileName}.xlsx";
+            await exportData.ToExcel(exportData.ApplyQuery(LicenciaExt, query), fileName);
+        }
+    }
+
+    void RowRender(RowRenderEventArgs<LicenciaExt> args)
+    {
+        switch (args.Data.EstadoId)
+        {
+            case "I":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+                break;
+        }
+
+    }
+}
+
+<style>
+
+    .radzen-grid-row-background-color-yellow-light > td {
+        background-color: #FFE453 !important;
+    }
+
+    .radzen-grid-row-background-color-red-light > td {
+        background-color: #FF188E !important;
+    }
+
+    .radzen-grid-row-background-color-green-light > td {
+        background-color: #44FF47 !important;
+    }
+</style>

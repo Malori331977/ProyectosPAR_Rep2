@@ -1,0 +1,398 @@
+﻿@inherits DialogSettingLayout
+
+<style>
+    .radzen-grid-row-background-color-info-light > td {
+    background-color: #77F2FF !important;
+    }
+
+    .radzen-grid-row-background-color-yellow-light > td {
+    background-color: #FFFE91 !important;
+    }
+
+    .radzen-grid-row-background-color-red-light > td {
+    background-color: #FF188E !important;
+    }
+
+    .radzen-grid-row-background-color-green-light > td {
+    background-color: #44FF47 !important;
+    }
+</style>
+
+<div class="card-body">
+    <RadzenStack Gap="0.3rem">
+
+        <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+        TItem="ProyectoDetalleExt"
+        AllowFiltering="true"
+        AllowColumnResize="true"
+        FilterMode="FilterMode.SimpleWithMenu"
+        PageSize="7"
+        AllowPaging="true"
+        AllowSorting="true"
+        AllowMultiColumnSorting="true"
+        ShowMultiColumnSortingIndex="true"
+        Data="@dataList"
+        ColumnWidth="300px"
+        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+        FilterCleared=@FilterCleared
+        SelectionMode="DataGridSelectionMode.Single"
+        @bind-Value=@selectedData
+        LogicalFilterOperator="LogicalFilterOperator.Or"
+        FilterPopupRenderMode="PopupRenderMode.OnDemand"
+        RowDoubleClick="@OnSelect"
+        AllowColumnPicking="true"
+        AllowColumnReorder="true"
+        RowRender="@RowRender"
+        ColumnReordering="@OnColumnReordering">
+            <HeaderTemplate>
+                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.End" Gap="1rem;" Wrap="FlexWrap.Wrap">
+                    <RadzenButton Shade="Shade.Light" ButtonStyle="ButtonStyle.Secondary" Icon="add_task" class="rounded-circle rz-my-1 rz-ms-1" Click="@(args => OnClickAdd())" />
+                </RadzenStack>
+            </HeaderTemplate>
+            <Columns>
+                <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.TareaId)"
+                FilterValue="@tareaId"
+                Filterable="true" Title="Id" 
+                TextAlign="TextAlign.Left"
+                Width="150px">
+                    <FooterTemplate>
+                        Total de Horas:
+                    </FooterTemplate>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.CodigoTarea)" Title="Código" Width="150px" />
+                <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.Descripcion)" Title="Descripción" Width="300px" />
+                <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.CantidadHorasEstimada)" Title="Horas Estimadas" Width="150px">
+                    <FooterTemplate>
+                        <b>@TotalHorasEstimadas</b>
+                    </FooterTemplate>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.CantidadHorasConsumida)" Title="Horas Consumidas" Width="150px">
+                    <FooterTemplate>
+                        <b>@TotalHorasConsumidas</b>
+                    </FooterTemplate>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.EstadoTarea)" Title="Estado" Width="150px" />
+                <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.Facturable)" Title="Facturable" Width="150px">
+                    <Template Context="ProyectoDetalleExt">
+                        <RadzenSwitch @bind-Value=@ProyectoDetalleExt.Facturable Disabled="true"></RadzenSwitch>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
+                <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
+
+
+            </Columns>
+        </RadzenDataGrid>
+    </RadzenStack>
+</div>
+
+
+@code {
+    [Parameter] public int ProyectoId { get; set; }
+    [Parameter] public int ModoGlobal { get; set; }
+
+    private bool InProcess = true;
+    private int ModoLocal;
+
+    string? tareaId;
+    RadzenDataGrid<ProyectoDetalleExt> grid;
+    IEnumerable<ProyectoDetalleExt> dataList;
+    IList<ProyectoDetalleExt> selectedData;
+    private IEnumerable<CatalogoGenerico>? listEstadoTareas;
+    private decimal TotalHorasEstimadas = 0M;
+    private decimal TotalHorasConsumidas = 0M;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        dataList = await GetDataList();
+
+    }
+
+
+    async Task FilterCleared()
+    {
+        tareaId = null;
+        await grid.FirstPage();
+    }
+
+    void OnRender(DataGridRenderEventArgs<ProyectoDetalleExt> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "ConsultorId", SortOrder = SortOrder.Ascending });
+
+        }
+    }
+
+
+    private async Task<IEnumerable<ProyectoDetalleExt>> GetDataList()
+    {
+        List<ProyectoDetalleExt> model = new();
+        try
+        {
+            listEstadoTareas = await configService.GetCatalogoGenerico("ESTADO_PROYECTO_TAREA");
+            var proyectoDetalle = await processService.GetProyectoDetalle(ProyectoId);
+
+            if (proyectoDetalle is not null)
+            {
+                model = (from e in proyectoDetalle
+                         join t in listEstadoTareas on e.EstadoId equals t.Id
+                         select new ProyectoDetalleExt
+                         {
+                             ProyectoId = e.ProyectoId,
+                             TareaId = e.TareaId,
+                             ItemId = e.ItemId,
+                             Descripcion = e.Descripcion,
+                             CantidadHorasEstimada = e.CantidadHorasEstimada,
+                             CantidadHorasConsumida = e.CantidadHorasConsumida,
+                             EstadoId = e.EstadoId,
+                             Facturable = e.Facturable,
+                             FechaCreacion = e.FechaCreacion,
+                             UsuarioCreacion = e.UsuarioCreacion,
+                             FechaModificacion = e.FechaModificacion,
+                             UsuarioModificacion = e.UsuarioModificacion,
+                             DescripcionTarea = e.Tarea!.Descripcion,
+                             EstadoTarea = t.Descripcion!,
+                             CodigoTarea = e.Tarea.Codigo,
+                             Proyecto = e.Proyecto == null ? null :
+                                    new Proyecto
+                                    {
+                                        Id = e.ProyectoId,
+                                        ClienteId = e.Proyecto.ClienteId,
+                                        Descripcion = e.Proyecto.Descripcion,
+                                        FechaInicio = e.Proyecto.FechaInicio,
+                                        FechaFin = e.Proyecto.FechaFin,
+                                        EstadoId = e.Proyecto.EstadoId,
+                                        Observaciones = e.Proyecto.Observaciones,
+                                        FechaCreacion = e.Proyecto.FechaCreacion,
+                                        UsuarioCreacion = e.Proyecto.UsuarioCreacion,
+                                        FechaModificacion = e.Proyecto.FechaModificacion,
+                                        UsuarioModificacion = e.Proyecto.UsuarioModificacion,
+                                    },
+                             Tarea = e.Tarea == null ? null :
+                                    new Tarea
+                                    {
+                                        Id = e.Tarea.Id,
+                                        Codigo = e.Tarea.Codigo,
+                                        Descripcion = e.Tarea.Descripcion,
+                                        EstadoId = e.Tarea.EstadoId,
+                                        FechaCreacion = e.Tarea.FechaCreacion,
+                                        UsuarioCreacion = e.Tarea.UsuarioCreacion,
+                                        FechaModificacion = e.Tarea.FechaModificacion,
+                                        UsuarioModificacion = e.Tarea.UsuarioModificacion,
+                                    },
+
+                         }).ToList();
+
+                TotalHorasEstimadas = model.Sum(e => e.CantidadHorasEstimada);
+                TotalHorasConsumidas = model.Sum(e=>e.CantidadHorasConsumida);
+            }
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<ProyectoDetalleExt> args)
+    {
+        if (args.ToColumn.Property == nameof(ProyectoDetalleExt.ItemId))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    private async Task OnClickAdd()
+    {
+
+        await dialogService.OpenAsync<ProyectoDetallePop>("Tareas del Proyecto",
+              new Dictionary<string, object>()
+                {
+                    { "OnItemSelected", EventCallback.Factory.Create<IList<ProyectoDetalleExt>>(this, HideModalProyectoDetalle)},
+                    { "ProyectoDetalleActuales", dataList}
+                },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
+                  Resize = base.OnResize,
+                  Drag = base.OnDrag,
+                  Width = Settings != null ? Settings.Width : "1000px",
+                  Height = Settings != null ? Settings.Height : "700px",
+                  Left = Settings != null ? Settings.Left : null,
+                  Top = Settings != null ? Settings.Top : null
+              });
+    }
+
+    private async Task HideModalProyectoDetalle(IList<ProyectoDetalleExt> proyectoDetalleSeleccionados)
+    {
+        await GuardarProyectoDetalle(proyectoDetalleSeleccionados);
+        dialogService.Close(true);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task GuardarProyectoDetalle(IList<ProyectoDetalleExt> proyectoDetalleSeleccionados)
+    {
+        try
+        {
+            List<ProyectoDetalle> listAdd = new List<ProyectoDetalle>();
+
+            foreach (var item in proyectoDetalleSeleccionados)
+            {
+                var existeTarea = dataList.FirstOrDefault(e => e.TareaId == item.TareaId);
+
+                if (existeTarea is not null)
+                {
+                    listAdd.Add(new ProyectoDetalle
+                    {
+                        ProyectoId = ProyectoId,
+                        TareaId = existeTarea!.TareaId,
+                        ItemId = existeTarea.ItemId,
+                        Descripcion = existeTarea.Descripcion,
+                        CantidadHorasEstimada = existeTarea.CantidadHorasEstimada,
+                        CantidadHorasConsumida = existeTarea.CantidadHorasConsumida,
+                        EstadoId = existeTarea.EstadoId,
+                        Facturable = existeTarea.Facturable,
+                        FechaCreacion = DateTime.Now,
+                        UsuarioCreacion = loginState.User.consultor!.Id.ToString(),
+                        FechaModificacion = DateTime.Now,
+                        UsuarioModificacion = loginState.User.consultor!.Id.ToString(),
+                    });
+                }
+                else
+                {
+                    listAdd.Add(new ProyectoDetalle
+                    {
+                        ProyectoId = ProyectoId,
+                        TareaId = item.TareaId,
+                        ItemId = 0,
+                        Descripcion = item.Descripcion,
+                        CantidadHorasEstimada = 0,
+                        CantidadHorasConsumida = 0,
+                        EstadoId = item.EstadoId,
+                        FechaCreacion = DateTime.Now,
+                        UsuarioCreacion = loginState.User.consultor!.Id.ToString(),
+                        FechaModificacion = DateTime.Now,
+                        UsuarioModificacion = loginState.User.consultor!.Id.ToString(),
+                    });
+                }
+            }
+
+            EventResponse respuesta;
+
+            respuesta = await genericService.Post("ProyectoDetalle", listAdd);
+
+
+            if (respuesta.Id == "0")
+            {
+                dataList = await GetDataList();
+            }
+            else
+            {
+                await swal.FireAsync("Error al guardar las tareas del proyecto.", respuesta.Descripcion, SweetAlertIcon.Error);
+            }
+
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+    }
+
+    protected async Task OnSelect(DataGridRowMouseEventArgs<ProyectoDetalleExt> args)
+    {
+        await dialogService.OpenAsync<ProyectoDetalleEditPop>("Editar Tareas del Proyecto",
+              new Dictionary<string, object>()
+                {
+                    { "OnItemChange", EventCallback.Factory.Create<bool>(this, HideModalProyectoDetalleEdit)},
+                    { "proyectoDetalle", args.Data},
+                    { "Modo", 2}
+                },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
+                  Resize = base.OnResize,
+                  Drag = base.OnDrag,
+                  Width = Settings != null ? Settings.Width : "1000px",
+                  Height = Settings != null ? Settings.Height : "550px",
+                  Left = Settings != null ? Settings.Left : null,
+                  Top = Settings != null ? Settings.Top : null
+              });
+
+    }
+
+    private async Task HideModalProyectoDetalleEdit(bool args)
+    {
+        dialogService.Close(true);
+        dataList = await GetDataList();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected async void OnDelete(ProyectoDetalleExt proyectoDetalleExt)
+    {
+        try
+        {
+            SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+            {
+                Title = "Atención",
+                Text = $"¿Está seguro(a) que desea eliminar la tarea del proyecto?",
+                Icon = SweetAlertIcon.Error,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Sí",
+                CancelButtonText = "No"
+            });
+
+            if (result.IsConfirmed)
+            {
+                var respuesta = await genericService.Delete("ProyectoDetalle", $"{proyectoDetalleExt.ProyectoId}|{proyectoDetalleExt.TareaId}|{proyectoDetalleExt.ItemId}");
+
+
+                if (respuesta.Id == "0")
+                {
+                    dataList = await GetDataList();
+                    StateHasChanged();
+                }
+                else
+                {
+                    await swal.FireAsync("Error al eliminar la tarea del proyecto.", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+
+
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+    void RowRender(RowRenderEventArgs<ProyectoDetalleExt> args)
+    {
+        if (args.Data.CantidadHorasEstimada > 0)
+        {
+            switch (args.Data.EstadoId)
+            {
+                case "P":
+                    args.Attributes.Add("class", "radzen-grid-row-background-color-yellow-light rz-data-row");
+                    break;
+                case "C":
+                    args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+                    break;
+                case "E":
+                    args.Attributes.Add("class", "radzen-grid-row-background-color-info-light rz-data-row");
+                    break;
+                case "F":
+                    args.Attributes.Add("class", "radzen-grid-row-background-color-green-light rz-data-row");
+                    break;
+            }
+            
+        }
+    }
+}

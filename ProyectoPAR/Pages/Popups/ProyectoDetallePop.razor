@@ -1,0 +1,185 @@
+﻿
+
+<div class="card">
+    <div class="card-body">
+
+        <RadzenStack Gap="1rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+
+            <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+            TItem="ProyectoDetalleExt"
+            AllowFiltering="true" 
+            AllowColumnResize="true" 
+            FilterMode="FilterMode.SimpleWithMenu" 
+            PageSize="8"
+            AllowPaging="true"
+            AllowSorting="true" 
+            AllowMultiColumnSorting="false" 
+            ShowMultiColumnSortingIndex="true"
+            Data="@dataList"
+            ColumnWidth="300px"
+            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"                           
+            FilterCleared=@FilterCleared
+            AllowRowSelectOnRowClick=@allowRowSelect
+            SelectionMode="DataGridSelectionMode.Multiple" 
+            @bind-Value=@selectedData
+            LogicalFilterOperator="LogicalFilterOperator.Or"
+            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+            AllowColumnPicking="true"
+            AllowColumnReorder="true"
+            ColumnReordering="@OnColumnReordering">  
+                <HeaderTemplate>
+                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
+                        <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Primary" Text="Seleccionar" Icon="how_to_reg" Click="@(args => OnSelect())" />
+                    </RadzenStack>
+                </HeaderTemplate>
+                <Columns>
+                    <RadzenDataGridColumn Width="60px" Sortable="false" Filterable="false">
+                        <HeaderTemplate>
+                            <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Seleccionar todos" } })"
+                            Value="@(selectedData == null || selectedData?.Any() != true ? false : !dataList.All(i => selectedData.Contains(i)) ? null : dataList.Any(i => selectedData.Contains(i)))"
+                            Change="@(args => selectedData = args == true ? dataList.ToList() : null)" />
+                        </HeaderTemplate>
+                        <Template Context="data">
+                            <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedData != null && selectedData.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                                            TValue="bool" Change=@(args => { if (!allowRowSelect) { grid.SelectRow(data); } }) />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.CodigoTarea)"
+                                        FilterValue="@CodigoTareaID"
+                                        Filterable="true" 
+                                        Title="Tarea" 
+                                        Frozen="true" 
+                                        Width="100px" 
+                                        TextAlign="TextAlign.Center">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.DescripcionTarea)" Title="Descripción" Width="300px" />
+                   
+                </Columns>
+            </RadzenDataGrid>            
+        </RadzenStack>
+
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<IList<ProyectoDetalleExt>> OnItemSelected { get; set; }
+    [Parameter] public IEnumerable<ProyectoDetalleExt>? ProyectoDetalleActuales { get; set; }
+    
+
+    private bool InProcess = true; 
+
+    string? CodigoTareaID;
+    RadzenDataGrid<ProyectoDetalleExt> grid;
+    IEnumerable<ProyectoDetalleExt> dataList;
+    IList<ProyectoDetalleExt> selectedData;
+    private bool allowRowSelect = true;
+    private bool bInicializado = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await base.OnInitializedAsync();
+            dataList = await GetDataList();
+
+
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+        StateHasChanged();
+    }
+
+
+    async Task FilterCleared()
+    {
+        CodigoTareaID = null;
+        await grid.FirstPage();
+    }
+
+    private void OnRender(DataGridRenderEventArgs<ProyectoDetalleExt> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
+
+
+        }
+        if (!bInicializado)
+        {
+            if (grid.Data is not null)
+            {
+                foreach (var item in grid.Data)
+                {
+                    if (ProyectoDetalleActuales!.Any(e => e.TareaId == item.TareaId))
+                    {
+                        grid.SelectRow(item, true);
+                        
+                    }
+                    bInicializado = true;
+                }
+            }
+        }
+        
+        
+    }
+
+
+    private async Task<IEnumerable<ProyectoDetalleExt>> GetDataList()
+    {
+        List<ProyectoDetalleExt> model = new();
+        try
+        {
+            var tareas = await mtoService.GetTarea();
+
+            if (tareas is not null)
+                model = (from t in tareas
+                         select new ProyectoDetalleExt
+                         {
+                             TareaId = t.Id,
+                             CodigoTarea = t.Codigo,
+                             Descripcion = t.Descripcion,
+                             DescripcionTarea = t.Descripcion,
+                             CantidadHorasEstimada = 0,
+                             CantidadHorasConsumida = 0,
+                             Facturable = false,
+                             EstadoTarea = "PLANIFICADA",
+                             EstadoId="P"
+                         }).ToList();
+
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<ProyectoDetalleExt> args)
+    {
+        if (args.ToColumn.Property == nameof(ProyectoDetalleExt.CodigoTarea))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    
+    protected async Task OnSelect()
+    {
+        await OnItemSelected.InvokeAsync(selectedData);
+    }
+
+    
+
+    
+   
+}

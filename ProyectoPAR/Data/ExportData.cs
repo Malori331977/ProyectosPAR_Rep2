@@ -1,7 +1,6 @@
 ﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using System.Data;
@@ -10,15 +9,14 @@ using System.Linq.Dynamic.Core;
 using System.Reflection;
 using System.Text;
 using Border = DocumentFormat.OpenXml.Spreadsheet.Border;
+using BottomBorder = DocumentFormat.OpenXml.Spreadsheet.BottomBorder;
 using Color = DocumentFormat.OpenXml.Office2010.Excel.Color;
 using Font = DocumentFormat.OpenXml.Spreadsheet.Font;
+using Fonts = DocumentFormat.OpenXml.Spreadsheet.Fonts;
 using FontSize = DocumentFormat.OpenXml.Spreadsheet.FontSize;
 using LeftBorder = DocumentFormat.OpenXml.Spreadsheet.LeftBorder;
 using RightBorder = DocumentFormat.OpenXml.Spreadsheet.RightBorder;
 using TopBorder = DocumentFormat.OpenXml.Spreadsheet.TopBorder;
-using Fonts = DocumentFormat.OpenXml.Spreadsheet.Fonts;
-using BottomBorder = DocumentFormat.OpenXml.Spreadsheet.BottomBorder;
-using Microsoft.AspNetCore.Mvc;
 
 
 namespace ProyectoPAR.Data

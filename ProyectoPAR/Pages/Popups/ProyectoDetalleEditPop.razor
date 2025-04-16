@@ -1,0 +1,203 @@
+﻿<div class="card">
+    <div class="card-body">
+
+        <RadzenStack Gap="1rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+            @if (proyectoDetalle is not null)
+            {
+                <RadzenTemplateForm Data="@proyectoDetalle" Submit="@((ProyectoDetalleExt args) => { Guardar(args); })">
+                    <RadzenRow Gap="0.3rem" class="rz-p-0 rz-p-lg-2">
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <RadzenStack>
+                                <RadzenFieldset Text="Detalle de la Tarea">
+                                    <RadzenStack Gap="0.3rem">
+                                        <RadzenRow AlignItems="AlignItems.Center">
+                                            <RadzenColumn Size="12" SizeMD="12">
+                                                <RadzenLabel Text="Código de la Tarea" Component="Codigo" />
+                                                <RadzenTextBox @bind-Value=@proyectoDetalle.CodigoTarea Style="width: 100%" Name="Codigo" Disabled="true" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
+                                        <RadzenRow AlignItems="AlignItems.Center">
+                                            <RadzenColumn Size="12" SizeMD="12">
+                                                <RadzenLabel Text="Descrpción de la Tarea" Component="descripcion" />
+                                                <RadzenTextBox @bind-Value=@proyectoDetalle.Descripcion Style="width: 100%" Name="descripcion" Disabled="true" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
+                                        <RadzenRow AlignItems="AlignItems.Center">
+                                            <RadzenColumn Size="12" SizeMD="5">
+                                                <RadzenLabel Text="Horas Estimadas" Component="hestimadas" />
+                                                <RadzenNumeric Placeholder="0.0" @bind-Value=@proyectoDetalle.CantidadHorasEstimada Style="width: 100%" 
+                                                Name="hestimadas" Disabled="@soloLectura"
+                                                TextAlign="Radzen.TextAlign.End"
+                                                InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "enter value" } })" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="5">
+                                                <RadzenLabel Text="Horas Consumidas" Component="hconsumidas" />
+                                                <RadzenNumeric Placeholder="0.0" @bind-Value=@proyectoDetalle.CantidadHorasConsumida Style="width: 100%" 
+                                                Name="hconsumidas" Disabled="true"
+                                                TextAlign="Radzen.TextAlign.End"
+                                                InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "enter value" } })" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="2">
+                                                <RadzenLabel Text="Facturable" Component="facturable" />
+                                                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.3rem">
+                                                    <RadzenSwitch Placeholder="Facturable" Style="width: 25%;" Name="facturable"
+                                                    @bind-Value="proyectoDetalle.Facturable" Disabled="@soloLectura" />
+                                                </RadzenStack>
+                                            </RadzenColumn>
+                                        </RadzenRow>
+
+                                        <RadzenRow AlignItems="AlignItems.Center">
+                                            <RadzenColumn Size="12" SizeMD="12">
+                                                <RadzenLabel Text="Estado de Tarea" Component="EstadoId" />
+                                                <RadzenDropDown @bind-Value="proyectoDetalle.EstadoId"
+                                                AllowClear="true"
+                                                Placeholder="Seleccione el estado de la tarea"
+                                                Data="@listEstadoTarea" Style="width: 100%;"
+                                                ValueProperty="Id"
+                                                TextProperty="Descripcion"
+                                                Name="EstadoId">
+                                                </RadzenDropDown>
+                                            </RadzenColumn>
+
+                                        </RadzenRow>
+                                    </RadzenStack>
+                                </RadzenFieldset>
+                            </RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                        <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
+                        <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
+                    </RadzenStack>
+                </RadzenTemplateForm>
+            }
+
+
+        </RadzenStack>
+
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<bool> OnItemChange { get; set; }
+    [Parameter] public ProyectoDetalleExt? proyectoDetalle { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private bool InProcess = true; 
+
+    private IEnumerable<CatalogoGenerico>? listEstadoTarea;
+    private async Task LoadEstadoTarea() => listEstadoTarea = await configService.GetCatalogoGenerico("ESTADO_PROYECTO_TAREA");
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEstadoTarea();
+        await base.OnInitializedAsync();
+        InProcess = false;
+        StateHasChanged();
+    }
+
+
+    private async Task Guardar(ProyectoDetalle arg)
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+                arg!.FechaCreacion = DateTime.Now;
+                arg.FechaModificacion = DateTime.Now;
+                arg.UsuarioCreacion = loginState.User.consultor!.Id.ToString();
+                arg.UsuarioModificacion = loginState.User.consultor.Id.ToString();
+                arg.Proyecto = null;
+                arg.Tarea = null;
+
+                List<ProyectoDetalle> listAdd = new List<ProyectoDetalle> { arg };
+
+                EventResponse respuesta=new();
+                if (Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Atención",
+                        Text = $"¿Está seguro(a) que desea eliminar el registro actual?",
+                        Icon = SweetAlertIcon.Error,
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "Sí",
+                        CancelButtonText = "No"
+                    });
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("ProyectoDetalle", proyectoDetalle!.ProyectoId.ToString());
+                    }
+
+                }
+                else
+                {
+                    respuesta = await genericService.Put("ProyectoDetalle", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    await OnItemChanged(true);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+    }
+
+    private async Task<bool> Validaciones()
+    {
+
+        if (Modo != 3)
+        {
+            if (proyectoDetalle!.CantidadHorasEstimada <= 0)
+            {
+                await swal.FireAsync("Atención", "Debe indicar la cantidad de horas estimadas de la tarea.", SweetAlertIcon.Info);
+                return false;
+            }
+
+            if (String.IsNullOrEmpty(proyectoDetalle.EstadoId))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el estado de la tarea.", SweetAlertIcon.Info);
+                return false;
+            }
+
+
+        }
+
+
+        return true;
+    }
+
+    private async Task Cancelar()
+    {
+        await OnItemChanged(false);
+    }
+    
+    protected async Task OnItemChanged(bool args)
+    {
+        await OnItemChange.InvokeAsync(args);
+    }
+
+    
+   
+}

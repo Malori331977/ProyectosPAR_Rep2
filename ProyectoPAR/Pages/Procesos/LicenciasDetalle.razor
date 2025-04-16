@@ -1,0 +1,400 @@
+﻿@page "/licenciasdetalle/{Id:int}/{Modo:int}"
+@inherits DialogSettingLayout
+
+
+@if (licencia == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="card">
+        <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+
+        <div class="card-body">
+            <RadzenTemplateForm Data="@licencia" Submit="@((LicenciaExt args) => { Guardar(args); })">
+                <RadzenRow Gap="0.3rem" class="rz-p-0 rz-p-lg-2">                   
+                    <RadzenColumn Size="12" SizeMD="12">
+                        <RadzenStack>
+                            <RadzenFieldset Text="@Titulo">
+                                <RadzenStack Gap="0.3rem">
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        @if (Modo != 1)
+                                        {
+                                            <RadzenColumn Size="12" SizeMD="2">
+                                                <RadzenLabel Text="No. de LicenciaExt" Component="id" />
+                                                <RadzenNumeric @bind-Value=@licencia.Id Name="id" Disabled="true" />
+                                            </RadzenColumn>
+                                        }
+                                        <RadzenColumn Size="12" SizeMD="@sizeCli">
+                                            <RadzenLabel Text="ContratoId" Component="ContratoId" />
+                                            <RadzenRow AlignItems="AlignItems.Center">
+                                                <RadzenColumn Size="12" SizeMD="1">
+                                                    <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="search" class="rounded-circle rz-my-1 rz-ms-1" Disabled="@soloLecturaAdd" Size="Radzen.ButtonSize.Medium" Click=@OnShowModalContratos></RadzenButton>
+                                                </RadzenColumn>
+                                                <RadzenColumn Size="12" SizeMD="2">
+                                                    <RadzenNumeric Style="width: 100%;" Name="ContratoId" @bind-Value="licencia.ContratoId" Disabled="@soloLecturaAdd"
+                                                    @onfocusout="BuscarContrato" />
+                                                </RadzenColumn>
+                                                <RadzenColumn Size="12" SizeMD="2">
+                                                    <RadzenTextBox Style="width: 100%;" Name="ClienteId" @bind-Value="licencia.ClienteId" Disabled="true"/>
+                                                </RadzenColumn>
+                                                <RadzenColumn Size="12" SizeMD="9">
+                                                    <RadzenTextBox Style="width: 100%;" Disabled="true" @bind-Value="licencia.NombreCliente" />
+                                                </RadzenColumn>
+                                            </RadzenRow>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    
+
+
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="3">
+                                            <RadzenLabel Text="Tipo de LicenciaExt" Component="TipoContratoId" />
+                                            <RadzenDropDown @bind-Value="licencia.ProductoId"
+                                                            AllowClear="false"
+                                                            Placeholder="Seleccione el Producto"
+                                                            Data="@listProductos" Style="width: 100%;"
+                                                            ValueProperty="Id"
+                                                            TextProperty="Descripcion"
+                                                            Name="TipoContratoId" Disabled="@soloLectura">
+                                            </RadzenDropDown>
+                                        </RadzenColumn>
+                                        
+                                        
+                                       
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="2">
+                                            <RadzenLabel Text="Fecha de Inicio" Component="FechaInicio" />                                            
+                                            <RadzenDatePicker Style="width: 100%;" Name="FechaInicio" @bind-Value="licencia.FechaExpiracion" Disabled="@soloLectura"
+                                                              ShowCalendarWeek DateFormat="MM/dd/yyyy" />
+                                        </RadzenColumn>                                      
+                                        <RadzenColumn Size="12" SizeMD="1">
+                                            <RadzenLabel Text="# Empleados" Component="canempl" />
+                                            <RadzenNumeric Format="N0" Name="canempl" @bind-Value="licencia.CantidadUsuarios" Disabled="@soloLectura" Style="width: 100%" TextAlign="TextAlign.Right" />
+                                        </RadzenColumn>
+                                        
+                                        
+                                    </RadzenRow>                               
+                                </RadzenStack>
+                            </RadzenFieldset>
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                    <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
+                    <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
+                </RadzenStack>
+            </RadzenTemplateForm>
+        </div>
+    </div>
+
+
+
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "LicenciaExt";
+    private string UrlRetorno = "./contratoslist";
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private LicenciaExt? licencia = null;
+    private string NombreCliente = "";
+    int sizeCli = 12;
+
+    private IEnumerable<Producto>? listProductos;
+
+    private async Task LoadProductos() => listProductos = await mtoService.GetProducto();
+   
+    private async Task LoadLicencia()
+    {
+        if (Modo != 1)
+        {
+            var repo = await processService.GetLicencia(Id);
+
+            if (repo is not null)
+            {
+
+                licencia = new LicenciaExt
+                {
+                    Id = repo.Id,
+                    ProductoId = repo.ProductoId,
+                    ContratoId = repo.ContratoId,
+                    LicenciaId = repo.LicenciaId,
+                    FechaExpiracion = repo.FechaExpiracion,
+                    CantidadUsuarios = repo.CantidadUsuarios,
+                    Ilimitado = repo.Ilimitado,
+                    NoExpira = repo.NoExpira,
+                    EstadoId = repo.EstadoId,
+                    BaseDatos = repo.BaseDatos,
+                    FechaCreacion = repo.FechaCreacion,
+                    UsuarioCreacion = repo.UsuarioCreacion,
+                    FechaModificacion = repo.FechaModificacion,
+                    UsuarioModificacion = repo.UsuarioModificacion,
+                    Producto = repo.Producto == null ? null :
+                                 new Producto
+                                 {
+                                     Id = repo.Producto.Id,
+                                     Aplicacion = repo.Producto.Aplicacion,
+                                     Nombre = repo.Producto.Nombre,
+                                     Version = repo.Producto.Version,
+                                     EstadoId = repo.Producto.EstadoId,
+                                     FechaCreacion = repo.Producto.FechaCreacion,
+                                     UsuarioCreacion = repo.Producto.UsuarioCreacion,
+                                     FechaModificacion = repo.Producto.FechaModificacion,
+                                     UsuarioModificacion = repo.Producto.UsuarioModificacion,
+                                 },
+                    Contrato = repo.Contrato == null ? null :
+                                 new Contrato
+                                 {
+                                     Id = repo.Contrato.Id,
+                                     ClienteId = repo.Contrato.ClienteId,
+                                     Descripcion = repo.Contrato.Descripcion,
+                                     FechaInicio = repo.Contrato.FechaInicio,
+                                     FechaFin = repo.Contrato.FechaFin,
+                                     FormaPagoId = repo.Contrato.FormaPagoId,
+                                     CantidadHorasContratadas = repo.Contrato.CantidadHorasContratadas,
+                                     CantidadHorasConsumidas = repo.Contrato.CantidadHorasConsumidas,
+                                     EstadoId = repo.Contrato.EstadoId,
+                                     Monto = repo.Contrato.Monto,
+                                     FechaCreacion = repo.Contrato.FechaCreacion,
+                                     UsuarioCreacion = repo.Contrato.UsuarioCreacion,
+                                     FechaModificacion = repo.Contrato.FechaModificacion,
+                                     UsuarioModificacion = repo.Contrato.UsuarioModificacion,
+                                     NivelContratoId = repo.Contrato.NivelContratoId,
+                                     Cliente = new Cliente
+                                     {
+                                         Id = repo.Contrato.Cliente!.Id,
+                                         Nombre = repo.Contrato.Cliente.Nombre,
+                                         Telefono = repo.Contrato.Cliente.Telefono,
+                                         Cedula = repo.Contrato.Cliente.Cedula,
+                                         Direccion = repo.Contrato.Cliente.Direccion,
+                                         Contacto = repo.Contrato.Cliente.Contacto,
+                                         Email = repo.Contrato.Cliente.Email,
+                                         EstadoId = repo.Contrato.Cliente.EstadoId,
+                                         Subsidiaria = repo.Contrato.Cliente.Subsidiaria,
+                                         ClientePadre = repo.Contrato.Cliente.ClientePadre,
+                                         FechaCreacion = repo.Contrato.Cliente.FechaCreacion,
+                                         UsuarioCreacion = repo.Contrato.Cliente.UsuarioCreacion,
+                                         FechaModificacion = repo.Contrato.Cliente.FechaModificacion,
+                                         UsuarioModificacion = repo.Contrato.Cliente.UsuarioModificacion,
+                                     },
+                                 },
+                    NombreCliente = repo.Contrato!.Cliente!.Nombre,
+                    ClienteId = repo.Contrato.Cliente.Id,
+                    DescProducto = repo.Producto!.Nombre,
+                };
+            }
+        }
+    }
+
+    private List<Task> GetLoadTasks()
+    {
+        return new List<Task>
+        {
+            LoadProductos(),
+            LoadLicencia(),
+        };
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        sizeCli = Modo == 1 ? 12 : 10;
+        soloLectura = Modo == 3;
+        try
+        {
+            // Definir la lista de tareas a llamar
+            var tasks = GetLoadTasks();
+
+            // Esperar a que todas las tareas se completen
+            await Task.WhenAll(tasks);
+
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;                
+            }
+            else
+            {
+                licencia = new LicenciaExt
+                {
+                    Id = 0,
+                    ProductoId = 0,
+                    ContratoId = 0,
+                    LicenciaId = "",
+                    FechaExpiracion = DateTime.Now,
+                    CantidadUsuarios = 0,
+                    Ilimitado = false,
+                    NoExpira = false,
+                    EstadoId = "A",
+                    BaseDatos = "",
+                    FechaCreacion = DateTime.Now,
+                    UsuarioCreacion = loginState.User.consultor!.Id.ToString(),
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModificacion = loginState.User.consultor!.Id.ToString(),                    
+                    NombreCliente = "",
+                    ClienteId = "",
+                    DescProducto = ""
+                };
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task Guardar(LicenciaExt arg)
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+
+                List<LicenciaExt> listAdd = new List<LicenciaExt> { arg };
+
+                EventResponse respuesta;
+                if (Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Atención",
+                        Text = $"¿Está seguro(a) que desea eliminar el licencia actual?",
+                        Icon = SweetAlertIcon.Error,
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "Sí",
+                        CancelButtonText = "No"
+                    });
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("LicenciaExt", arg.Id.ToString());
+                    }
+                    else
+                    {
+                        NavigationManager.NavigateTo(UrlRetorno);
+                        return;
+                    }
+                }
+                else
+                {
+                    respuesta = await genericService.Post("LicenciaExt", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+
+    }
+
+    private async Task<bool> Validaciones()
+    {
+
+
+        if (Modo != 3)
+        {
+            if (String.IsNullOrEmpty(licencia!.ClienteId))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el cliente de este licencia.", SweetAlertIcon.Info);
+                return false;
+            }
+
+            
+
+
+
+
+        }
+
+
+        return true;
+    }
+
+    private async Task BuscarContrato()
+    {
+        if (licencia!.ContratoId<=0)
+        {
+            licencia.NombreCliente = "";
+            licencia.ClienteId = "";
+            return;
+        }
+
+        var contract = await processService.GetContrato(licencia.ContratoId);
+        if (contract is not null)
+        {
+            licencia.ClienteId = contract.Cliente!.Id;
+            licencia.NombreCliente = contract.Cliente.Nombre;
+        }
+        else
+        {
+            await swal.FireAsync("Atención", "El contrato no existe", SweetAlertIcon.Info);
+            licencia.NombreCliente = "";
+            licencia.ClienteId = "";
+
+
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnShowModalContratos()
+    {
+
+        await dialogService.OpenAsync<ContratosPop>("Contratos",
+              new Dictionary<string, object>()
+                {
+                    { "OnItemSelected", EventCallback.Factory.Create<ContratoExt>(this, HideModalContratos)}
+                },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
+                  Resize = base.OnResize,
+                  Drag = base.OnDrag,
+                  Width = Settings != null ? Settings.Width : "700px",
+                  Height = Settings != null ? Settings.Height : "512px",
+                  Left = Settings != null ? Settings.Left : null,
+                  Top = Settings != null ? Settings.Top : null
+              });
+    }
+
+    private async Task HideModalContratos(ContratoExt args)
+    {
+        licencia!.ContratoId = args.Id;
+        await BuscarContrato();
+
+        dialogService.Close(true);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    void Cancelar()
+    {
+        NavigationManager.NavigateTo(UrlRetorno);
+    }
+
+}
+

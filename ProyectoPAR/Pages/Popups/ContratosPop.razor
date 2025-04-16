@@ -1,0 +1,192 @@
+﻿
+<div class="card">
+    <div class="card-body">
+
+        <RadzenStack Gap="1rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+
+            <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+            TItem="ContratoExt"
+            AllowFiltering="true"
+            AllowColumnResize="true"
+            FilterMode="FilterMode.SimpleWithMenu"
+            PageSize="7"
+            AllowPaging="true"
+            AllowSorting="true"
+            AllowMultiColumnSorting="true"
+            ShowMultiColumnSortingIndex="true"
+            Data="@dataList"
+            ColumnWidth="300px"
+            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+            FilterCleared=@FilterCleared
+            SelectionMode="DataGridSelectionMode.Single"
+            @bind-Value=@selectedData
+            LogicalFilterOperator="LogicalFilterOperator.Or"
+            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+            RowDoubleClick="@OnSelect"
+            AllowColumnPicking="true"
+            AllowColumnReorder="true"
+            ColumnReordering="@OnColumnReordering">
+                <Columns>
+
+                    <RadzenDataGridColumn Property="@nameof(ContratoExt.Id)"
+                                          FilterValue="@ContratoID"
+                                          Filterable="true" Title="ID"
+                                          Frozen="true"
+                                          Width="100px"
+                                          TextAlign="TextAlign.Center">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(ContratoExt.ClienteId)" Title="Id ContratoExt" Width="100px" />
+                    <RadzenDataGridColumn Property="@nameof(ContratoExt.NombreCliente)" Title="Nombre de ContratoExt" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(ContratoExt.FechaInicio)" Title="Inicio" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ContratoExt.FechaFin)" Title="Fin" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ContratoExt.CantidadEmpleadosContrato)" Title="# Empleados" FormatString="{0:N0}" Width="80px" TextAlign="TextAlign.Right" />
+                    <RadzenDataGridColumn Property="@nameof(ContratoExt.DescNivelContrato)" Title="Nivel de ContratoExt" Width="100px" />
+                    <RadzenDataGridColumn Property="@nameof(ContratoExt.DescEstado)" Title="Estado" Width="100px" />
+
+                </Columns>
+            </RadzenDataGrid>
+
+
+        </RadzenStack>
+
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<ContratoExt> OnItemSelected { get; set; }
+
+    private bool InProcess = true; 
+
+    string? ContratoID;
+    RadzenDataGrid<ContratoExt> grid;
+    IEnumerable<ContratoExt> dataList;
+    IList<ContratoExt> selectedData;
+
+    private IEnumerable<CatalogoGenerico>? listEstadoContrato;
+    private IEnumerable<CatalogoGenerico>? listNivelContrato;
+    private IEnumerable<CatalogoGenerico>? listFormaPago;
+    private IEnumerable<CatalogoGenerico>? listTipoContrato;
+
+    private async Task LoadEstadoContrato() => listEstadoContrato = await configService.GetCatalogoGenerico("ESTADO_CONTRATO");
+    private async Task LoadNivelContrato() => listNivelContrato = await configService.GetCatalogoGenerico("NIVEL_CONTRATO");
+
+    private List<Task> GetLoadTasks()
+    {
+        return new List<Task>
+        {
+            LoadEstadoContrato(),
+            LoadNivelContrato(),
+        };
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        dataList = await GetDataList();
+    }
+
+
+    async Task FilterCleared()
+    {
+        ContratoID = null;
+        await grid.FirstPage();
+    }
+
+    void OnRender(DataGridRenderEventArgs<ContratoExt> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "ClienteId", SortOrder = SortOrder.Ascending });
+
+        }
+    }
+
+
+    private async Task<IEnumerable<ContratoExt>> GetDataList()
+    {
+        List<ContratoExt> model = new();
+        try
+        {
+            var contratos = (await processService.GetContrato()).ToList();
+
+            if (contratos is not null)
+            {
+                model = (from e in contratos.Where(e => e.TipoContratoId == "LIC")
+                         join nc in listNivelContrato! on e.NivelContratoId equals nc.Id
+                         join st in listEstadoContrato! on e.EstadoId equals st.Id
+                         select new ContratoExt
+                         {
+                             Id = e.Id,
+                             ClienteId = e.ClienteId,
+                             Descripcion = e.Descripcion,
+                             FechaInicio = e.FechaInicio,
+                             FechaFin = e.FechaFin,
+                             FormaPagoId = e.FormaPagoId,
+                             CantidadHorasContratadas = e.CantidadHorasContratadas,
+                             CantidadHorasConsumidas = e.CantidadHorasConsumidas,
+                             HorasPendientes = e.CantidadHorasContratadas - e.CantidadHorasConsumidas,
+                             EstadoId = e.EstadoId,
+                             Monto = e.Monto,
+                             FechaCreacion = e.FechaCreacion,
+                             UsuarioCreacion = e.UsuarioCreacion,
+                             FechaModificacion = e.FechaModificacion,
+                             UsuarioModificacion = e.UsuarioModificacion,
+                             NivelContratoId = e.NivelContratoId,
+                             TipoContratoId = e.TipoContratoId,
+                             CantidadEmpleadosContrato = e.CantidadEmpleadosContrato,
+                             Cliente = e.Cliente == null ? null :
+                                    new Cliente
+                                    {
+                                        Id = e.Cliente.Id,
+                                        Nombre = e.Cliente.Nombre,
+                                        Telefono = e.Cliente.Telefono,
+                                        Cedula = e.Cliente.Cedula,
+                                        Direccion = e.Cliente.Direccion,
+                                        Contacto = e.Cliente.Contacto,
+                                        Email = e.Cliente.Email,
+                                        EstadoId = e.Cliente.EstadoId,
+                                        Subsidiaria = e.Cliente.Subsidiaria,
+                                        ClientePadre = e.Cliente.ClientePadre,
+                                        FechaCreacion = e.Cliente.FechaCreacion,
+                                        UsuarioCreacion = e.Cliente.UsuarioCreacion,
+                                        FechaModificacion = e.Cliente.FechaModificacion,
+                                        UsuarioModificacion = e.Cliente.UsuarioModificacion,
+                                    },
+                             NombreCliente = e.Cliente != null ? e.Cliente.Nombre : "",
+                             DescEstado = st.Descripcion,
+                             DescNivelContrato = nc.Descripcion,
+                         }).ToList();
+            }
+
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<ContratoExt> args)
+    {
+        if (args.ToColumn.Property == nameof(ContratoExt.Id))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    
+    protected async Task OnSelect(DataGridRowMouseEventArgs<ContratoExt> args)
+    {
+        await OnItemSelected.InvokeAsync(args.Data);
+    }
+   
+}

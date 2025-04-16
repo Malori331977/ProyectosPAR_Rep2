@@ -1,4 +1,4 @@
-﻿@page "/clienteslist"
+﻿@page "/tareaslist"
 @layout MainLayout
 
 <div class="card rz-background-color-base-200">
@@ -12,7 +12,7 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
-                            TItem="Cliente"
+                            TItem="Tarea"
                             AllowFiltering="true"
                             AllowColumnResize="true"
                             FilterMode="FilterMode.SimpleWithMenu"
@@ -41,30 +41,23 @@
                 </HeaderTemplate>
                 <Columns>
 
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Id)"
-                                          FilterValue="@ClienteID"
+                    <RadzenDataGridColumn Property="@nameof(Tarea.Id)"
+                                          FilterValue="@TareaID"
                                           Filterable="true" Title="ID"
                                           Frozen="true"
                                           Width="100px"
                                           TextAlign="TextAlign.Center">
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Nombre)" Title="Nombre" Width="300px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Cedula)" Title="Cédula" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Contacto)" Title="Contacto" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Email)" Title="Email" Width="200px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Telefono)" Title="Teléfono" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Subsidiaria)" Title="Subsidiaria" Width="80px">
-                        <Template Context="Cliente">
-                            <RadzenSwitch @bind-Value=@Cliente.Subsidiaria Disabled="true"></RadzenSwitch>
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Property="@nameof(Cliente.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
-                    <RadzenDataGridColumn Context="Cliente" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
-                        <Template Context="Cliente">
+                    <RadzenDataGridColumn Property="@nameof(Tarea.Codigo)" Title="Codigo" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(Tarea.Descripcion)" Title="Descripcion" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(Tarea.EstadoId)" Title="Estado" Width="150px" />                    
+                    <RadzenDataGridColumn Property="@nameof(Tarea.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(Tarea.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Context="Tarea" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
+                        <Template Context="Tarea">
                             <RadzenButton  Icon="delete" ButtonStyle="ButtonStyle.Danger"
                                           Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
-                                          Click="@(args => OnDelete(Cliente))" />
+                                          Click="@(args => OnDelete(Tarea))" />
 
                         </Template>
 
@@ -83,26 +76,26 @@
     public string Titulo { get; set; }
     private bool InProcess = true; 
 
-    string? ClienteID;
-    RadzenDataGrid<Cliente> grid;
-    IEnumerable<Cliente> dataList;
-    IList<Cliente> selectedData;
+    string? TareaID;
+    RadzenDataGrid<Tarea> grid;
+    IEnumerable<Tarea> dataList;
+    IList<Tarea> selectedData;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        if (Titulo is null) Titulo = "Clientes";
+        if (Titulo is null) Titulo = "Tareas";
         dataList = await GetDataList();
     }
 
 
     async Task FilterCleared()
     {
-        ClienteID = null;
+        TareaID = null;
         await grid.FirstPage();
     }
 
-    void OnRender(DataGridRenderEventArgs<Cliente> args)
+    void OnRender(DataGridRenderEventArgs<Tarea> args)
     {
         if (args.FirstRender)
         {
@@ -112,12 +105,12 @@
     }
 
 
-    private async Task<IEnumerable<Cliente>> GetDataList()
+    private async Task<IEnumerable<Tarea>> GetDataList()
     {
-        List<Cliente> model = new();
+        List<Tarea> model = new();
         try
         {
-            model = (await mtoService.GetCliente()).ToList();
+            model = (await mtoService.GetTarea()).ToList();
 
         }
         catch (Exception)
@@ -130,9 +123,9 @@
         return model;
     }
 
-    void OnColumnReordering(DataGridColumnReorderingEventArgs<Cliente> args)
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<Tarea> args)
     {
-        if (args.ToColumn.Property == nameof(Cliente.Id))
+        if (args.ToColumn.Property == nameof(Tarea.Id))
         {
             args.Cancel = true;
         }
@@ -140,18 +133,18 @@
 
     private async Task OnClickAdd()
     {
-        NavigationManager.NavigateTo("./clientesdetalle/0/1");
+        NavigationManager.NavigateTo("./tareasdetalle/0/1");
     }
 
-    protected async Task OnSelect(DataGridRowMouseEventArgs<Cliente> args)
+    protected async Task OnSelect(DataGridRowMouseEventArgs<Tarea> args)
     {
-        NavigationManager.NavigateTo("./clientesdetalle/" + args.Data.Id + "/2");
+        NavigationManager.NavigateTo("./Tareasdetalle/" + args.Data.Id + "/2");
         await InvokeAsync(() => { StateHasChanged(); });
     }
 
-    protected async void OnDelete(Cliente Cliente)
+    protected async void OnDelete(Tarea Tarea)
     {
-        NavigationManager.NavigateTo($"./clientesdetalle/{Cliente.Id}/3");
+        NavigationManager.NavigateTo($"./tareasdetalle/{Tarea.Id}/3");
     }
 
     public async Task Export(string type)
@@ -169,18 +162,18 @@
         await ExportFile(queryableList, type, query);
     }
 
-    public async Task ExportFile(IQueryable<Cliente> Cliente, string type, Radzen.Query? query = null)
+    public async Task ExportFile(IQueryable<Tarea> Tarea, string type, Radzen.Query? query = null)
     {
-        string fileName = "Clientes";
+        string fileName = "Tareas";
         if (type == "csv")
         {
             fileName = $"{fileName}.csv";
-            await exportData.ToCSV(exportData.ApplyQuery(Cliente, query), fileName);
+            await exportData.ToCSV(exportData.ApplyQuery(Tarea, query), fileName);
         }
         else
         {
             fileName = $"{fileName}.xlsx";
-            await exportData.ToExcel(exportData.ApplyQuery(Cliente, query), fileName);
+            await exportData.ToExcel(exportData.ApplyQuery(Tarea, query), fileName);
         }
     }
 }

@@ -1,0 +1,243 @@
+﻿@page "/tareasdetalle/{Id:int}/{Modo:int}"
+@inherits DialogSettingLayout
+
+
+@if (tarea == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="card">
+        <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+
+        <div class="card-body">
+            <RadzenTemplateForm Data="@tarea" Submit="@((Tarea args) => { Guardar(args); })">
+                <RadzenRow Gap="0.3rem" class="rz-p-0 rz-p-lg-2">                   
+                    <RadzenColumn Size="12" SizeMD="12">
+                        <RadzenStack>
+                            <RadzenFieldset Text="Encargados de Empresa">
+                                <RadzenStack Gap="0.3rem">
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Codigo de la Tarea" Component="Codigo" />
+                                            <RadzenTextBox @bind-Value=@tarea.Codigo Style="width: 100%" Name="Codigo" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Descrpción" Component="descripcion" />
+                                            <RadzenTextBox @bind-Value=@tarea.Descripcion Style="width: 100%" Name="descripcion" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Tipo de Reporte" Component="EstadoId" />
+                                            <RadzenDropDown @bind-Value="tarea.EstadoId"
+                                                            AllowClear="true"
+                                                            Placeholder="Seleccione Tipo de Reporte"
+                                                            Data="@listEstadoTarea" Style="width: 100%;"
+                                                            ValueProperty="Id"
+                                                            TextProperty="Descripcion"
+                                                            Name="EstadoId">
+                                            </RadzenDropDown>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                </RadzenStack>
+                            </RadzenFieldset>
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                    <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
+                    <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
+                </RadzenStack>
+            </RadzenTemplateForm>
+        </div>
+    </div>
+
+
+
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Tarea";
+    private string UrlRetorno = "./tareaslist";
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private Tarea? tarea = null;
+
+    private IEnumerable<CatalogoGenerico>? listEstadoTarea;
+    private async Task LoadEstadoTarea() => listEstadoTarea = await configService.GetCatalogoGenerico("ESTADO_GLOBAL");
+    private async Task LoadTarea()
+    {
+        if (Modo != 1)
+        {
+            var repo = await mtoService.GetTarea(Id);
+
+            if (repo is not null)
+            {
+
+                tarea = new Tarea
+                    {
+                        Id = repo.Id,
+                        Codigo = repo.Codigo,
+                        Descripcion = repo.Descripcion,
+                        EstadoId = repo.EstadoId,                        
+                        FechaCreacion = repo.FechaCreacion,
+                        UsuarioCreacion = repo.UsuarioCreacion,
+                        FechaModificacion = repo.FechaModificacion,
+                        UsuarioModificacion = repo.UsuarioModificacion,                        
+                    };
+            }
+        }
+    }
+
+    private List<Task> GetLoadTasks()
+    {
+        return new List<Task>
+        {
+            LoadEstadoTarea(),
+            LoadTarea(),
+        };
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        soloLectura = Modo == 3;
+        try
+        {
+            // Definir la lista de tareas a llamar
+            var tasks = GetLoadTasks();
+
+            // Esperar a que todas las tareas se completen
+            await Task.WhenAll(tasks);
+
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;                
+            }
+            else
+            {
+                tarea = new Tarea
+                {
+                    Id = 0,
+                    Codigo = "",
+                    Descripcion = "",
+                    EstadoId = "A",                    
+                    FechaCreacion = DateTime.Now,
+                    UsuarioCreacion = loginState.User.consultor!.Id.ToString(),
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModificacion = loginState.User.consultor!.Id.ToString(),
+                };
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task Guardar(Tarea arg)
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+
+                List<Tarea> listAdd = new List<Tarea> { arg };
+
+                EventResponse respuesta;
+                if (Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Atención",
+                        Text = $"¿Está seguro(a) que desea eliminar la tarea actual?",
+                        Icon = SweetAlertIcon.Error,
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "Sí",
+                        CancelButtonText = "No"
+                    });
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("Tarea", arg.Id.ToString());
+                    }
+                    else
+                    {
+                        NavigationManager.NavigateTo(UrlRetorno);
+                        return;
+                    }
+                }
+                else
+                {
+                    respuesta = await genericService.Post("Tarea", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+
+    }
+
+    private async Task<bool> Validaciones()
+    {
+
+
+        if (Modo != 3)
+        {
+
+            if (String.IsNullOrEmpty(tarea!.Codigo))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el código de la tarea.", SweetAlertIcon.Info);
+                return false;
+            }
+
+            if (String.IsNullOrEmpty(tarea!.Descripcion))
+            {
+                await swal.FireAsync("Atención", "Debe indicar la descripción de la tarea.", SweetAlertIcon.Info);
+                return false;
+            }
+
+            
+        }
+
+
+        return true;
+    }
+
+    void Cancelar()
+    {
+        NavigationManager.NavigateTo(UrlRetorno);
+    }
+
+}
+

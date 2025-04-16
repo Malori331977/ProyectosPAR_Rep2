@@ -10,6 +10,11 @@ namespace ProyectoPAR.Data.Interfaces
         public Task<Consultor> GetConsultorByUsuario(string id);
         public Task<IEnumerable<Cliente>> GetCliente();
         public Task<Cliente> GetCliente(string id);
-        
+        public Task<IEnumerable<Tarea>> GetTarea();
+        public Task<Tarea> GetTarea(int id);
+        public Task<IEnumerable<Producto>> GetProducto();
+        public Task<Producto> GetProducto(int id);
+
+
     }
 }

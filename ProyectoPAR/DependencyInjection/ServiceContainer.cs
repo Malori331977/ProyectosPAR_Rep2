@@ -18,7 +18,8 @@ namespace ProyectoPAR.DependencyInjection
             Services.AddScoped<IEmailRepository, EmailRepository>();
             Services.AddScoped<IProcesoService, ProcesoService>();
             Services.AddScoped<ExportData>();
-            
+            Services.AddScoped<Radzen.DialogService>();
+
             Services.AddSweetAlert2();
             Services.AddBlazorBootstrap();
 

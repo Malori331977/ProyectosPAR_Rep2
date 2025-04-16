@@ -12,6 +12,7 @@
 @using ProyectoPAR.Shared
 @using ProyectoPAR.Models
 @using ProyectoPAR.Componentes
+@using ProyectoPAR.Pages.Popups
 
 @using ProyectoParLibs.Models.Configuracion
 @using ProyectoParLibs.Models.Mantenimiento
@@ -27,7 +28,7 @@
 @using CurrieTechnologies.Razor.SweetAlert2
 
 
-
+@inject IJSRuntime JSRuntime;
 @inject SweetAlertService swal;
 @inject NavigationManager NavigationManager;
 @inject IGridExtensions gridExtensions
@@ -41,3 +42,4 @@
 @inject IEmailRepository emailRepo;
 @inject CookieThemeService CookieThemeService
 @inject ExportData exportData
+@inject Radzen.DialogService dialogService

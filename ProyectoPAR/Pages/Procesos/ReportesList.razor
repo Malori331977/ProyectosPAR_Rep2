@@ -12,7 +12,7 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
-            TItem="Reporte"
+            TItem="ReporteExt"
             AllowFiltering="true"
             AllowColumnResize="true"
             FilterMode="FilterMode.SimpleWithMenu"
@@ -35,37 +35,42 @@
             ColumnReordering="@OnColumnReordering">
                 <HeaderTemplate>
                     <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
-                        <RadzenButton Shade="Shade.Light" ButtonStyle="ButtonStyle.Success" Text="Exportar a XLS" Icon="grid_on" Click="@(args => Export("excel"))" />
-                        <RadzenButton Shade="Shade.Light" ButtonStyle="ButtonStyle.Secondary" Text="Exportar a CSV" Icon="wrap_text" Click="@(args => Export("csv"))" />
+                        <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Success" Text="Exportar a XLS" Icon="grid_on" Click="@(args => Export("excel"))" />
+                        <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Secondary" Text="Exportar a CSV" Icon="wrap_text" Click="@(args => Export("csv"))" />
                     </RadzenStack>
                 </HeaderTemplate>
                 <Columns>
 
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Id)"
-                    FilterValue="@ClienteID"
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.Id)"
+                    FilterValue="@ReporteID"
                     Filterable="true" Title="ID"
                     Frozen="true"
                     Width="100px"
                     TextAlign="TextAlign.Center">
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Nombre)" Title="Nombre" Width="300px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Cedula)" Title="Cédula" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Contacto)" Title="Contacto" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Email)" Title="Email" Width="200px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Telefono)" Title="Teléfono" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Subsidiaria)" Title="Subsidiaria" Width="80px">
-                        <Template Context="Cliente">
-                            <RadzenSwitch @bind-Value=@Cliente.Subsidiaria Disabled="true"></RadzenSwitch>
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.NombreCliente)" Title="Cliente" Width="300px"/>
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.NombreConsultor)" Title="Consultor" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.Fecha)" Title="Fecha" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.ResponsableCliente)" Title="Responsable de Empresa" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.CorreoCliente)" Title="Email del Responsable" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.EstadoId)" Title="Estado" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.Confirmacion)" Title="Confirmado" Width="80px">
+                        <Template Context="ReporteExt">
+                            <RadzenSwitch @bind-Value=@ReporteExt.Confirmacion Disabled="true"></RadzenSwitch>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Property="@nameof(Cliente.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
-                    <RadzenDataGridColumn Context="Cliente" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
-                        <Template Context="Cliente">
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.Facturado)" Title="Facturado" Width="80px">
+                        <Template Context="ReporteExt">
+                            <RadzenSwitch @bind-Value=@ReporteExt.Facturado Disabled="true"></RadzenSwitch>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Context="ReporteExt" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
+                        <Template Context="ReporteExt">
                             <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger"
                             Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
-                            Click="@(args => OnDelete(Cliente))" />
-
+                            Click="@(args => OnDelete(ReporteExt))" />
                         </Template>
 
                     </RadzenDataGridColumn>
@@ -84,14 +89,14 @@
     private bool InProcess = true;
 
     string? ReporteID;
-    RadzenDataGrid<Reporte> grid;
-    IEnumerable<Reporte> dataList;
-    IList<Reporte> selectedData;
+    RadzenDataGrid<ReporteExt> grid;
+    IEnumerable<ReporteExt> dataList;
+    IList<ReporteExt> selectedData;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        if (Titulo is null) Titulo = "Clientes";
+        if (Titulo is null) Titulo = "Reportes";
         dataList = await GetDataList();
     }
 
@@ -102,26 +107,93 @@
         await grid.FirstPage();
     }
 
-    void OnRender(DataGridRenderEventArgs<Cliente> args)
+    void OnRender(DataGridRenderEventArgs<ReporteExt> args)
     {
         if (args.FirstRender)
         {
-            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Descending });
 
         }
     }
 
 
-    private async Task<IEnumerable<Reporte>> GetDataList()
+    private async Task<IEnumerable<ReporteExt>> GetDataList()
     {
-        List<Reporte> model = new();
+        List<ReporteExt> model = new();
         try
         {
             var reportes = await processService.GetReporteConsultor(loginState.User.consultor!.Id);
 
             if (reportes is not null)
             {
-                model = reportes.ToList();
+                var listDatosGenericos = await configService.GetCatalogoGenerico("ESTADO_REPORTE");
+                model = (from e in reportes
+                         join dg in listDatosGenericos on e.EstadoId equals dg.Id
+                        select new ReporteExt
+                        {
+                            Id = e.Id,
+                            Confirmacion = e.Confirmacion,
+                            Facturado = e.Facturado,
+                            EstadoId = e.EstadoId,
+                            ClienteId = e.ClienteId,
+                            Fecha = e.Fecha,
+                            CategoriaId = e.CategoriaId,
+                            TipoReporteId = e.TipoReporteId,
+                            Cantidadhoras = e.Cantidadhoras,
+                            HoraEntrada = e.HoraEntrada,
+                            HoraSalida = e.HoraSalida,
+                            Descripcion = e.Descripcion,
+                            TareasPendientes = e.TareasPendientes,
+                            ConsultorId = e.ConsultorId,
+                            ResponsableCliente = e.ResponsableCliente,
+                            CorreoCliente = e.CorreoCliente,
+                            Programado = e.Programado,
+                            AgendaId = e.AgendaId,
+                            ProyectoId = e.ProyectoId,
+                            TareaId = e.TareaId,
+                            ItemId = e.ItemId,
+                            FechaCreacion = e.FechaCreacion,
+                            UsuarioCreacion = e.UsuarioCreacion,
+                            FechaModificacion = e.FechaModificacion,
+                            UsuarioModificacion = e.UsuarioModificacion,
+                            Cliente = e.Cliente == null ? null :
+                                new Cliente
+                                {
+                                    Id = e.Cliente.Id,
+                                    Nombre = e.Cliente.Nombre,
+                                    Telefono = e.Cliente.Telefono,
+                                    Cedula = e.Cliente.Cedula,
+                                    Direccion = e.Cliente.Direccion,
+                                    Contacto = e.Cliente.Contacto,
+                                    Email = e.Cliente.Email,
+                                    EstadoId = e.Cliente.EstadoId,
+                                    Subsidiaria = e.Cliente.Subsidiaria,
+                                    ClientePadre = e.Cliente.ClientePadre,
+                                    FechaCreacion = e.Cliente.FechaCreacion,
+                                    UsuarioCreacion = e.Cliente.UsuarioCreacion,
+                                    FechaModificacion = e.Cliente.FechaModificacion,
+                                    UsuarioModificacion = e.Cliente.UsuarioModificacion,
+                                },
+                            Consultor = e.Consultor == null ? null :
+                                new Consultor
+                                {
+                                    Id = e.Consultor.Id,
+                                    Usuario = e.Consultor.Usuario,
+                                    Nombre = e.Consultor.Nombre,
+                                    PrimerApellido = e.Consultor.PrimerApellido,
+                                    SegundoApellido = e.Consultor.SegundoApellido,
+                                    Email = e.Consultor.Email,
+                                    Telefono = e.Consultor.Telefono,
+                                    Activo = e.Consultor.Activo,
+                                    FechaCreacion = e.Consultor.FechaCreacion,
+                                    UsuarioCreacion = e.Consultor.UsuarioCreacion,
+                                    FechaModificacion = e.Consultor.FechaModificacion,
+                                    UsuarioModificacion = e.Consultor.UsuarioModificacion,
+                                },
+                                NombreCliente = e.Cliente!.Nombre,
+                                NombreConsultor = e.Consultor!.Nombre,
+                                DescEstado = dg.Descripcion,
+                        }).ToList(); 
             }
         }
         catch (Exception)
@@ -134,9 +206,9 @@
         return model;
     }
 
-    void OnColumnReordering(DataGridColumnReorderingEventArgs<Reporte> args)
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<ReporteExt> args)
     {
-        if (args.ToColumn.Property == nameof(Reporte.Id))
+        if (args.ToColumn.Property == nameof(ReporteExt.Id))
         {
             args.Cancel = true;
         }
@@ -147,15 +219,15 @@
         NavigationManager.NavigateTo("./reportesdetalle/0/1");
     }
 
-    protected async Task OnSelect(DataGridRowMouseEventArgs<Reporte> args)
+    protected async Task OnSelect(DataGridRowMouseEventArgs<ReporteExt> args)
     {
         NavigationManager.NavigateTo("./reportesdetalle/" + args.Data.Id + "/2");
         await InvokeAsync(() => { StateHasChanged(); });
     }
 
-    protected async void OnDelete(Reporte reporte)
+    protected async void OnDelete(ReporteExt ReporteExt)
     {
-        NavigationManager.NavigateTo($"./reportesdetalle/{reporte.Id}/3");
+        NavigationManager.NavigateTo($"./reportesdetalle/{ReporteExt.Id}/3");
     }
 
     public async Task Export(string type)
@@ -173,18 +245,18 @@
         await ExportFile(queryableList, type, query);
     }
 
-    public async Task ExportFile(IQueryable<Reporte> reporte, string type, Radzen.Query? query = null)
+    public async Task ExportFile(IQueryable<ReporteExt> ReporteExt, string type, Radzen.Query? query = null)
     {
         string fileName = "Reportes";
         if (type == "csv")
         {
             fileName = $"{fileName}.csv";
-            await exportData.ToCSV(exportData.ApplyQuery(reporte, query), fileName);
+            await exportData.ToCSV(exportData.ApplyQuery(ReporteExt, query), fileName);
         }
         else
         {
             fileName = $"{fileName}.xlsx";
-            await exportData.ToExcel(exportData.ApplyQuery(reporte, query), fileName);
+            await exportData.ToExcel(exportData.ApplyQuery(ReporteExt, query), fileName);
         }
     }
 }

@@ -1,0 +1,256 @@
+﻿@page "/productosdetalle/{Id:int}/{Modo:int}"
+@inherits DialogSettingLayout
+
+
+@if (producto == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="card">
+        <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
+
+        <div class="card-body">
+            <RadzenTemplateForm Data="@producto" Submit="@((Producto args) => { Guardar(args); })">
+                <RadzenRow Gap="0.3rem" class="rz-p-0 rz-p-lg-2">                   
+                    <RadzenColumn Size="12" SizeMD="12">
+                        <RadzenStack>
+                            <RadzenFieldset Text="@Titulo">
+                                <RadzenStack Gap="0.3rem">
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Codigo de la Aplcación" Component="Codigo" />
+                                            <RadzenTextBox @bind-Value=@producto.Aplicacion Style="width: 100%" Name="Codigo" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Descrpción" Component="nombre" />
+                                            <RadzenTextBox @bind-Value=@producto.Nombre Style="width: 100%" Name="nombre" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Version" Component="version" />
+                                            <RadzenTextBox @bind-Value=@producto.Version Style="width: 100%" Name="version" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Estado" Component="EstadoId" />
+                                            <RadzenDropDown @bind-Value="producto.EstadoId"
+                                                            AllowClear="true"
+                                                            Placeholder="Seleccione Estado del Producto"
+                                                            Data="@listEstadoProducto" Style="width: 100%;"
+                                                            ValueProperty="Id"
+                                                            TextProperty="Descripcion"
+                                                            Name="EstadoId">
+                                            </RadzenDropDown>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                </RadzenStack>
+                            </RadzenFieldset>
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                    <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
+                    <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
+                </RadzenStack>
+            </RadzenTemplateForm>
+        </div>
+    </div>
+
+
+
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+    private string Titulo = "Producto";
+    private string UrlRetorno = "./productoslist";
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private Producto? producto = null;
+
+    private IEnumerable<CatalogoGenerico>? listEstadoProducto;
+    private async Task LoadEstadoProducto() => listEstadoProducto = await configService.GetCatalogoGenerico("ESTADO_GLOBAL");
+    private async Task LoadProducto()
+    {
+        if (Modo != 1)
+        {
+            var repo = await mtoService.GetProducto(Id);
+
+            if (repo is not null)
+            {
+
+                producto = new Producto
+                {
+                    Id = repo.Id,
+                    Aplicacion = repo.Aplicacion,
+                    Nombre = repo.Nombre,
+                    EstadoId = repo.EstadoId,
+                    Version = repo.Version,
+                    FechaCreacion = repo.FechaCreacion,
+                    UsuarioCreacion = repo.UsuarioCreacion,
+                    FechaModificacion = repo.FechaModificacion,
+                    UsuarioModificacion = repo.UsuarioModificacion,                        
+                };
+            }
+        }
+    }
+
+    private List<Task> GetLoadTasks()
+    {
+        return new List<Task>
+        {
+            LoadEstadoProducto(),
+            LoadProducto(),
+        };
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        soloLectura = Modo == 3;
+        try
+        {
+            // Definir la lista de tareas a llamar
+            var tasks = GetLoadTasks();
+
+            // Esperar a que todas las tareas se completen
+            await Task.WhenAll(tasks);
+
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Modo != 1)
+            {
+                soloLecturaAdd = true;                
+            }
+            else
+            {
+                producto = new Producto
+                {
+                    Id = 0,
+                    Aplicacion = "",
+                    Nombre = "",
+                    Version = "",
+                    EstadoId = "A",                    
+                    FechaCreacion = DateTime.Now,
+                    UsuarioCreacion = loginState.User.consultor!.Id.ToString(),
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModificacion = loginState.User.consultor!.Id.ToString(),
+                };
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task Guardar(Producto arg)
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+
+                List<Producto> listAdd = new List<Producto> { arg };
+
+                EventResponse respuesta;
+                if (Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Atención",
+                        Text = $"¿Está seguro(a) que desea eliminar el producto actual?",
+                        Icon = SweetAlertIcon.Error,
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "Sí",
+                        CancelButtonText = "No"
+                    });
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("Producto", arg.Id.ToString());
+                    }
+                    else
+                    {
+                        NavigationManager.NavigateTo(UrlRetorno);
+                        return;
+                    }
+                }
+                else
+                {
+                    respuesta = await genericService.Post("Producto", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    NavigationManager.NavigateTo(UrlRetorno);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+
+    }
+
+    private async Task<bool> Validaciones()
+    {
+
+
+        if (Modo != 3)
+        {
+
+            if (String.IsNullOrEmpty(producto!.Aplicacion))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el código de la aplicación.", SweetAlertIcon.Info);
+                return false;
+            }
+
+            if (String.IsNullOrEmpty(producto!.Nombre))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el nombre del producto.", SweetAlertIcon.Info);
+                return false;
+            }
+
+            if (String.IsNullOrEmpty(producto!.Version))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el nombre del producto.", SweetAlertIcon.Info);
+                return false;
+            }
+            
+        }
+
+
+        return true;
+    }
+
+    void Cancelar()
+    {
+        NavigationManager.NavigateTo(UrlRetorno);
+    }
+
+}
+
