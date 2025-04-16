@@ -87,6 +87,11 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        // Definir la lista de tareas a llamar
+        var tasks = GetLoadTasks();
+
+        // Esperar a que todas las tareas se completen
+        await Task.WhenAll(tasks);
         dataList = await GetDataList();
     }
 
@@ -117,9 +122,10 @@
 
             if (contratos is not null)
             {
-                model = (from e in contratos.Where(e => e.TipoContratoId == "LIC")
+                model = (from e in contratos
                          join nc in listNivelContrato! on e.NivelContratoId equals nc.Id
                          join st in listEstadoContrato! on e.EstadoId equals st.Id
+                         where e.TipoContratoId == "LIC"
                          select new ContratoExt
                          {
                              Id = e.Id,

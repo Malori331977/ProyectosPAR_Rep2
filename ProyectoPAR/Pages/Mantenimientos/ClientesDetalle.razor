@@ -29,10 +29,25 @@
                             @bind-value="cliente.Id" />
                         </div>
                     </div>
+
                     <div class="col input-group rounded-border">
                         <div class="row">
                             <label class="align-content-between lbl-xs">
-                                Nombre
+                                Nombre Corto (alias)
+                            </label>
+                        </div>
+                        <div class="input-group w-100" id="btnGroupAddon">
+                            <InputText class="form-control br8 rounded-border"
+                                       maxlength="100"
+                                       placeholder="Nombre Corto" id="nc"
+                                       Disabled="@soloLectura"
+                                       @bind-value="cliente.Alias" />
+                        </div>
+                    </div>
+                    <div class="col input-group rounded-border">
+                        <div class="row">
+                            <label class="align-content-between lbl-xs">
+                                Nombre Completo
                             </label>
                         </div>
                         <div class="input-group w-100" id="btnGroupAddon">

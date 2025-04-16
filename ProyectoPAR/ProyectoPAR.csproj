@@ -17,6 +17,9 @@
     <PackageReference Include="Radzen.Blazor" Version="6.4.0" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="JtSegEncrypta">
+      <HintPath>..\..\..\Librerias\JtSegEncrypta\JtSegEncrypta\bin\Release\net7.0\publish\JtSegEncrypta.dll</HintPath>
+    </Reference>
     <Reference Include="ProyectoParLibs">
       <HintPath>Dll\ProyectoParLibs.dll</HintPath>
     </Reference>

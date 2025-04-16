@@ -108,19 +108,33 @@
         }
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        var login = loginState.User;
+        if (login is null)
+        {
+            NavigationManager.NavigateTo("./");
+        }
+    }
+
 
     private async Task<List<MenuModel>> GetNavItems()
     {
-
         List<MenuModel> navItems = new();
 
+        var login = loginState.User;
+        if (login is null)
+        {
+            return navItems;
+        }
 
         IEnumerable<OpcionSistema> listOpcionesUsuario;
         try
         {
+            
             var menuPrincipal = await configService.GetMenuPrincipal();
 
-            var login = loginState.User;
+            
             listOpcionesUsuario = await GetOpcionesUsuario();
 
             if (menuPrincipal is not null)

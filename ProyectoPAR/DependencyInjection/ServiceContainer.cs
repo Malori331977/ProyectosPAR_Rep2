@@ -3,6 +3,7 @@
 using CurrieTechnologies.Razor.SweetAlert2;
 using ProyectoPAR.Data;
 using ProyectoPAR.Data.Interfaces;
+using JtSegEncrypta;
 
 namespace ProyectoPAR.DependencyInjection
 {
@@ -19,7 +20,7 @@ namespace ProyectoPAR.DependencyInjection
             Services.AddScoped<IProcesoService, ProcesoService>();
             Services.AddScoped<ExportData>();
             Services.AddScoped<Radzen.DialogService>();
-
+            Services.AddScoped<IEncriptaService, EncriptaService>();
             Services.AddSweetAlert2();
             Services.AddBlazorBootstrap();
 
