@@ -1,0 +1,183 @@
+﻿
+<div class="card">
+    <div class="card-body">
+
+        <RadzenStack Gap="1rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+
+            <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+            TItem="ProyectoExt"
+            AllowFiltering="true"
+            AllowColumnResize="true"
+            FilterMode="FilterMode.SimpleWithMenu"
+            PageSize="7"
+            AllowPaging="true"
+            AllowSorting="true"
+            AllowMultiColumnSorting="true"
+            ShowMultiColumnSortingIndex="true"
+            Data="@dataList"
+            ColumnWidth="300px"
+            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+            FilterCleared=@FilterCleared
+            SelectionMode="DataGridSelectionMode.Single"
+            @bind-Value=@selectedData
+            LogicalFilterOperator="LogicalFilterOperator.Or"
+            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+            RowDoubleClick="@OnSelect"
+            AllowColumnPicking="true"
+            AllowColumnReorder="true"
+            ColumnReordering="@OnColumnReordering">
+                <Columns>
+
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.Id)"
+                                          FilterValue="@ProyectoID"
+                                          Filterable="true" Title="ID"
+                                          Frozen="true"
+                                          Width="100px"
+                                          TextAlign="TextAlign.Center">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.ClienteId)" Title="Cliente" Width="100px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.NombreCliente)" Title="Nombre de Cliente" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.Descripcion)" Title="Nombre de Proyecto" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.FechaInicio)" Title="Inicio" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.FechaFin)" Title="Fin" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.DescEstado)" Title="Estado" Width="100px" />
+
+                </Columns>
+            </RadzenDataGrid>
+
+
+        </RadzenStack>
+
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<ProyectoExt> OnItemSelected { get; set; }
+
+    private bool InProcess = true; 
+
+    string? ProyectoID;
+    RadzenDataGrid<ProyectoExt> grid;
+    IEnumerable<ProyectoExt> dataList;
+    IList<ProyectoExt> selectedData;
+
+    private IEnumerable<CatalogoGenerico>? listEstadoProyecto;
+
+
+    private async Task LoadEstadoProyecto() => listEstadoProyecto = await configService.GetCatalogoGenerico("ESTADO_PROYECTO");
+
+
+    private List<Task> GetLoadTasks()
+    {
+        return new List<Task>
+        {
+            LoadEstadoProyecto(),
+        };
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        // Definir la lista de tareas a llamar
+        var tasks = GetLoadTasks();
+
+        // Esperar a que todas las tareas se completen
+        await Task.WhenAll(tasks);
+        dataList = await GetDataList();
+    }
+
+
+    async Task FilterCleared()
+    {
+        ProyectoID = null;
+        await grid.FirstPage();
+    }
+
+    void OnRender(DataGridRenderEventArgs<ProyectoExt> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "ClienteId", SortOrder = SortOrder.Ascending });
+
+        }
+    }
+
+
+    private async Task<IEnumerable<ProyectoExt>> GetDataList()
+    {
+        List<ProyectoExt> model = new();
+        try
+        {
+            var proyectos = (await processService.GetProyecto()).ToList();
+
+            if (proyectos is not null)
+            {
+                model = (from e in proyectos
+                         join st in listEstadoProyecto! on e.EstadoId equals st.Id
+                         select new ProyectoExt
+                         {
+                             Id = e.Id,
+                             ClienteId = e.ClienteId,
+                             Descripcion = e.Descripcion,
+                             FechaInicio = e.FechaInicio,
+                             FechaFin = e.FechaFin,
+                             EstadoId = e.EstadoId,
+                             FechaCreacion = e.FechaCreacion,
+                             UsuarioCreacion = e.UsuarioCreacion,
+                             FechaModificacion = e.FechaModificacion,
+                             UsuarioModificacion = e.UsuarioModificacion,
+                             Cliente = e.Cliente == null ? null :
+                                    new Cliente
+                                    {
+                                        Id = e.Cliente.Id,
+                                        Nombre = e.Cliente.Nombre,
+                                        Telefono = e.Cliente.Telefono,
+                                        Cedula = e.Cliente.Cedula,
+                                        Direccion = e.Cliente.Direccion,
+                                        Contacto = e.Cliente.Contacto,
+                                        Email = e.Cliente.Email,
+                                        EstadoId = e.Cliente.EstadoId,
+                                        Subsidiaria = e.Cliente.Subsidiaria,
+                                        ClientePadre = e.Cliente.ClientePadre,
+                                        FechaCreacion = e.Cliente.FechaCreacion,
+                                        UsuarioCreacion = e.Cliente.UsuarioCreacion,
+                                        FechaModificacion = e.Cliente.FechaModificacion,
+                                        UsuarioModificacion = e.Cliente.UsuarioModificacion,
+                                    },
+                             NombreCliente = e.Cliente != null ? e.Cliente.Nombre : "",
+                             DescEstado = st.Descripcion,
+                         }).ToList();
+            }
+
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<ProyectoExt> args)
+    {
+        if (args.ToColumn.Property == nameof(ProyectoExt.Id))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    
+    protected async Task OnSelect(DataGridRowMouseEventArgs<ProyectoExt> args)
+    {
+        await OnItemSelected.InvokeAsync(args.Data);
+    }
+   
+}

@@ -4,7 +4,7 @@
 
 @if (reporte == null)
 {
-    <p><em>Loading...</em></p>
+    <SpinnerControl></SpinnerControl>
 }
 else
 {
@@ -39,23 +39,23 @@ else
                                         <RadzenColumn Size="12" SizeMD="6">
                                             <RadzenLabel Text="Tipo de Reporte" Component="TipoReporteId" />
                                             <RadzenDropDown @bind-Value="reporte.TipoReporteId"
-                                                            AllowClear="true"
-                                                            Placeholder="Seleccione Tipo de Reporte"
-                                                            Data="@listTiposReporte" Style="width: 100%;"
-                                                            ValueProperty="Id"
-                                                            TextProperty="Descripcion"
-                                                            Name="TipoReporteId">
+                                            AllowClear="true"
+                                            Placeholder="Seleccione Tipo de Reporte"
+                                            Data="@listTiposReporte" Style="width: 100%;"
+                                            ValueProperty="Id"
+                                            TextProperty="Descripcion"
+                                            Name="TipoReporteId">
                                             </RadzenDropDown>
                                         </RadzenColumn>
                                         <RadzenColumn Size="12" SizeMD="6">
                                             <RadzenLabel Text="Categoria de Reporte" Component="CatReporteId" />
                                             <RadzenDropDown @bind-Value="reporte.CategoriaId"
-                                                            AllowClear="true"
-                                                            Placeholder="Seleccione Categoria"
-                                                            Data="@listCategoriasReporte" Style="width: 100%;"
-                                                            ValueProperty="Id"
-                                                            TextProperty="Descripcion"
-                                                            Name="CatReporteId">
+                                            AllowClear="true"
+                                            Placeholder="Seleccione Categoria"
+                                            Data="@listCategoriasReporte" Style="width: 100%;"
+                                            ValueProperty="Id"
+                                            TextProperty="Descripcion"
+                                            Name="CatReporteId">
                                             </RadzenDropDown>
                                         </RadzenColumn>
                                     </RadzenRow>
@@ -65,7 +65,7 @@ else
                                             <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
                                                 <RadzenColumn Size="12" SizeMD="1">
                                                     <RadzenDatePicker Style="width: 100%;" Name="Fecha" @bind-Value="reporte.Fecha" Disabled="@soloLectura"
-                                                    ShowCalendarWeek DateFormat="MM/dd/yyyy" />
+                                                    ShowCalendarWeek DateFormat="dd/MM/yyyy" />
                                                 </RadzenColumn>
                                             </RadzenStack>
                                         </RadzenColumn>
@@ -110,8 +110,22 @@ else
                                             <RadzenTextArea @bind-Value=@reporte.TareasPendientes Style="width: 100%;height:125px" Name="pend" Disabled="@soloLectura" />
                                         </RadzenColumn>
                                     </RadzenRow>
-
-
+                                </RadzenStack>
+                            </RadzenFieldset>
+                            <RadzenFieldset Text="Encargados de Empresa">
+                                <RadzenStack Gap="0.3rem">
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Nombre de Encargado" Component="Encargado" />
+                                            <RadzenTextBox @bind-Value=@reporte.ResponsableCliente Style="width: 100%" Name="Encargado" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Correo" Component="Correo" />
+                                            <RadzenTextBox @bind-Value=@reporte.CorreoCliente Style="width: 100%" Name="Correo" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
                                 </RadzenStack>
                             </RadzenFieldset>
 
@@ -173,7 +187,7 @@ else
                                                 <RadzenRow AlignItems="AlignItems.Start">
                                                     <RadzenColumn Size="12" SizeMD="2">
                                                         <RadzenSwitch Placeholder="Programado" Style="width: 25%;" Name="Programado"
-                                                        @bind-Value="reporte.Programado" Disabled="@soloLectura" />
+                                                                      @bind-Value="reporte.Programado" Disabled="@soloLecturaAdd" />
                                                     </RadzenColumn>
                                                 </RadzenRow>
                                             </RadzenStack>
@@ -183,7 +197,7 @@ else
                                             <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.3rem">
                                                 <RadzenRow AlignItems="AlignItems.Center">
                                                     <RadzenColumn Size="12" SizeMD="3">
-                                                        <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="search" class="rounded-circle rz-my-1 rz-ms-1" Disabled="@soloLecturaAdd" Size="Radzen.ButtonSize.Medium"></RadzenButton>
+                                                        <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="search" class="rounded-circle rz-my-1 rz-ms-1" Disabled="@soloLecturaAdd" Size="Radzen.ButtonSize.Medium" Click=@OnShowModalTarea></RadzenButton>
                                                     </RadzenColumn>
                                                     <RadzenColumn Size="12" SizeMD="9">
                                                         <RadzenNumeric Name="AgendaId" @bind-Value="reporte.AgendaId" Disabled="@soloLecturaAdd" />
@@ -224,25 +238,40 @@ else
                                             <RadzenTextBox @bind-Value=@reporte.DescTarea Style="width: 100%" Name="descTarea" Disabled="true" />
                                         </RadzenColumn>
                                     </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenLabel Text="Fecha Planeada" Component="ftar" />
+                                            <RadzenDatePicker Style="width: 100%;" Name="ftar" @bind-Value="reporte!.FechaPlan" Disabled="true"
+                                            ShowCalendarWeek DateFormat="dd/MM/yyyy" Max="DateTime.MaxValue" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenLabel Text="Hora Inicio Planeada" Component="hInicioReal" />
+                                            <RadzenDatePicker @bind-Value=@reporte!.HoraInicioTarea ShowTime="true" TimeOnly="true"
+                                            DateFormat="HH:mm" Name="hInicioReal" Disabled="true" Style="width: 100%;" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenLabel Text="Hora Fin Planeada" Component="hFinReal" />
+                                            <RadzenDatePicker @bind-Value=@reporte!.HoraFinTarea ShowTime="true" TimeOnly="true"
+                                            DateFormat="HH:mm" Name="hFinReal" Disabled="true" Style="width: 100%;" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Estado" Component="EstadoId" />
+                                            <RadzenDropDown @bind-Value="reporte!.EstadoTareaId"
+                                            Placeholder="Seleccione Estado"
+                                            Data="@listEstadoTarea" Style="width: 100%;"
+                                            ValueProperty="Id"
+                                            TextProperty="Descripcion"
+                                            Name="EstadoId" Disabled="@soloLectura">
+                                            </RadzenDropDown>
+                                        </RadzenColumn>
+                                    </RadzenRow>
                                 </RadzenStack>                               
 
                             </RadzenFieldset>
-                            <RadzenFieldset Text="Encargados de Empresa">
-                                <RadzenStack Gap="0.3rem">
-                                    <RadzenRow AlignItems="AlignItems.Center">
-                                        <RadzenColumn Size="12" SizeMD="12">
-                                            <RadzenLabel Text="Nombre de Encargado" Component="Encargado" />
-                                            <RadzenTextBox @bind-Value=@reporte.ResponsableCliente Style="width: 100%" Name="Encargado" Disabled="@soloLectura" />
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                    <RadzenRow AlignItems="AlignItems.Center">
-                                        <RadzenColumn Size="12" SizeMD="12">
-                                            <RadzenLabel Text="Correo" Component="Correo" />
-                                            <RadzenTextBox @bind-Value=@reporte.CorreoCliente Style="width: 100%" Name="Correo" Disabled="@soloLectura" />
-                                        </RadzenColumn>
-                                    </RadzenRow>
-                                </RadzenStack>
-                            </RadzenFieldset>
+
                         </RadzenStack>
                     </RadzenColumn>
                 </RadzenRow>
@@ -268,12 +297,14 @@ else
     private bool soloLectura = false;
     private bool soloLecturaAdd = false;
     private ReporteExt? reporte = null;
+    private AgendaConsultor? tarea;
 
     private IEnumerable<CatalogoGenerico>? listCategoriasReporte;
     private IEnumerable<CatalogoGenerico>? listTiposReporte;
     private IEnumerable<CatalogoGenerico>? listEstadoReporte;
+    private IEnumerable<CatalogoGenerico>? listEstadoTarea;
 
-
+    private async Task LoadEstadoTarea() => listEstadoTarea = await configService.GetCatalogoGenerico("ESTADO_PROYECTO_TAREA");
     private async Task LoadCategoriasReporte() => listCategoriasReporte = await configService.GetCatalogoGenerico("CATEGORIA_REPORTE");
     private async Task LoadTiposReporte() => listTiposReporte = await configService.GetCatalogoGenerico("TIPO_REPORTE");
     private async Task LoadEstadoReporte() => listEstadoReporte = await configService.GetCatalogoGenerico("ESTADO_REPORTE");
@@ -313,6 +344,7 @@ else
                         UsuarioCreacion = repo.UsuarioCreacion,
                         FechaModificacion = repo.FechaModificacion,
                         UsuarioModificacion = repo.UsuarioModificacion,
+                        EstadoTareaId = repo.EstadoTareaId,
                         Cliente = repo.Cliente == null ? null :
                                      new Cliente
                                      {
@@ -350,6 +382,13 @@ else
                         NombreCliente = repo.Cliente!.Nombre,
                         NombreConsultor = repo.Consultor!.Nombre
                     };
+
+                if (reporte.AgendaId is not null && reporte.AgendaId>0)
+                { 
+                    string statusTarea = reporte.EstadoTareaId;
+                    await BuscarTarea();
+                    reporte.EstadoTareaId = statusTarea;
+                }
             }
         }
     }
@@ -362,6 +401,7 @@ else
             LoadTiposReporte(),
             LoadEstadoReporte(),
             LoadReporte(),
+            LoadEstadoTarea(),
         };
 
     }
@@ -414,6 +454,7 @@ else
                     UsuarioModificacion = loginState.User.consultor!.Id.ToString(),
                     NombreCliente = "",
                     NombreConsultor="",
+                    EstadoTareaId = null,
                 };
             }
         }
@@ -577,7 +618,7 @@ else
                     Draggable = true,
                     Resize = base.OnResize,
                     Drag = base.OnDrag,
-                    Width = Settings != null ? Settings.Width : "700px",
+                    Width = Settings != null ? Settings.Width : "900px",
                     Height = Settings != null ? Settings.Height : "512px",
                     Left = Settings != null ? Settings.Left : null,
                     Top = Settings != null ? Settings.Top : null
@@ -599,6 +640,82 @@ else
 
         reporte!.Cantidadhoras = (decimal)horas;
     }
+
+    private async Task BuscarTarea()
+    {
+
+        tarea = await processService.GetAgendaConsultorByConsultor((int)reporte!.AgendaId!, loginState.User.consultor!.Id);
+        if (tarea is not null)
+        {
+            reporte.AgendaId = tarea!.Id;
+            reporte.ProyectoId = tarea!.ProyectoId;
+            reporte.TareaId = tarea!.TareaId;
+            reporte.ItemId = tarea!.ItemId;
+            reporte.EstadoTareaId = tarea!.EstadoId;
+            reporte.HoraInicioTarea = tarea!.HoraInicioPlanificada;
+            reporte.HoraFinTarea = tarea!.HoraFinalPlanificada;
+            reporte.FechaPlan = tarea!.Fecha;
+            reporte.DescProyecto = tarea!.Proyecto!.Descripcion;
+            reporte.DescTarea = tarea!.ProyectoDetalle!.Descripcion;
+        }
+        else
+        {
+            await swal.FireAsync("Atención", "La tarea no existe en la agenda del consultor", SweetAlertIcon.Info);
+            reporte.AgendaId = 0;
+            reporte.ProyectoId = 0;
+            reporte.TareaId = 0;
+            reporte.ItemId = 0;
+            reporte.EstadoTareaId = null;
+            reporte.HoraInicioTarea = null;
+            reporte.HoraFinTarea = null;
+            reporte.FechaPlan = null;
+            reporte.DescProyecto = "";
+            reporte.DescTarea = "";
+
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnShowModalTarea()
+    {
+
+        await dialogService.OpenAsync<AgendaConsultorPop>("Agenda de Consultor",
+              new Dictionary<string, object>()
+                {
+                    { "OnItemSelected", EventCallback.Factory.Create<AgendaConsultorExt>(this, HideModalTareas)},
+                    { "IdConsultor", loginState.User.consultor!.Id },
+
+                },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
+                  Resize = base.OnResize,
+                  Drag = base.OnDrag,
+                  Width = Settings != null ? Settings.Width : "1200px",
+                  Height = Settings != null ? Settings.Height : "512px",
+                  Left = Settings != null ? Settings.Left : null,
+                  Top = Settings != null ? Settings.Top : null
+              });
+    }
+
+    private async Task HideModalTareas(AgendaConsultorExt args)
+    {
+        reporte!.AgendaId = args!.Id;
+        reporte.ProyectoId = args!.ProyectoId;
+        reporte.TareaId = args!.TareaId;
+        reporte.ItemId = args!.ItemId;
+        reporte.DescProyecto = args!.DescProyecto;
+        reporte.DescTarea = args!.DescTarea;
+        reporte.EstadoTareaId = args!.EstadoId;
+        reporte.HoraInicioTarea = args!.HoraInicioPlanificada;
+        reporte.HoraFinTarea = args!.HoraFinalPlanificada;
+        reporte.FechaPlan = args!.Fecha;
+
+        dialogService.Close(true);
+        await InvokeAsync(StateHasChanged);
+    }
+
 
     
 }

@@ -3,11 +3,18 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <PackageIcon>favicon.png</PackageIcon>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="Seguridad\UsuarioDetalle.razor" />
     <Content Remove="Seguridad\UsuarioDetalleRoles.razor" />
     <Content Remove="Seguridad\UsuariosList.razor" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="wwwroot\appicon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Blazor.Bootstrap" Version="3.2.0" />

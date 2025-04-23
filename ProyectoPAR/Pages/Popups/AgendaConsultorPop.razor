@@ -1,0 +1,191 @@
+﻿
+<div class="card">
+    <div class="card-body">
+
+        <RadzenStack Gap="1rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+
+            <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+            TItem="AgendaConsultorExt"
+            AllowFiltering="true"
+            AllowColumnResize="true"
+            FilterMode="FilterMode.SimpleWithMenu"
+            PageSize="7"
+            AllowPaging="true"
+            AllowSorting="true"
+            AllowMultiColumnSorting="true"
+            ShowMultiColumnSortingIndex="true"
+            Data="@dataList"
+            ColumnWidth="300px"
+            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+            FilterCleared=@FilterCleared
+            SelectionMode="DataGridSelectionMode.Single"
+            @bind-Value=@selectedData
+            LogicalFilterOperator="LogicalFilterOperator.Or"
+            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+            RowDoubleClick="@OnSelect"
+            AllowColumnPicking="true"
+            AllowColumnReorder="true"
+            ColumnReordering="@OnColumnReordering">
+                <Columns>
+
+                    <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.Id)"
+                        FilterValue="@AgendaID"
+                        Filterable="true" Title="ID"
+                        Frozen="true"
+                        Width="100px"
+                        TextAlign="TextAlign.Center">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.Fecha)" Title="Fecha" Width="120px" FormatString="{0:d}" />
+                    <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.NombreConsultor)" Title="Consultor" Width="200px" />
+                    <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.DescProyecto)" Title="Proyecto" Width="200px" />
+                    <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.DescTarea)" Title="Tarea" Width="200px" />
+                    <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.HoraInicioPlanificada)" Title="Hora Inicio Plan" Width="80px" />
+                    <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.HoraFinalPlanificada)" Title="Hora Final Plan" Width="80px" />
+                </Columns>
+            </RadzenDataGrid>
+
+
+        </RadzenStack>
+
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<AgendaConsultorExt> OnItemSelected { get; set; }
+    [Parameter] public int IdConsultor { get; set; }
+
+    private bool InProcess = true; 
+
+    string? AgendaID;
+    RadzenDataGrid<AgendaConsultorExt> grid;
+    IEnumerable<AgendaConsultorExt> dataList;
+    IList<AgendaConsultorExt> selectedData;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        dataList = await GetDataList();
+    }
+
+
+    async Task FilterCleared()
+    {
+        AgendaID = null;
+        await grid.FirstPage();
+    }
+    void OnRender(DataGridRenderEventArgs<AgendaConsultorExt> args)
+    {
+        
+    }
+
+    private async Task<IEnumerable<AgendaConsultorExt>> GetDataList()
+    {
+        List<AgendaConsultorExt> model = new();
+        try
+        {
+            var agenda = await processService.GetAgendaConsultorByConsultor(IdConsultor);
+
+            if (agenda is not null)
+            {
+                model = (from e in agenda
+                         select new AgendaConsultorExt
+                         {
+                             Id = e.Id,
+                             ConsultorId = e.ConsultorId,
+                             Fecha = e.Fecha,
+                             ProyectoId = e.ProyectoId,
+                             TareaId = e.TareaId,
+                             ItemId = e.ItemId,
+                             HoraInicioPlanificada = e.HoraInicioPlanificada,
+                             HoraFinalPlanificada = e.HoraFinalPlanificada,
+                             HoraInicioReal = e.HoraInicioReal,
+                             HoraFinalReal = e.HoraFinalReal,
+                             Observaciones = e.Observaciones,
+                             FechaCreacion = e.FechaCreacion,
+                             UsuarioCreacion = e.UsuarioCreacion,
+                             FechaModificacion = e.FechaModificacion,
+                             UsuarioModificacion = e.UsuarioModificacion,
+                             Consultor = e.Consultor == null ? null :
+                                    new Consultor
+                                    {
+                                        Id = e.Consultor.Id,
+                                        Usuario = e.Consultor.Usuario,
+                                        Nombre = e.Consultor.Nombre,
+                                        PrimerApellido = e.Consultor.PrimerApellido,
+                                        SegundoApellido = e.Consultor.SegundoApellido,
+                                        Email = e.Consultor.Email,
+                                        Telefono = e.Consultor.Telefono,
+                                        Activo = e.Consultor.Activo,
+                                        FechaCreacion = e.Consultor.FechaCreacion,
+                                        UsuarioCreacion = e.Consultor.UsuarioCreacion,
+                                        FechaModificacion = e.Consultor.FechaModificacion,
+                                        UsuarioModificacion = e.Consultor.UsuarioModificacion,
+                                    },
+                             Proyecto = e.Proyecto == null ? null :
+                                    new Proyecto
+                                    {
+                                        Id = e.Proyecto.Id,
+                                        Descripcion = e.Proyecto.Descripcion,
+                                        ClienteId = e.Proyecto.ClienteId,
+                                        FechaInicio = e.Proyecto.FechaInicio,
+                                        FechaFin = e.Proyecto.FechaFin,
+                                        EstadoId = e.Proyecto.EstadoId,
+                                        Observaciones = e.Proyecto.Observaciones,
+                                        FechaCreacion = e.Proyecto.FechaCreacion,
+                                        UsuarioCreacion = e.Proyecto.UsuarioCreacion,
+                                        FechaModificacion = e.Proyecto.FechaModificacion,
+                                        UsuarioModificacion = e.Proyecto.UsuarioModificacion,
+                                    },
+                             ProyectoDetalle = e.ProyectoDetalle == null ? null :
+                                    new ProyectoDetalle
+                                    {
+                                        ProyectoId = e.ProyectoDetalle.ProyectoId,
+                                        TareaId = e.ProyectoDetalle.TareaId,
+                                        ItemId = e.ProyectoDetalle.ItemId,
+                                        Descripcion = e.ProyectoDetalle.Descripcion,
+                                        CantidadHorasEstimada = e.ProyectoDetalle.CantidadHorasEstimada,
+                                        CantidadHorasConsumida = e.ProyectoDetalle.CantidadHorasConsumida,
+                                        EstadoId = e.ProyectoDetalle.EstadoId,
+                                        Facturable = e.ProyectoDetalle.Facturable,
+                                        FechaCreacion = e.ProyectoDetalle.FechaCreacion,
+                                        UsuarioCreacion = e.ProyectoDetalle.UsuarioCreacion,
+                                        FechaModificacion = e.ProyectoDetalle.FechaModificacion,
+                                        UsuarioModificacion = e.ProyectoDetalle.UsuarioModificacion,
+                                    },
+                             NombreConsultor = $"{e.Consultor!.Nombre} {e.Consultor!.PrimerApellido}",
+                             DescProyecto = e.Proyecto!.Descripcion,
+                             DescTarea = e.ProyectoDetalle!.Descripcion,
+                         }).OrderBy(e => e.Fecha).ToList();
+            }
+
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<AgendaConsultorExt> args)
+    {
+        if (args.ToColumn.Property == nameof(AgendaConsultorExt.Id))
+        {
+            args.Cancel = true;
+        }
+    }
+
+
+    protected async Task OnSelect(DataGridRowMouseEventArgs<AgendaConsultorExt> args)
+    {
+        await OnItemSelected.InvokeAsync(args.Data);
+    }   
+}

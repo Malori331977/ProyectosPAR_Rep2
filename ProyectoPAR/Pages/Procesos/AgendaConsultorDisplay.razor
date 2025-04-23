@@ -1,0 +1,36 @@
+﻿@page "/agendaconsultordisplay"
+@page "/agendaconsultordisplay/{idConsultor}/{modoGlobal}"
+
+@if (id != 0)
+{
+    <AgendaConsultorList IdConsultor="@id" ModoGlobal="@ModoGlobal"></AgendaConsultorList>
+}
+
+@code {
+    [Parameter] public string? idConsultor { get; set; } = null;
+    [Parameter] public string? modoGlobal { get; set; } = null;
+
+    int id = 0;
+    int ModoGlobal = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        if (String.IsNullOrEmpty(idConsultor))
+            id = loginState.User.consultor!.Id;
+        else
+            id = int.Parse(idConsultor);
+
+        if (String.IsNullOrEmpty(modoGlobal))
+            ModoGlobal = 1;
+        else
+            ModoGlobal = int.Parse(modoGlobal);
+        
+
+        StateHasChanged();
+
+    }
+
+
+
+}

@@ -60,6 +60,14 @@ namespace ProyectoPAR.Data.Interfaces
         public Task<IEnumerable<AgendaConsultor>> GetAgendaConsultorByConsultor(int consultorId);
 
         /// <summary>
+        /// GetAgendaConsultorByConsultor: Obtiene el registro de la tabla AgendaConsultor para un consultor y ID especifico
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="proyectoId"></param>
+        /// <returns>Registros de la tabla AgendaConsultor</returns>
+        public Task<AgendaConsultor> GetAgendaConsultorByConsultor(int id, int consultorId);
+
+        /// <summary>
         /// GetContrato: Obtiene todos los registros de la tabla Contratos
         /// </summary>
         /// <returns>Lista de registros de la tabla Contratos</returns>
@@ -113,11 +121,18 @@ namespace ProyectoPAR.Data.Interfaces
         public Task<Proyecto> GetProyecto(int id);
 
         /// <summary>
-        /// GetProyectoByEstado: obtiene los registros de la tabla Proyectos para una estado especifico
+        /// GetProyectoByEstado: obtiene los registros de la tabla Proyectos para un estado especifico
         /// </summary>
         /// <param name="estado"></param>
         /// <returns></returns>
         public Task<IEnumerable<Proyecto>> GetProyectoByEstado(string estado);
+
+        /// <summary>
+        /// GetProyectoByConsultor: obtiene los registros de la tabla Proyectos para un consultor especifico
+        /// </summary>
+        /// <param name="consultor"></param>
+        /// <returns></returns>
+        public Task<IEnumerable<Proyecto>> GetProyectoByConsultor(int consultor);
 
         /// <summary>
         /// GetProyectoAvance: Obtiene todos los registros de la tabla ProyectosAvances

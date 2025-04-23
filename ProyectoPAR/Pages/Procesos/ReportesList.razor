@@ -53,7 +53,7 @@
                     <RadzenDataGridColumn Property="@nameof(ReporteExt.Fecha)" Title="Fecha" FormatString="{0:d}" Width="150px" />
                     <RadzenDataGridColumn Property="@nameof(ReporteExt.ResponsableCliente)" Title="Responsable de Empresa" Width="150px" />
                     <RadzenDataGridColumn Property="@nameof(ReporteExt.CorreoCliente)" Title="Email del Responsable" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(ReporteExt.EstadoId)" Title="Estado" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.DescEstado)" Title="Estado" Width="150px" />
                     <RadzenDataGridColumn Property="@nameof(ReporteExt.Confirmacion)" Title="Confirmado" Width="80px">
                         <Template Context="ReporteExt">
                             <RadzenSwitch @bind-Value=@ReporteExt.Confirmacion Disabled="true"></RadzenSwitch>

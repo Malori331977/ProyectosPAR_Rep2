@@ -273,13 +273,17 @@
 
         if (Modo != 3)
         {
-            var existeUsuario = await mtoService.GetConsultorByUsuario(consultor.Usuario);
-
-            if (existeUsuario is not null)
+            if (Modo == 1 )
             {
-                await swal.FireAsync("Atención", $"Ya existe un consultor con el código de usuario {consultor.Usuario}.", SweetAlertIcon.Info);
-                return false;
+                var existeUsuario = await mtoService.GetConsultorByUsuario(consultor.Usuario);
+
+                if (existeUsuario is not null)
+                {
+                    await swal.FireAsync("Atención", $"Ya existe un consultor con el código de usuario {consultor.Usuario}.", SweetAlertIcon.Info);
+                    return false;
+                }
             }
+            
             if (String.IsNullOrEmpty(consultor.PrimerApellido))
             {
                 await swal.FireAsync("Atención", "Debe indicar el Primer Apellido.", SweetAlertIcon.Info);

@@ -1,0 +1,155 @@
+﻿
+
+<div class="card">
+    <div class="card-body">
+
+        <RadzenStack Gap="1rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+
+            <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                            TItem="ProyectoDetalleExt"
+                            AllowFiltering="true"
+                            AllowColumnResize="true"
+                            FilterMode="FilterMode.SimpleWithMenu"
+                            PageSize="10"
+                            AllowPaging="true"
+                            AllowSorting="true"
+                            AllowMultiColumnSorting="true"
+                            ShowMultiColumnSortingIndex="true"
+                            Data="@dataList"
+                            ColumnWidth="300px"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            FilterCleared=@FilterCleared
+                            SelectionMode="DataGridSelectionMode.Single"
+                            @bind-Value=@selectedData
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            RowDoubleClick="@OnSelect"
+                            AllowColumnPicking="true"
+                            AllowColumnReorder="true"
+                            ColumnReordering="@OnColumnReordering">
+                <Columns>
+                   
+                    <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.CodigoTarea)"
+                                        FilterValue="@CodigoTareaID"
+                                        Filterable="true" 
+                                        Title="Tarea" 
+                                        Frozen="true" 
+                                        Width="100px" 
+                                        TextAlign="TextAlign.Center">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.DescripcionTarea)" Title="Descripción" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.CantidadHorasEstimada)" Title="Horas Estimadas" Width="100px" />
+                    <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.CantidadHorasConsumida)" Title="Horas Consumidas" Width="100px" />
+                   
+                </Columns>
+            </RadzenDataGrid>            
+        </RadzenStack>
+
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<ProyectoDetalleExt> OnItemSelected { get; set; }
+    [Parameter] public int ProyectoId { get; set; }
+    
+
+    private bool InProcess = true; 
+
+    string? CodigoTareaID;
+    RadzenDataGrid<ProyectoDetalleExt> grid;
+    IEnumerable<ProyectoDetalleExt> dataList;
+    IList<ProyectoDetalleExt> selectedData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await base.OnInitializedAsync();
+            dataList = await GetDataList();
+
+
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+        StateHasChanged();
+    }
+
+
+    async Task FilterCleared()
+    {
+        CodigoTareaID = null;
+        await grid.FirstPage();
+    }
+
+    private void OnRender(DataGridRenderEventArgs<ProyectoDetalleExt> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
+
+
+        }
+                
+        
+    }
+
+
+    private async Task<IEnumerable<ProyectoDetalleExt>> GetDataList()
+    {
+        List<ProyectoDetalleExt> model = new();
+        try
+        {
+            var tareas = await processService.GetProyectoDetalle(ProyectoId);
+
+            if (tareas is not null)
+                model = (from t in tareas
+                         select new ProyectoDetalleExt
+                         {
+                             ProyectoId = t.ProyectoId,
+                             TareaId = t.TareaId,
+                             ItemId = t.ItemId,
+                             CodigoTarea = t.Tarea!.Codigo,
+                             Descripcion = t.Descripcion,
+                             DescripcionTarea = t.Descripcion,
+                             CantidadHorasEstimada = t.CantidadHorasEstimada,
+                             CantidadHorasConsumida = t.CantidadHorasConsumida,
+                             Facturable = t.Facturable,
+                             EstadoId = t.EstadoId,
+                         }).ToList();
+
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<ProyectoDetalleExt> args)
+    {
+        if (args.ToColumn.Property == nameof(ProyectoDetalleExt.CodigoTarea))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    
+    protected async Task OnSelect(DataGridRowMouseEventArgs<ProyectoDetalleExt> args)
+    {
+        await OnItemSelected.InvokeAsync(args.Data);
+    }
+
+    
+
+    
+   
+}

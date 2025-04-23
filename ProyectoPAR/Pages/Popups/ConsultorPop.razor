@@ -9,43 +9,27 @@
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
             TItem="Consultor"
-            AllowFiltering="true" 
-            AllowColumnResize="true" 
-            FilterMode="FilterMode.SimpleWithMenu" 
-            PageSize="8"
+            AllowFiltering="true"
+            AllowColumnResize="true"
+            FilterMode="FilterMode.SimpleWithMenu"
+            PageSize="10"
             AllowPaging="true"
-            AllowSorting="true" 
-            AllowMultiColumnSorting="true" 
+            AllowSorting="true"
+            AllowMultiColumnSorting="true"
             ShowMultiColumnSortingIndex="true"
             Data="@dataList"
             ColumnWidth="300px"
-            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"                           
+            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
             FilterCleared=@FilterCleared
-            AllowRowSelectOnRowClick=@allowRowSelect
-            SelectionMode="DataGridSelectionMode.Multiple" 
+            SelectionMode="DataGridSelectionMode.Single"
             @bind-Value=@selectedData
             LogicalFilterOperator="LogicalFilterOperator.Or"
             FilterPopupRenderMode="PopupRenderMode.OnDemand"
+            RowDoubleClick="@OnSelect"
             AllowColumnPicking="true"
-            AllowColumnReorder="true" 
-            ColumnReordering="@OnColumnReordering">  
-                <HeaderTemplate>
-                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
-                        <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Primary" Text="Seleccionar" Icon="how_to_reg" Click="@(args => OnSelect())" />
-                    </RadzenStack>
-                </HeaderTemplate>
-                <Columns>
-                    <RadzenDataGridColumn Width="60px" Sortable="false" Filterable="false">
-                        <HeaderTemplate>
-                            <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Seleccionar todos" } })"
-                            Value="@(selectedData == null || selectedData?.Any() != true ? false : !dataList.All(i => selectedData.Contains(i)) ? null : dataList.Any(i => selectedData.Contains(i)))"
-                            Change="@(args => selectedData = args == true ? dataList.ToList() : null)" />
-                        </HeaderTemplate>
-                        <Template Context="data">
-                            <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedData != null && selectedData.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                            TValue="bool" Change=@(args => { if (!allowRowSelect) { grid.SelectRow(data); } }) />
-                        </Template>
-                    </RadzenDataGridColumn>
+            AllowColumnReorder="true"
+            ColumnReordering="@OnColumnReordering">
+                <Columns>                    
                     <RadzenDataGridColumn Property="@nameof(Consultor.Id)"
                     FilterValue="@ConsultorID"
                     Filterable="true" Title="ID" 
@@ -69,8 +53,7 @@
 </div>
 
 @code {
-    [Parameter] public EventCallback<IList<Consultor>> OnItemSelected { get; set; }
-    [Parameter] public IEnumerable<ProyectoConsultorExt>? ConsultoresActuales { get; set; }
+    [Parameter] public EventCallback<Consultor> OnItemSelected { get; set; }
 
     private bool InProcess = true; 
 
@@ -78,8 +61,6 @@
     RadzenDataGrid<Consultor> grid;
     IEnumerable<Consultor> dataList;
     IList<Consultor> selectedData;
-    private bool allowRowSelect = true;
-    private bool bInicializado = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -109,24 +90,7 @@
         if (args.FirstRender)
         {
             args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
-
-
-        }
-        if (!bInicializado)
-        {
-            if (grid.Data is not null)
-            {
-                foreach (var item in grid.Data)
-                {
-                    if (ConsultoresActuales.Any(e => e.ConsultorId == item.Id))
-                    {
-                        grid.SelectRow(item, true);
-                    }
-                    bInicializado = true;
-                }
-            }
-        }
-
+        }     
 
     }
 
@@ -146,13 +110,13 @@
                          select new Consultor
                          {
                              Id = c.Id,
-                             Nombre = $"{c.PrimerApellido} {c.SegundoApellido} {c.Nombre}",
+                             Nombre = $"{c.Nombre} {c.PrimerApellido} {c.SegundoApellido}",
                              Telefono = c.Telefono,
                              Email = c.Email,
                              Activo = c.Activo,
                          }).ToList();
             }
-           
+            
 
         }
         catch (Exception)
@@ -174,9 +138,9 @@
     }
 
     
-    protected async Task OnSelect()
+    protected async Task OnSelect(DataGridRowMouseEventArgs<Consultor> args)
     {
-        await OnItemSelected.InvokeAsync(selectedData);
+        await OnItemSelected.InvokeAsync(args.Data);
     }
    
 }

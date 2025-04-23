@@ -5,7 +5,7 @@
 
 @if (licencia == null)
 {
-    <p><em>Loading...</em></p>
+    <SpinnerControl></SpinnerControl>
 }
 else
 {
@@ -323,6 +323,7 @@ else
 
                 arg.Producto = null;
                 arg.Contrato = null;
+                arg.BaseDatos = arg.BaseDatos.ToUpper();
 
                 List<Licencia> listAdd = new List<Licencia> { arg };
 

@@ -299,6 +299,31 @@ namespace ProyectoPAR.Data
             return model!;
         }
 
+        public async Task<AgendaConsultor> GetAgendaConsultorByConsultor(int id, int consultorId)
+        {
+            AgendaConsultor? model = null;
+            HttpResponseMessage? result = null;
+            try
+            {
+                var method = $"/AgendaConsultorByConsultor/{id}/{consultorId}";
+                result = await _genericService.Get(method);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readJob = result.Content.ReadFromJsonAsync<AgendaConsultor>();
+                    readJob.Wait();
+                    model = readJob.Result;
+                }
+            }
+            catch (Exception e)
+            {
+                //devuelve el codigo de error
+                string error = e.InnerException is null ? e.Message : e.InnerException.Message;
+                _logger.LogError($"{InterfaceName}.GetAgendaConsultorByConsultor: Se ha presentado un error al ejecutar el proceso. Detalle de Error: {error}");
+            }
+            return model!;
+        }
+
         public async Task<IEnumerable<Contrato>> GetContrato()
         {
             IEnumerable<Contrato>? model = null;
@@ -526,6 +551,32 @@ namespace ProyectoPAR.Data
                 model = Enumerable.Empty<Proyecto>();
                 string error = e.InnerException is null ? e.Message : e.InnerException.Message;
                 _logger.LogError($"{InterfaceName}.GetProyectoByEstado: Se ha presentado un error al ejecutar el proceso. Detalle de Error: {error}");
+            }
+            return model!;
+        }
+
+        public async Task<IEnumerable<Proyecto>> GetProyectoByConsultor(int consultor)
+        {
+            IEnumerable<Proyecto>? model = null;
+            HttpResponseMessage? result = null;
+            try
+            {
+                var method = $"/ProyectoByConsultor/{consultor}";
+                result = await _genericService.Get(method);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readJob = result.Content.ReadFromJsonAsync<IList<Proyecto>>();
+                    readJob.Wait();
+                    model = readJob.Result;
+                }
+            }
+            catch (Exception e)
+            {
+                //devuelve el codigo de error
+                model = Enumerable.Empty<Proyecto>();
+                string error = e.InnerException is null ? e.Message : e.InnerException.Message;
+                _logger.LogError($"{InterfaceName}.ProyectoByConsultor: Se ha presentado un error al ejecutar el proceso. Detalle de Error: {error}");
             }
             return model!;
         }
