@@ -68,7 +68,7 @@ else
                                                 </RadzenColumn>
                                                 <RadzenColumn Size="12" SizeMD="2">
                                                     <RadzenNumeric Style="width: 100%;" Name="ProyectoDetId" @bind-Value="agendaConsultor!.TareaId" Disabled="@soloLecturaAdd"
-                                                                   @onfocusout="BuscarProyectoDetalle" />
+                                                    @onfocusout="BuscarProyectoDetalle" />
                                                 </RadzenColumn>
                                                 <RadzenColumn Size="12" SizeMD="9">
                                                     <RadzenTextBox Style="width: 100%;" Disabled="true" @bind-Value="agendaConsultor!.DescTarea" />
@@ -78,11 +78,11 @@ else
                                         <RadzenColumn Size="12" SizeMD="2">
                                             <RadzenLabel Text="Estado" Component="EstadoId" />
                                             <RadzenDropDown @bind-Value="agendaConsultor!.EstadoId"
-                                                            Placeholder="Seleccione Estado"
-                                                            Data="@listEstadoTarea" Style="width: 100%;"
-                                                            ValueProperty="Id"
-                                                            TextProperty="Descripcion"
-                                                            Name="EstadoId" Disabled="@soloLectura">
+                                            Placeholder="Seleccione Estado"
+                                            Data="@listEstadoTarea" Style="width: 100%;"
+                                            ValueProperty="Id"
+                                            TextProperty="Descripcion"
+                                            Name="EstadoId" Disabled="@soloLectura">
                                             </RadzenDropDown>
                                         </RadzenColumn>
                                     </RadzenRow>
@@ -173,11 +173,11 @@ else
 
     private async Task LoadEstadoTarea() => listEstadoTarea = await configService.GetCatalogoGenerico("ESTADO_PROYECTO_TAREA");
 
-    private async Task LoadLicencia()
+    private async Task LoadAgenda()
     {
         if (Modo != 1)
         {
-            
+
             var repo = await processService.GetAgendaConsultor(Id);
 
             if (repo is not null)
@@ -272,7 +272,9 @@ else
             {
                 soloLecturaAdd = true;
                 soloLecturaIdCons = true;
-                await LoadLicencia();
+                await LoadAgenda();
+
+                if (agendaConsultor!.EstadoId != "P" && agendaConsultor!.EstadoId != "D") soloLectura = true;
 
             }
             else

@@ -161,7 +161,7 @@ namespace ProyectoPAR.Data.Interfaces
         /// <param name="proyectoId"></param>
         /// <param name="tareaId"></param>
         /// <returns></returns>
-        public Task<ProyectoAvance> GetProyectoAvance(int proyectoId, int tareaId, int itemId);
+        public Task<IEnumerable<ProyectoAvance>> GetProyectoAvance(int proyectoId, int tareaId, int itemId);
 
         /// <summary>
         /// GetProyectoConsultor: Obtiene todos los registros de la tabla ProyectosConsultores

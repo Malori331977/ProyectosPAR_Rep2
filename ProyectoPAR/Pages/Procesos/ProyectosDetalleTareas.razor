@@ -1,22 +1,5 @@
 ﻿@inherits DialogSettingLayout
 
-<style>
-    .radzen-grid-row-background-color-info-light > td {
-    background-color: #77F2FF !important;
-    }
-
-    .radzen-grid-row-background-color-yellow-light > td {
-    background-color: #FFFE91 !important;
-    }
-
-    .radzen-grid-row-background-color-red-light > td {
-    background-color: #FF188E !important;
-    }
-
-    .radzen-grid-row-background-color-green-light > td {
-    background-color: #44FF47 !important;
-    }
-</style>
 
 <div class="card-body">
     <RadzenStack Gap="0.3rem">
@@ -319,8 +302,8 @@
                   Draggable = true,
                   Resize = base.OnResize,
                   Drag = base.OnDrag,
-                  Width = Settings != null ? Settings.Width : "1000px",
-                  Height = Settings != null ? Settings.Height : "550px",
+                  Width = "1200px",
+                  Height = "1000px",
                   Left = Settings != null ? Settings.Left : null,
                   Top = Settings != null ? Settings.Top : null
               });
@@ -379,20 +362,27 @@
         {
             switch (args.Data.EstadoId)
             {
-                case "P":
-                    args.Attributes.Add("class", "radzen-grid-row-background-color-yellow-light rz-data-row");
+                case "E":
+                    args.Attributes.Add("class", "radzen-grid-row-background-color-green-light rz-data-row");
                     break;
                 case "C":
                     args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
                     break;
-                case "E":
-                    args.Attributes.Add("class", "radzen-grid-row-background-color-info-light rz-data-row");
+                case "D":
+                    args.Attributes.Add("class", "radzen-grid-row-background-color-gray-light rz-data-row");
                     break;
                 case "F":
-                    args.Attributes.Add("class", "radzen-grid-row-background-color-green-light rz-data-row");
+                    args.Attributes.Add("class", "radzen-grid-row-background-color-yellow-light rz-data-row");
                     break;
             }
-            
+
+        }
+        else
+        {
+            if(args.Data.EstadoId=="C")
+            {
+                args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+            }
         }
     }
 }

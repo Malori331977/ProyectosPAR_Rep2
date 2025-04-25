@@ -33,11 +33,11 @@
                 <Columns>
 
                     <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.Id)"
-                        FilterValue="@AgendaID"
-                        Filterable="true" Title="ID"
-                        Frozen="true"
-                        Width="100px"
-                        TextAlign="TextAlign.Center">
+                    FilterValue="@AgendaID"
+                    Filterable="true" Title="ID"
+                    Frozen="true"
+                    Width="100px"
+                    TextAlign="TextAlign.Center">
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.Fecha)" Title="Fecha" Width="120px" FormatString="{0:d}" />
                     <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.NombreConsultor)" Title="Consultor" Width="200px" />
@@ -57,6 +57,7 @@
 @code {
     [Parameter] public EventCallback<AgendaConsultorExt> OnItemSelected { get; set; }
     [Parameter] public int IdConsultor { get; set; }
+    [Parameter] public string IdCliente { get; set; }
 
     private bool InProcess = true; 
 
@@ -81,7 +82,7 @@
     }
     void OnRender(DataGridRenderEventArgs<AgendaConsultorExt> args)
     {
-        
+
     }
 
     private async Task<IEnumerable<AgendaConsultorExt>> GetDataList()
@@ -161,7 +162,10 @@
                              NombreConsultor = $"{e.Consultor!.Nombre} {e.Consultor!.PrimerApellido}",
                              DescProyecto = e.Proyecto!.Descripcion,
                              DescTarea = e.ProyectoDetalle!.Descripcion,
+                             IdCliente = e.Proyecto!.ClienteId,
                          }).OrderBy(e => e.Fecha).ToList();
+
+                model = model.Where(e => e.IdCliente == IdCliente && e.EstadoId != "T" && e.EstadoId != "C").ToList();
             }
 
         }

@@ -1,0 +1,159 @@
+﻿
+<RadzenAccordion>
+    <Items>
+        <RadzenAccordionItem Text=" Avances de la Tarea" Icon="event_available">
+            <RadzenStack Gap="0.5rem">
+                <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                                TItem="ProyectoAvanceExt"
+                                AllowColumnResize="true"
+                                FilterMode="FilterMode.SimpleWithMenu"
+                                PageSize="7"
+                                AllowPaging="true"
+                                AllowSorting="true"
+                                AllowMultiColumnSorting="true"
+                                ShowMultiColumnSortingIndex="true"
+                                Data="@dataList"
+                                ColumnWidth="300px"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                FilterCleared=@FilterCleared
+                                SelectionMode="DataGridSelectionMode.Single"
+                                @bind-Value=@selectedData
+                                LogicalFilterOperator="LogicalFilterOperator.Or"
+                                FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                                AllowColumnPicking="true"
+                                AllowColumnReorder="true"
+                                ColumnReordering="@OnColumnReordering">
+                    <Columns>
+
+                        @*                 <RadzenDataGridColumn Property="@nameof(ProyectoAvanceExt.Id)"
+                FilterValue="@ProyectoID"
+                Filterable="true" Title="ID"
+                Frozen="true"
+                Width="100px"
+                TextAlign="TextAlign.Center">
+                </RadzenDataGridColumn> *@
+                        <RadzenDataGridColumn Property="@nameof(ProyectoAvanceExt.FechaAvance)" Title="Fecha Avance" Width="150px" />
+                        <RadzenDataGridColumn Property="@nameof(ProyectoAvanceExt.NombreConsultor)" Title="Consultor" Width="200px" />
+                        <RadzenDataGridColumn Property="@nameof(ProyectoAvanceExt.CantidadHoras)" Title="Cantidad de Horas" Width="100px" />
+                        <RadzenDataGridColumn Property="@nameof(ProyectoAvanceExt.DescripcionAvance)" Title="Descripción de Avance" Width="300px" />
+                        <RadzenDataGridColumn Property="@nameof(ProyectoAvanceExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
+
+
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenStack>
+
+        </RadzenAccordionItem>
+    </Items>
+</RadzenAccordion>
+
+    
+
+
+
+@code {
+    [Parameter] public ProyectoDetalle? proyectoDetalle { get; set; }
+
+    string? ProyectoID;
+    RadzenDataGrid<ProyectoAvanceExt> grid;
+    IEnumerable<ProyectoAvanceExt> dataList;
+    IList<ProyectoAvanceExt> selectedData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        dataList = await GetDataList();
+    }
+
+
+    async Task FilterCleared()
+    {
+        ProyectoID = null;
+        await grid.FirstPage();
+    }
+
+    void OnRender(DataGridRenderEventArgs<ProyectoAvanceExt> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "FechaAvance", SortOrder = SortOrder.Ascending });
+
+        }
+    }
+
+
+    private async Task<IEnumerable<ProyectoAvanceExt>> GetDataList()
+    {
+        List<ProyectoAvanceExt> model = new();
+        try
+        {
+
+            var ProyectosAvances = await processService.GetProyectoAvance(proyectoDetalle!.ProyectoId, proyectoDetalle.TareaId, proyectoDetalle.ItemId);
+
+            if (ProyectosAvances is not null)
+            {
+                model = (from e in ProyectosAvances
+                         select new ProyectoAvanceExt
+                             {
+                                 Id = e.Id,
+                                 ProyectoId = e.ProyectoId,
+                                 TareaId = e.TareaId,
+                                 ItemId = e.ItemId,
+                                 FechaAvance = e.FechaAvance,
+                                 DescripcionAvance = e.DescripcionAvance,
+                                 CantidadHoras = e.CantidadHoras,
+                                 ConsultorId = e.ConsultorId,
+                                 FechaCreacion = e.FechaCreacion,
+                                 UsuarioCreacion = e.UsuarioCreacion,
+                                 FechaModificacion = e.FechaModificacion,
+                                 UsuarioModificacion = e.UsuarioModificacion,
+                                 Tarea = e.Tarea == null ? null :
+                                            new Tarea
+                                            {
+                                                Id = e.Tarea.Id,
+                                                Descripcion = e.Tarea.Descripcion,
+                                                EstadoId = e.Tarea.EstadoId,
+                                                FechaCreacion = e.Tarea.FechaCreacion,
+                                                UsuarioCreacion = e.Tarea.UsuarioCreacion,
+                                                FechaModificacion = e.Tarea.FechaModificacion,
+                                                UsuarioModificacion = e.Tarea.UsuarioModificacion,
+                                            },
+                                 Consultor = e.Consultor == null ? null :
+                                        new Consultor
+                                        {
+                                            Id = e.Consultor.Id,
+                                            Usuario = e.Consultor.Usuario,
+                                            Nombre = e.Consultor.Nombre,
+                                            PrimerApellido = e.Consultor.PrimerApellido,
+                                            SegundoApellido = e.Consultor.SegundoApellido,
+                                            Email = e.Consultor.Email,
+                                            Telefono = e.Consultor.Telefono,
+                                            Activo = e.Consultor.Activo,
+                                            FechaCreacion = e.Consultor.FechaCreacion,
+                                            UsuarioCreacion = e.Consultor.UsuarioCreacion,
+                                            FechaModificacion = e.Consultor.FechaModificacion,
+
+
+                                        },
+                                NombreConsultor = $"{e.Consultor!.Nombre} {e.Consultor.PrimerApellido} {e.Consultor.SegundoApellido}",
+                             }).ToList();
+
+            }
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<ProyectoAvanceExt> args)
+    {
+        if (args.ToColumn.Property == nameof(ProyectoAvanceExt.FechaAvance))
+        {
+            args.Cancel = true;
+        }
+    }
+
+}

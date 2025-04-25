@@ -32,6 +32,7 @@
             RowDoubleClick="@OnSelect"
             AllowColumnPicking="true"
             AllowColumnReorder="true"
+            RowRender="@RowRender"
             ColumnReordering="@OnColumnReordering">
                 <HeaderTemplate>
                     <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
@@ -68,9 +69,13 @@
                     <RadzenDataGridColumn Property="@nameof(ReporteExt.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
                     <RadzenDataGridColumn Context="ReporteExt" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
                         <Template Context="ReporteExt">
-                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger"
-                            Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
-                            Click="@(args => OnDelete(ReporteExt))" />
+                            @if (ReporteExt.EstadoId == "R")
+                            {
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger"
+                                               Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
+                                               Click="@(args => OnDelete(ReporteExt))" />
+                                
+                            }
                         </Template>
 
                     </RadzenDataGridColumn>
@@ -259,4 +264,23 @@
             await exportData.ToExcel(exportData.ApplyQuery(ReporteExt, query), fileName);
         }
     }
+
+    void RowRender(RowRenderEventArgs<ReporteExt> args)
+    {
+        switch (args.Data.EstadoId)
+        {
+            case "F":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-yellow-light rz-data-row");
+                break;
+            case "A":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+                break;
+            case "E":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-green-light rz-data-row");
+                break;
+        }
+
+    }
 }
+
+

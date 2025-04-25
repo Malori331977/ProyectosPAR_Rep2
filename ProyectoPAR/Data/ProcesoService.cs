@@ -659,9 +659,9 @@ namespace ProyectoPAR.Data
             return model!;
         }
 
-        public async Task<ProyectoAvance> GetProyectoAvance(int proyectoId, int tareaId, int itemId)
+        public async Task<IEnumerable<ProyectoAvance>> GetProyectoAvance(int proyectoId, int tareaId, int itemId)
         {
-            ProyectoAvance? model = null;
+            IEnumerable<ProyectoAvance>? model = null;
             HttpResponseMessage? result = null;
             try
             {
@@ -670,7 +670,7 @@ namespace ProyectoPAR.Data
 
                 if (result.IsSuccessStatusCode)
                 {
-                    var readJob = result.Content.ReadFromJsonAsync<ProyectoAvance>();
+                    var readJob = result.Content.ReadFromJsonAsync<IList<ProyectoAvance>>();
                     readJob.Wait();
                     model = readJob.Result;
                 }
@@ -678,6 +678,7 @@ namespace ProyectoPAR.Data
             catch (Exception e)
             {
                 //devuelve el codigo de error
+                model = Enumerable.Empty<ProyectoAvance>();
                 string error = e.InnerException is null ? e.Message : e.InnerException.Message;
                 _logger.LogError($"{InterfaceName}.GetProyectoAvance: Se ha presentado un error al ejecutar el proceso. Detalle de Error: {error}");
             }

@@ -318,3 +318,20 @@
 .border-bottom-dark {
     border-bottom: 0.25rem solid #5a5c69 !important;
 }
+
+
+.radzen-grid-row-background-color-yellow-light > td {
+    background-color: #FFE453 !important;
+}
+
+.radzen-grid-row-background-color-red-light > td {
+    background-color: #FF188E !important;
+}
+
+.radzen-grid-row-background-color-green-light > td {
+    background-color: #44FF47 !important;
+}
+
+.radzen-grid-row-background-color-gray-light > td {
+    background-color: #E9E7FF !important;
+}

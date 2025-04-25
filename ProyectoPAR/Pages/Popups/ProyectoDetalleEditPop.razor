@@ -69,6 +69,10 @@
                             </RadzenStack>
                         </RadzenColumn>
                     </RadzenRow>
+                    @if (proyectoDetalle is not null)
+                    {
+                        <ProyectosAvancesList proyectoDetalle="proyectoDetalle"></ProyectosAvancesList>
+                    }
                     <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
                         <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
                         <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
@@ -78,6 +82,8 @@
 
 
         </RadzenStack>
+
+        
 
     </div>
 </div>
@@ -101,6 +107,11 @@
         await base.OnInitializedAsync();
         InProcess = false;
         StateHasChanged();
+
+        if (proyectoDetalle!.EstadoId != "P" || proyectoDetalle!.Proyecto!.EstadoId != "D")
+        {
+            soloLectura = true;
+        }
     }
 
 
@@ -169,11 +180,15 @@
 
         if (Modo != 3)
         {
-            if (proyectoDetalle!.CantidadHorasEstimada <= 0)
+            if (proyectoDetalle!.EstadoId != "C")
             {
-                await swal.FireAsync("Atención", "Debe indicar la cantidad de horas estimadas de la tarea.", SweetAlertIcon.Info);
-                return false;
+                if (proyectoDetalle!.CantidadHorasEstimada <= 0)
+                {
+                    await swal.FireAsync("Atención", "Debe indicar la cantidad de horas estimadas de la tarea.", SweetAlertIcon.Info);
+                    return false;
+                }
             }
+            
 
             if (String.IsNullOrEmpty(proyectoDetalle.EstadoId))
             {
