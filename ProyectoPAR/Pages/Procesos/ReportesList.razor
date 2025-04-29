@@ -1,5 +1,6 @@
 ﻿@page "/reporteslist"
 @layout MainLayout
+@inherits DialogSettingLayout
 
 <div class="card rz-background-color-base-200">
     <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
@@ -72,10 +73,15 @@
                             @if (ReporteExt.EstadoId == "R")
                             {
                                 <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger"
-                                               Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
-                                               Click="@(args => OnDelete(ReporteExt))" />
-                                
+                                Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
+                                Click="@(args => OnDelete(ReporteExt))" />
+
+
+
                             }
+                            <RadzenButton Icon="picture_as_pdf" ButtonStyle="ButtonStyle.Light"
+                            Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
+                            Click="@(args => VerReporte(ReporteExt))" />
                         </Template>
 
                     </RadzenDataGridColumn>
@@ -86,7 +92,7 @@
 </div>
 
 
-
+<Modal @ref="modalPdf" title="Reporte de Visita" Fullscreen="ModalFullscreen.Always" />
 
 
 @code {
@@ -97,6 +103,7 @@
     RadzenDataGrid<ReporteExt> grid;
     IEnumerable<ReporteExt> dataList;
     IList<ReporteExt> selectedData;
+    private Modal modalPdf = default!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -131,10 +138,12 @@
 
             if (reportes is not null)
             {
-                var listDatosGenericos = await configService.GetCatalogoGenerico("ESTADO_REPORTE");
+                var listEstados = await configService.GetCatalogoGenerico("ESTADO_REPORTE");
+                var listCategorias = await configService.GetCatalogoGenerico("CATEGORIA_REPORTE");
                 model = (from e in reportes
-                         join dg in listDatosGenericos on e.EstadoId equals dg.Id
-                        select new ReporteExt
+                         join st in listEstados on e.EstadoId equals st.Id
+                         join cat in listCategorias on e.CategoriaId equals cat.Id
+                         select new ReporteExt
                         {
                             Id = e.Id,
                             Confirmacion = e.Confirmacion,
@@ -197,7 +206,8 @@
                                 },
                                 NombreCliente = e.Cliente!.Nombre,
                                 NombreConsultor = e.Consultor!.Nombre,
-                                DescEstado = dg.Descripcion,
+                                DescEstado = st.Descripcion!,
+                                DescCategoriaReporte = cat.Descripcion!,
                         }).ToList(); 
             }
         }
@@ -280,6 +290,49 @@
                 break;
         }
 
+    }
+
+    protected async void VerReporte(ReporteExt ReporteExt)
+    {
+        var param = await configService.GetParametro();
+        var logo = await GetLogo();
+        var pdf = new Blazor_PDF.PDF.Report();
+        string pdfPath = await pdf.GenerarReporteVisita(JSRuntime, true, ReporteExt, logo, param);
+        await OnShowModalPdf(pdfPath);
+    }
+
+    private async Task<byte[]> GetLogo()
+    {
+        string fileName = $"LogoEmpresaHeader.png";
+        var dirBase = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img");
+        string fileSource = Path.Combine(dirBase, fileName);
+        byte[] data = new byte[1];
+        if (System.IO.File.Exists(fileSource))
+        {
+            data = System.IO.File.ReadAllBytes(fileSource);
+        }
+        return data;
+    }
+
+    private async Task OnShowModalPdf(string PdfPath)
+    {
+
+        await dialogService.OpenAsync<VisorPdf>("Reporte de Visita",
+              new Dictionary<string, object>()
+                {
+                    { "PdfPath", PdfPath}
+                },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
+                  Resize = base.OnResize,
+                  Drag = base.OnDrag,
+                  Width = Settings != null ? Settings.Width : "1200px",
+                  Height = Settings != null ? Settings.Height : "900px",
+                  Left = Settings != null ? Settings.Left : null,
+                  Top = Settings != null ? Settings.Top : null
+              });
     }
 }
 

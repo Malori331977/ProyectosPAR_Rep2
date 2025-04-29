@@ -595,11 +595,15 @@ else
                 return false;
             }
 
-            if (reporte.AgendaId is null || reporte.AgendaId==0)
+            if (reporte.Programado)
             {
-                await swal.FireAsync("Atención", "Debe la agenda y proyecto asociado.", SweetAlertIcon.Info);
-                return false;
+                if (reporte.AgendaId is null || reporte.AgendaId == 0)
+                {
+                    await swal.FireAsync("Atención", "Debe la agenda y proyecto asociado.", SweetAlertIcon.Info);
+                    return false;
+                }
             }
+            
 
 
 

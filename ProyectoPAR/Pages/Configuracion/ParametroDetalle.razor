@@ -2,34 +2,71 @@
 
 @layout MainLayout
 
-<div class="container-fluid px-1 py-1">
-	<div class="card shadow mb-4">
-        <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno"></PageReturn>
 
-        <div class="card-body shadow mb-2 shadow h-100 py-1 px-2 text-left">
-            <EditForm Model="@parametro" OnValidSubmit="Guardar">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
+@if (parametro == null)
+{
+    <SpinnerControl></SpinnerControl>
+}
+else
+{
+    <div class="card">
+        <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
 
-
-                <div class="row">
-                    <button type="submit" class="btn btn-primary">
-                        Guardar
-                        <span class="oi oi-task" aria-hidden="true" />
-                    </button>
-                </div> 
-
-            </EditForm>
+        <div class="card-body">
+            <RadzenTemplateForm Data="@parametro" Submit="@((Parametro args) => { Guardar(args); })">
+                <RadzenRow Gap="0.3rem" class="rz-p-0 rz-p-lg-2">
+                    <RadzenColumn Size="12" SizeMD="12">
+                        <RadzenStack>
+                            <RadzenFieldset Text="Datos de la Compañía">
+                                <RadzenStack Gap="0.3rem">
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Nombre" Component="NombreCompania" />
+                                            <RadzenTextBox @bind-Value=@parametro.NombreCompania Style="width: 100%" Name="NombreCompania"/>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Dirección" Component="DireccionCompania" />
+                                            <RadzenTextBox @bind-Value=@parametro.DireccionCompania Style="width: 100%" Name="DireccionCompania" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenLabel Text="País" Component="PaisCompania" />
+                                            <RadzenTextBox @bind-Value=@parametro.PaisCompania Style="width: 100%" Name="PaisCompania" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenLabel Text="Teléfono" Component="TelefonoCompania" />
+                                            <RadzenTextBox @bind-Value=@parametro.TelefonoCompania Style="width: 100%" Name="TelefonoCompania" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenLabel Text="Correo Electrónico" Component="EmailCompania" />
+                                            <RadzenTextBox @bind-Value=@parametro.EmailCompania Style="width: 100%" Name="EmailCompania" />
+                                        </RadzenColumn>
+                                    </RadzenRow>                              
+                                </RadzenStack>
+                            </RadzenFieldset>
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                    <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
+                    <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
+                </RadzenStack>
+            </RadzenTemplateForm>
         </div>
     </div>
-</div>
+
+
+
+}
 
 @code {
 
     private string Titulo { get; set; }
-    private Parametro parametro = new();
+    private Parametro? parametro = null;
     private string UrlRetorno = "./principal";
-    private InputNumber<int> txtSmtpPort;
 
 
     protected override async void OnInitialized()
@@ -42,6 +79,15 @@
             parametro = new Parametro
                 {
                     Sistema = 1,
+                    NombreCompania = "",
+                    DireccionCompania = "",
+                    PaisCompania = "",
+                    EmailCompania = "",
+                    TelefonoCompania = "",
+                    FechaCreacion = DateTime.Now,
+                    FechaModificacion = DateTime.Now,
+                    UsuarioCreacion = loginState.User.userLogin!.Id.ToString(),
+                    UsuarioModificacion = loginState.User.userLogin.Id.ToString(),
                 };
         }
         else{
@@ -52,18 +98,18 @@
         StateHasChanged();
     }
 
-    private async Task Guardar()
+    private async Task Guardar(Parametro arg)
     {
         try
         {
             if (await DatosValidos())
             {
 
-                var respuesta = await genericService.Post("Parametro", parametro);
+                var respuesta = await genericService.Post("Parametro", arg!);
 
                 if (respuesta.Id == "0")
                 {
-                    RedirectTo(UrlRetorno);
+                    NavigationManager.NavigateTo(UrlRetorno);
                 }
                 else
                 {
@@ -83,32 +129,42 @@
     private async Task<bool> DatosValidos()
     {
 
-        // if (parametro.AnosVigenciaEstablecimiento == 0)
-        // {
-        //     await swal.FireAsync("Error", "Debe indicar la vigencia de los Establecimientos.", SweetAlertIcon.Error);
-        //     return false;
-        // }
-        // if (parametro.AnosVigenciaRegencia == 0)
-        // {
-        //     await swal.FireAsync("Error", "Debe indicar la vigencia de las Regencias.", SweetAlertIcon.Error);
-        //     return false;
-        // }
-
-        // if (parametro.UsaGeoReferencia)
-        // {
-        //     if (String.IsNullOrEmpty(parametro.GoogleMapApiKey))
-        //     {
-        //         await swal.FireAsync("Error", "Debe indicar la clave para utilizar Api de Google Maps.", SweetAlertIcon.Error);
-        //         return false;
-        //     }
-        // }
-        // else
-        //     parametro.GoogleMapApiKey = null;
+        if (String.IsNullOrEmpty(parametro!.NombreCompania))
+        {
+            await swal.FireAsync("Error", "Debe indicar el nombre de la compañía.", SweetAlertIcon.Error);
+            return false;
+        }
+        if (String.IsNullOrEmpty(parametro.DireccionCompania))
+        {
+            await swal.FireAsync("Error", "Debe indicar la dirección de la compañía.", SweetAlertIcon.Error);
+            return false;
+        }
+        if (String.IsNullOrEmpty(parametro.PaisCompania))
+        {
+            await swal.FireAsync("Error", "Debe indicar el país de la compañía.", SweetAlertIcon.Error);
+            return false;
+        }
+        if (String.IsNullOrEmpty(parametro.TelefonoCompania))
+        {
+            await swal.FireAsync("Error", "Debe indicar el número de teléfono de la compañía.", SweetAlertIcon.Error);
+            return false;
+        }
+        if (String.IsNullOrEmpty(parametro.EmailCompania))
+        {
+            await swal.FireAsync("Error", "Debe indicar el correo electrónico de la compañía.", SweetAlertIcon.Error);
+            return false;
+        }
+       
 
         return true;
     }
 
-    void RedirectTo(string path) => NavigationManager.NavigateTo(path);
+    void Cancelar()
+    {
+        NavigationManager.NavigateTo(UrlRetorno);
+    }
+
+    
 
 }
 

@@ -134,7 +134,7 @@
 
 </style>
 
-<img src="img/CQCR_Inicio2.png" @onclick="Retorno" />
+<img src="img/ImagenInicio.png" @onclick="Retorno" />
 <div class="background">
 </div>
 
@@ -160,7 +160,11 @@
 
 @code {
 
-    private UserData user = new();
+    private UserData user = new UserData
+    {
+        consultor = new Consultor(),
+        userLogin = new UserLogin()
+    };
     private string Titulo = "Olvidaste tu Contraseña";
     bool InProcess = false;
 
@@ -209,7 +213,7 @@
 
             if (consultor.Email is not null)
             {
-                var userLogin = await configService.GetUserLogin(user.consultor!.Id);
+                var userLogin = await configService.GetUserLogin(consultor!.Id);
                 user.consultor = consultor;
                 user.userLogin = userLogin;
 
@@ -219,7 +223,7 @@
                 user.userLogin.FechaModificacion = DateTime.Now;
                 user.userLogin.Clave = "";
 
-                var respuesta = await genericService.Post("UserLogin", user);
+                var respuesta = await genericService.Post("UserLogin", user.userLogin);
 
                 if (respuesta.Id == "0")
                 {

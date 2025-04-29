@@ -1,0 +1,21 @@
+﻿
+@if (!string.IsNullOrEmpty(PdfPath))
+{
+    @* <div class="row align-content-center border-1 w-100 h-100">
+        
+    </div> *@
+
+    <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Start" Wrap="FlexWrap.Wrap">
+        <RadzenCard class="rz-p-1 rz-background-color-danger rz-color-on-danger rz-text-align-center" style="height: 600px; width: 1200px;">
+            <embed class="w-100 h-100" type="application/pdf" src="@PdfPath" />
+        </RadzenCard>
+
+        
+    </RadzenStack>
+    
+}
+
+@code {
+    [Parameter] public string? PdfPath { get; set; }
+
+}

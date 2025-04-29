@@ -358,31 +358,23 @@
 
     void RowRender(RowRenderEventArgs<ProyectoDetalleExt> args)
     {
-        if (args.Data.CantidadHorasEstimada > 0)
-        {
-            switch (args.Data.EstadoId)
-            {
-                case "E":
-                    args.Attributes.Add("class", "radzen-grid-row-background-color-green-light rz-data-row");
-                    break;
-                case "C":
-                    args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
-                    break;
-                case "D":
-                    args.Attributes.Add("class", "radzen-grid-row-background-color-gray-light rz-data-row");
-                    break;
-                case "F":
-                    args.Attributes.Add("class", "radzen-grid-row-background-color-yellow-light rz-data-row");
-                    break;
-            }
 
-        }
-        else
+        switch (args.Data.EstadoId)
         {
-            if(args.Data.EstadoId=="C")
-            {
+            case "E":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-green-light rz-data-row");
+                break;
+            case "C":
                 args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
-            }
+                break;
+            case "D":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-gray-light rz-data-row");
+                break;
+            case "F":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-yellow-light rz-data-row");
+                break;
         }
+
+        
     }
 }

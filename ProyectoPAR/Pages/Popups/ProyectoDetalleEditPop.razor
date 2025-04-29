@@ -73,10 +73,14 @@
                     {
                         <ProyectosAvancesList proyectoDetalle="proyectoDetalle"></ProyectosAvancesList>
                     }
-                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
-                        <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
-                        <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
-                    </RadzenStack>
+                    @if (proyectoDetalle!.EstadoId != "T" && proyectoDetalle.EstadoId != "C")
+                    {
+                        <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                            <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
+                            <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
+                        </RadzenStack>
+                    }
+                    
                 </RadzenTemplateForm>
             }
 
@@ -180,7 +184,7 @@
 
         if (Modo != 3)
         {
-            if (proyectoDetalle!.EstadoId != "C")
+            if (proyectoDetalle!.EstadoId == "P")
             {
                 if (proyectoDetalle!.CantidadHorasEstimada <= 0)
                 {

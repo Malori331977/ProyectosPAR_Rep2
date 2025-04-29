@@ -8,6 +8,7 @@ namespace ProyectoPAR.Models
         public string NombreCliente { get; set; }
         public string DescEstado { get; set; }
         public string DescTipoReporte { get; set; }
+        public string DescCategoriaReporte { get; set; }
         public string DescProyecto { get; set; }
         public string DescTarea { get; set; }
         public TimeOnly? HoraInicioTarea { get; set; }
