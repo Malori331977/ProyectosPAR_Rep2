@@ -146,6 +146,8 @@
                 <br />
 
             </EditForm>
+
+            <ConsultoresDetalleRoles ModoGlobal="@Modo" OnItemsChanged="OnRolesConsultorChanged" rolesActivos="@listConsultoRol" IdUsuario="@consultor.Id"></ConsultoresDetalleRoles>
         }
     </div>
 </div>
@@ -161,6 +163,7 @@
     private bool soloLectura = false;
     private bool soloLecturaAdd = false;
     private Consultor consultor = new();
+    private List<ConsultorRol> listConsultoRol = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -173,6 +176,9 @@
             {
                 soloLecturaAdd = true;
                 consultor = await mtoService.GetConsultor(Id);
+
+                if (consultor.ConsultorRol is not null)
+                    listConsultoRol = consultor.ConsultorRol.ToList();
             }
             else
             {
@@ -211,6 +217,8 @@
                 consultor.FechaModificacion = DateTime.Now;
                 consultor.UsuarioCreacion = loginState.User.consultor!.Id.ToString();
                 consultor.UsuarioModificacion = loginState.User.consultor.Id.ToString();
+
+                consultor.ConsultorRol = listConsultoRol;
 
                 List<Consultor> listAdd = new List<Consultor> { consultor };
 
@@ -313,5 +321,19 @@
         
         
         return true;
+    }
+
+    private async Task OnRolesConsultorChanged(IEnumerable<RolesUsuario> rolesUsuario)
+    {
+        if (rolesUsuario is not null)
+        {
+            listConsultoRol = (from e in rolesUsuario
+                              select new ConsultorRol
+                              {
+                                  RolId = e.Id,
+                                  ConsultorId = consultor.Id!,
+                                  Habilitado = e.HabilitadoUsuario,
+                              }).ToList();
+        }
     }
 }

@@ -110,6 +110,24 @@ namespace Blazor_PDF.PDF
 
         }
 
+        public async Task<byte[]> GenerarReporteXEmail(IJSRuntime js, bool preview, ReporteExt reporteExt, byte[] data, Parametro param)
+        {
+            try
+            {
+                _reporteExt = reporteExt;
+                _param = param;
+                img = data;
+                MemoryStream sourceStream = new MemoryStream(await GenerarReporte(false));
+                return sourceStream.ToArray();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            return Array.Empty<byte>();
+
+        }
+
     }
 
 }

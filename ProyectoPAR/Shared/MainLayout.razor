@@ -7,7 +7,16 @@
         <RadzenHeader>
             <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
                 <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
-                <RadzenLabel Text="Par+" />
+
+                    <RadzenRow class="w-100" JustifyContent="JustifyContent.Center">
+                        <RadzenColumn Size="11" class="rz-text-align-lg-left w-100">
+                            <h2>Sistema de Reportes PARv3</h2>
+                        </RadzenColumn>
+                        <RadzenColumn Size="1" class="rz-text-align-lg-center w-100">
+                            <RadzenButton Click=@(args => OnCerrarSesion()) Icon="logout" ButtonStyle="ButtonStyle.Base" class="rounded-circle rz-my-1 rz-ms-1" />
+                        </RadzenColumn>
+                    </RadzenRow>
+           
             </RadzenStack>
         </RadzenHeader>
         <RadzenSidebar Responsive="false" Style="width: max-content">
@@ -131,10 +140,10 @@
         IEnumerable<OpcionSistema> listOpcionesUsuario;
         try
         {
-            
+
             var menuPrincipal = await configService.GetMenuPrincipal();
 
-            
+
             listOpcionesUsuario = await GetOpcionesUsuario();
 
             if (menuPrincipal is not null)
@@ -177,7 +186,7 @@
                 }
             }
 
-            
+
         }
         catch (Exception e)
         {
@@ -196,7 +205,8 @@
             var usuario = await mtoService.GetConsultor(loginState.User.consultor!.Id);
             if (usuario is not null)
             {
-                foreach (var rol in usuario.ConsultorRol!.Where(e => e.Habilitado == true))
+                var rolesConsultor = usuario.ConsultorRol!.Where(e => e.Habilitado == true);
+                foreach (var rol in rolesConsultor)
                 {
                     var rolBuscar = await configService.GetRol(rol.RolId);
 
@@ -204,7 +214,7 @@
                     {
                         if (rolBuscar.RolDet is not null)
                         {
-                            var ops = (from e in rolBuscar.RolDet.Where(e => e.Habilitado == true)
+                            var ops = (from e in rolBuscar.RolDet.Where(e => e.Habilitado == true)                                       
                                        select new OpcionSistema
                                        {
                                            ParentId = e.MenuPrincipalId,
@@ -212,9 +222,12 @@
                                        }).ToList();
 
                             listOpcionesRol.AddRange(ops);
+                            listOpcionesRol = (listOpcionesRol.Distinct()).ToList();
                         }
                     }
-                    listOpcionesRol = (listOpcionesRol.Distinct()).ToList();
+
+
+
                 }
             }
 
@@ -233,5 +246,10 @@
     private void MenuClick(MenuItemEventArgs e, string href)
     {
         NavigationManager.NavigateTo(href);
+    }
+
+    private void OnCerrarSesion()
+    {
+        NavigationManager.NavigateTo("./");
     }
 }

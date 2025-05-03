@@ -1,0 +1,79 @@
+﻿<Grid TItem="RolesUsuario"
+      Class="table table-hover table-bordered"
+      DataProvider="DataProvider"
+      AllowFiltering="false"
+      Responsive="true">
+    <GridColumns>
+        <GridColumn TItem="RolesUsuario" PropertyName="Habilitado" Filterable="false" Sortable="false">
+            <ChildContent>
+                <Switch @bind-Value="@context.HabilitadoUsuario" @onclick="@((e)=>OnClickHabilitado(e,context))" Disabled="@(ModoGlobal==4)" />
+            </ChildContent>
+        </GridColumn>
+        <GridColumn TItem="RolesUsuario" HeaderText="Id" PropertyName="Id">
+            @context.Id
+        </GridColumn>
+        <GridColumn TItem="RolesUsuario" HeaderText="Descripción del Rol" PropertyName="Descripcion">
+            @context.Descripcion
+        </GridColumn>
+    </GridColumns>
+
+</Grid>
+
+@code {
+    [Parameter] public EventCallback<IEnumerable<RolesUsuario>> OnItemsChanged { get; set; }
+    [Parameter] public IEnumerable<ConsultorRol> rolesActivos { get; set; }
+    [Parameter] public int? ModoGlobal { get; set; }
+    [Parameter] public int? IdUsuario { get; set; }
+
+    private IEnumerable<RolesUsuario> rolesUsuario = default!;
+
+    private async Task<GridDataProviderResult<RolesUsuario>> DataProvider(GridDataProviderRequest<RolesUsuario> request)
+    {
+        if (rolesUsuario is null) // pull rolesUsuario only one time for client-side filtering, sorting, and paging
+            rolesUsuario = await getData(); // call a service or an API to pull the rolesUsuario
+
+        return await Task.FromResult(request.ApplyTo(rolesUsuario));
+    }
+
+    private async Task<IEnumerable<RolesUsuario>> getData()
+    {
+        List<RolesUsuario> model = new();
+
+        try
+        {
+
+            var roles = await configService.GetRol();
+
+            if (roles is not null)
+            {
+                roles = roles.Where(e=>e.Habilitado==true);
+
+                model = (from e in roles
+                         select new RolesUsuario
+                             {
+                                 Id = e.Id,
+                                 Descripcion = e.Descripcion!,
+                                 HabilitadoUsuario = rolesActivos.Any(x => x.RolId == e.Id && x.Habilitado == true),
+                             }).ToList();
+            }
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+        StateHasChanged();
+        return model;
+    }
+
+    private async void OnClickHabilitado(MouseEventArgs e, RolesUsuario roles)
+    {
+        var valor = rolesUsuario.Where(x => x.Id == roles.Id).FirstOrDefault();
+
+        rolesUsuario.Where(x => x.Id == roles.Id).ToList()
+            .ForEach(x => x.HabilitadoUsuario = !valor!.HabilitadoUsuario);
+
+        await OnItemsChanged.InvokeAsync(rolesUsuario);
+
+    }
+   
+}

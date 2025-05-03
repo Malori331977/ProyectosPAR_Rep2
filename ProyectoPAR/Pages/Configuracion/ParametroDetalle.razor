@@ -27,6 +27,12 @@ else
                                     </RadzenRow>
                                     <RadzenRow AlignItems="AlignItems.Center">
                                         <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Siglas" Component="siglas" />
+                                            <RadzenTextBox @bind-Value=@parametro.SiglasCompania Style="width: 100%" Name="siglas" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
                                             <RadzenLabel Text="Dirección" Component="DireccionCompania" />
                                             <RadzenTextBox @bind-Value=@parametro.DireccionCompania Style="width: 100%" Name="DireccionCompania" />
                                         </RadzenColumn>
@@ -44,7 +50,13 @@ else
                                             <RadzenLabel Text="Correo Electrónico" Component="EmailCompania" />
                                             <RadzenTextBox @bind-Value=@parametro.EmailCompania Style="width: 100%" Name="EmailCompania" />
                                         </RadzenColumn>
-                                    </RadzenRow>                              
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Direccion web de la Aplicación" Component="urlapp" />
+                                            <RadzenTextBox @bind-Value=@parametro.UrlAplicacion Style="width: 100%" Name="urlapp" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
                                 </RadzenStack>
                             </RadzenFieldset>
                         </RadzenStack>

@@ -266,6 +266,8 @@
             rol.RolDet = rolDet;
             rol.UsuarioModificacion = loginState.User.consultor!.Id.ToString();
             rol.FechaModificacion = DateTime.Now;
+            rol.UsuarioCreacion = loginState.User.consultor!.Id.ToString();
+            rol.FechaCreacion = DateTime.Now;
 
 
             EventResponse respuesta;

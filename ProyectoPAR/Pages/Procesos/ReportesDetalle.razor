@@ -1,12 +1,12 @@
 ﻿@page "/reportesdetalle/{Id:int}/{Modo:int}"
 @inherits DialogSettingLayout
 
-
-@if (reporte == null)
+@if (@InProcess)
 {
     <SpinnerControl></SpinnerControl>
 }
-else
+
+@if (reporte != null)
 {
     <div class="card">
         <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
@@ -110,7 +110,7 @@ else
                                     </RadzenRow>
 
                                     <RadzenRow AlignItems="AlignItems.Center">
-                                        <RadzenColumn Size="12" SizeMD="3">
+                                        <RadzenColumn Size="12" SizeMD="2">
                                             <RadzenLabel Text="Fecha" Component="Fecha" />
                                             <RadzenDatePicker Style="width: 100%;" Name="Fecha" @bind-Value="reporte.Fecha" Disabled="@soloLectura"
                                             ShowCalendarWeek DateFormat="dd/MM/yyyy" />
@@ -129,9 +129,14 @@ else
                                             Change="@(args => OnChangeHSalida(args))" Name="Hsalida"
                                             Style="width: 100%;" />
                                         </RadzenColumn>
-                                        <RadzenColumn Size="12" SizeMD="3">
-                                            <RadzenLabel Text="Total Horas" Component="tothoras" />
-                                            <RadzenNumeric Placeholder="0.0" @bind-Value=@reporte.Cantidadhoras Name="tothoras" Disabled="@soloLectura"
+                                        <RadzenColumn Size="12" SizeMD="2">
+                                            <RadzenLabel Text="Total Horas Facturables" Component="tothoras" />
+                                            <RadzenNumeric Placeholder="0.0" @bind-Value=@reporte.CantidadHorasFacturables Name="tothoras" Disabled="@soloLectura"
+                                            InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "enter value" } })" Style="width: 100%;" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="2">
+                                            <RadzenLabel Text="Total Horas NO Facturables" Component="tothorasno" />
+                                            <RadzenNumeric Placeholder="0.0" @bind-Value=@reporte.CantidadHorasNoFacturables Name="tothorasno" Disabled="@soloLectura"
                                             InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "enter value" } })" Style="width: 100%;" />
                                         </RadzenColumn>
                                         <RadzenColumn Size="12" SizeMD="2">
@@ -274,6 +279,7 @@ else
     private ReporteExt? reporte = null;
     private AgendaConsultor? tarea;
     DateTime? hEntrada, hSalida;
+    decimal CantidadMaxHorasReporte = 0;
 
     private IEnumerable<CatalogoGenerico>? listCategoriasReporte;
     private IEnumerable<CatalogoGenerico>? listTiposReporte;
@@ -303,7 +309,8 @@ else
                         Fecha = repo.Fecha,
                         CategoriaId = repo.CategoriaId,
                         TipoReporteId = repo.TipoReporteId,
-                        Cantidadhoras = repo.Cantidadhoras,
+                        CantidadHorasFacturables = repo.CantidadHorasFacturables,
+                        CantidadHorasNoFacturables = repo.CantidadHorasNoFacturables,
                         HoraEntrada = repo.HoraEntrada,
                         HoraSalida = repo.HoraSalida,
                         Descripcion = repo.Descripcion,
@@ -403,6 +410,13 @@ else
                 soloLecturaAdd = true;
                 soloLecturaAddProg = true;
                 soloLectura = reporte!.EstadoId != "R";
+
+                if (Modo==4)
+                {
+                    soloLectura = true;
+                    UrlRetorno = "./consultareporteslist";
+                }
+                    
             }
             else
             {
@@ -416,7 +430,8 @@ else
                     Fecha = DateTime.Now,
                     CategoriaId = "0",
                     TipoReporteId = "0",
-                    Cantidadhoras = 0,
+                    CantidadHorasFacturables = 0,
+                    CantidadHorasNoFacturables = 0,
                     HoraEntrada = new TimeOnly( 07, 00, 00),
                     HoraSalida = new TimeOnly(17, 00, 00),
                     Descripcion = "",
@@ -460,6 +475,7 @@ else
             if (await Validaciones())
             {
                 arg.Cliente = null;
+                arg.Consultor = null;
                 List<Reporte> listAdd = new List<Reporte> { arg };
 
                 EventResponse respuesta;
@@ -511,6 +527,10 @@ else
                             arg.Id = int.Parse(respuesta.ValorRetorno!);
                             listAdd = new List<Reporte> { arg };
                             respuesta = await genericService.Put("Reporte", listAdd);
+
+                            await EnviarReportePorCorreo();
+
+
                         }
 
                     }
@@ -574,11 +594,41 @@ else
                 await swal.FireAsync("Atención", "Debe indicar la hora de salida.", SweetAlertIcon.Info);
                 return false;
             }
-            if (reporte.Cantidadhoras <= 0)
+            if ((reporte.CantidadHorasFacturables + reporte.CantidadHorasNoFacturables) <= 0)
             {
-                await swal.FireAsync("Atención", "Debe indicar la cantidad de horas.", SweetAlertIcon.Info);
+                await swal.FireAsync("Atención", "Debe indicar la cantidad de horas utilizadas (facturables o no facturables).", SweetAlertIcon.Info);
                 return false;
             }
+
+            var horas = (((reporte!.HoraSalida - reporte.HoraEntrada).TotalSeconds / 60) / 60);
+            var horasExactas = Math.Truncate(horas);
+            var decimales = horas - Math.Truncate(horas);
+
+            if (horasExactas == 0)
+            {
+                horasExactas = 1;
+                decimales = 0;
+            }
+            else
+            {
+                if (decimales > 0)
+                {
+                    if (decimales <= 0.5)
+                        decimales = 0.5;
+                    else
+                        decimales = 1;
+                }
+            }
+
+            CantidadMaxHorasReporte = (decimal)(horasExactas + decimales);
+            
+            if ((reporte.CantidadHorasFacturables + reporte.CantidadHorasNoFacturables) > CantidadMaxHorasReporte)
+            {
+                await swal.FireAsync("Atención", "La cantidad de horas utilizadas (facturables y no facturables) sobrepasan la cantidad de horas del rango establecido, por favor verifique.", SweetAlertIcon.Info);
+                return false;
+            }
+
+            
             if (String.IsNullOrEmpty(reporte.Descripcion))
             {
                 await swal.FireAsync("Atención", "Debe indicar la descripción de las actividades realizadas.", SweetAlertIcon.Info);
@@ -603,7 +653,7 @@ else
                     return false;
                 }
             }
-            
+
 
 
 
@@ -671,7 +721,8 @@ else
     {        
         if (reporte!.HoraEntrada > reporte.HoraSalida)
         {
-            reporte!.Cantidadhoras = 0;
+            reporte!.CantidadHorasFacturables = 0;
+            CantidadMaxHorasReporte = 0;
         }
         else
         {
@@ -698,7 +749,8 @@ else
 
             horas = horasExactas + decimales;
 
-            reporte!.Cantidadhoras = (decimal)horas;
+            reporte!.CantidadHorasFacturables = (decimal)horas;
+            CantidadMaxHorasReporte = (decimal)horas;
         }
         await InvokeAsync(StateHasChanged);
     }
@@ -797,14 +849,14 @@ else
 
             hEntrada = newValue!;
             reporte!.HoraEntrada = TimeOnly.FromDateTime((DateTime)hEntrada!);
-            
+
         }
         catch (Exception)
         {
             hEntrada = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
         }
         await CalculaHorasLaboradas();
-       
+
     }
 
     private async Task OnChangeHSalida(DateTime? newValue)
@@ -817,15 +869,117 @@ else
             }
             hSalida = newValue!;
             reporte!.HoraSalida = TimeOnly.FromDateTime((DateTime)hSalida!);
-            
+
         }
         catch (Exception)
         {
             hSalida = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
         }
         await CalculaHorasLaboradas();
-       
+
     }
-    
+
+    private async Task EnviarReportePorCorreo()
+    {
+        var repo = await processService.GetReporte(reporte!.Id);
+
+
+        if (repo is not null)
+        {
+
+            reporte = new ReporteExt
+                {
+                    Id = repo.Id,
+                    Confirmacion = repo.Confirmacion,
+                    Facturado = repo.Facturado,
+                    EstadoId = repo.EstadoId,
+                    ClienteId = repo.ClienteId,
+                    Fecha = repo.Fecha,
+                    CategoriaId = repo.CategoriaId,
+                    TipoReporteId = repo.TipoReporteId,
+                    CantidadHorasFacturables = repo.CantidadHorasFacturables,
+                    CantidadHorasNoFacturables = repo.CantidadHorasNoFacturables,
+                    HoraEntrada = repo.HoraEntrada,
+                    HoraSalida = repo.HoraSalida,
+                    Descripcion = repo.Descripcion,
+                    TareasPendientes = repo.TareasPendientes,
+                    ConsultorId = repo.ConsultorId,
+                    ResponsableCliente = repo.ResponsableCliente,
+                    CorreoCliente = repo.CorreoCliente,
+                    Programado = repo.Programado,
+                    AgendaId = repo.AgendaId,
+                    ProyectoId = repo.ProyectoId,
+                    TareaId = repo.TareaId,
+                    ItemId = repo.ItemId,
+                    FechaCreacion = repo.FechaCreacion,
+                    UsuarioCreacion = repo.UsuarioCreacion,
+                    FechaModificacion = repo.FechaModificacion,
+                    UsuarioModificacion = repo.UsuarioModificacion,
+                    EstadoTareaId = repo.EstadoTareaId,
+                    Cliente = repo.Cliente == null ? null :
+                                     new Cliente
+                                     {
+                                         Id = repo.Cliente.Id,
+                                         Nombre = repo.Cliente.Nombre,
+                                         Telefono = repo.Cliente.Telefono,
+                                         Cedula = repo.Cliente.Cedula,
+                                         Direccion = repo.Cliente.Direccion,
+                                         Contacto = repo.Cliente.Contacto,
+                                         Email = repo.Cliente.Email,
+                                         EstadoId = repo.Cliente.EstadoId,
+                                         Subsidiaria = repo.Cliente.Subsidiaria,
+                                         ClientePadre = repo.Cliente.ClientePadre,
+                                         FechaCreacion = repo.Cliente.FechaCreacion,
+                                         UsuarioCreacion = repo.Cliente.UsuarioCreacion,
+                                         FechaModificacion = repo.Cliente.FechaModificacion,
+                                         UsuarioModificacion = repo.Cliente.UsuarioModificacion,
+                                     },
+                    Consultor = repo.Consultor == null ? null :
+                                     new Consultor
+                                     {
+                                         Id = repo.Consultor.Id,
+                                         Usuario = repo.Consultor.Usuario,
+                                         Nombre = repo.Consultor.Nombre,
+                                         PrimerApellido = repo.Consultor.PrimerApellido,
+                                         SegundoApellido = repo.Consultor.SegundoApellido,
+                                         Email = repo.Consultor.Email,
+                                         Telefono = repo.Consultor.Telefono,
+                                         Activo = repo.Consultor.Activo,
+                                         FechaCreacion = repo.Consultor.FechaCreacion,
+                                         UsuarioCreacion = repo.Consultor.UsuarioCreacion,
+                                         FechaModificacion = repo.Consultor.FechaModificacion,
+                                         UsuarioModificacion = repo.Consultor.UsuarioModificacion,
+                                     },
+                    NombreCliente = repo.Cliente!.Nombre,
+                    NombreConsultor = $"{repo.Consultor!.Nombre} {repo.Consultor!.PrimerApellido} {repo.Consultor!.SegundoApellido}"
+                };
+            var cat = listCategoriasReporte!.FirstOrDefault(e=>e.Id==reporte.CategoriaId);
+            if (cat is not null)
+                reporte.DescCategoriaReporte = cat.Descripcion!;
+        }
+        var param = await configService.GetParametro();
+        var logo = await GetLogo();
+        var pdf = new Blazor_PDF.PDF.Report();
+        var pdfPath = await pdf.GenerarReporteXEmail(JSRuntime, true, reporte!, logo, param);
+
+        //Enviar Correo al cliente
+        if (!String.IsNullOrEmpty(reporte.CorreoCliente))
+            await emailRepo.EnviaCorreoReporteVisita(reporte!, pdfPath, param, reporte.CorreoCliente);
+        //Enviar Correo al consultor
+        if (!String.IsNullOrEmpty(loginState.User.consultor!.Email))
+            await emailRepo.EnviaCorreoReporteVisita(reporte!, pdfPath, param, loginState.User.consultor!.Email);
+    }
+    private async Task<byte[]> GetLogo()
+    {
+        string fileName = $"LogoEmpresaHeader.png";
+        var dirBase = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img");
+        string fileSource = Path.Combine(dirBase, fileName);
+        byte[] data = new byte[1];
+        if (System.IO.File.Exists(fileSource))
+        {
+            data = System.IO.File.ReadAllBytes(fileSource);
+        }
+        return data;
+    }
 }
 

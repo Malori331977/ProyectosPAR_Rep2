@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Text;
 
 namespace ProyectoPAR.Models
 {
@@ -61,6 +62,15 @@ namespace ProyectoPAR.Models
             var resultString = new String(Charsarr);
 
             return resultString;
+        }
+
+        public static byte[] GetBytes(string text)
+        => Encoding.UTF8.GetBytes(text);
+
+        public static string Base64StringToAscii(string token)
+        {
+            byte[] bytes = Convert.FromBase64String(token);
+            return System.Text.Encoding.UTF8.GetString(bytes);
         }
 
     }
