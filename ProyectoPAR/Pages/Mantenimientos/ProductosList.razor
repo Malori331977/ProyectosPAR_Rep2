@@ -12,6 +12,7 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
                             TItem="Producto"
                             AllowFiltering="true"
                             AllowColumnResize="true"

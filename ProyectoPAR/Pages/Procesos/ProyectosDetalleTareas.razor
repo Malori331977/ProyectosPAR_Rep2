@@ -5,6 +5,7 @@
     <RadzenStack Gap="0.3rem">
 
         <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                        PageSizeOptions="@Utiles.PageSizeOptions()"
         TItem="ProyectoDetalleExt"
         AllowFiltering="true"
         AllowColumnResize="true"
@@ -28,9 +29,12 @@
         RowRender="@RowRender"
         ColumnReordering="@OnColumnReordering">
             <HeaderTemplate>
-                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.End" Gap="1rem;" Wrap="FlexWrap.Wrap">
+                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
+                    <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Success" Icon="grid_on" Click="@(args => Export("excel"))" />
+                    <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Secondary" Icon="wrap_text" Click="@(args => Export("csv"))" />
                     <RadzenButton Shade="Shade.Light" ButtonStyle="ButtonStyle.Secondary" Icon="add_task" class="rounded-circle rz-my-1 rz-ms-1" Click="@(args => OnClickAdd())" />
-                </RadzenStack>
+                    </RadzenStack>
+
             </HeaderTemplate>
             <Columns>
                 <RadzenDataGridColumn Property="@nameof(ProyectoDetalleExt.TareaId)"
@@ -84,6 +88,7 @@
     private IEnumerable<CatalogoGenerico>? listEstadoTareas;
     private decimal TotalHorasEstimadas = 0M;
     private decimal TotalHorasConsumidas = 0M;
+    
 
     protected override async Task OnInitializedAsync()
     {
@@ -376,5 +381,34 @@
         }
 
         
+    }
+
+    public async Task Export(string type)
+    {
+        var queryableList = dataList.AsQueryable();
+
+        var query = new Query()
+        {
+            OrderBy = grid.Query.OrderBy,
+            Filter = grid.Query.Filter,
+            Select = string.Join(",", grid.ColumnsCollection.Where(c => c.GetVisible() && !string.IsNullOrEmpty(c.Property))
+                                .Select(c => c.Property.Contains(".") ? $"{c.Property} as {c.Property.Replace(".", "_")}" : c.Property))
+        };
+
+        await ExportFile(queryableList, type, query);
+    }
+    public async Task ExportFile(IQueryable<ProyectoDetalleExt> ProyectoDetalle, string type, Radzen.Query? query = null)
+    {
+        string fileName = "Detalle de Proyecto";
+        if (type == "csv")
+        {
+            fileName = $"{fileName}.csv";
+            await exportData.ToCSV(exportData.ApplyQuery(ProyectoDetalle, query), fileName);
+        }
+        else
+        {
+            fileName = $"{fileName}.xlsx";
+            await exportData.ToExcel(exportData.ApplyQuery(ProyectoDetalle, query), fileName);
+        }
     }
 }

@@ -299,6 +299,32 @@ namespace ProyectoPAR.Data
             return model!;
         }
 
+        public async Task<IEnumerable<AgendaConsultor>> GetAgendaConsultorByConsultor(int consultorId, string fechaInicio, string fechaFinal)
+        {
+            IEnumerable<AgendaConsultor>? model = null;
+            HttpResponseMessage? result = null;
+            try
+            {
+                var method = $"/AgendaConsultorByConsultor/{consultorId}/{fechaInicio}/{fechaFinal}";
+                result = await _genericService.Get(method);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readJob = result.Content.ReadFromJsonAsync<IList<AgendaConsultor>>();
+                    readJob.Wait();
+                    model = readJob.Result;
+                }
+            }
+            catch (Exception e)
+            {
+                //devuelve el codigo de error
+                model = Enumerable.Empty<AgendaConsultor>();
+                string error = e.InnerException is null ? e.Message : e.InnerException.Message;
+                _logger.LogError($"{InterfaceName}.GetAgendaConsultorByConsultor: Se ha presentado un error al ejecutar el proceso. Detalle de Error: {error}");
+            }
+            return model!;
+        }
+
         public async Task<AgendaConsultor> GetAgendaConsultorByConsultor(int id, int consultorId)
         {
             AgendaConsultor? model = null;

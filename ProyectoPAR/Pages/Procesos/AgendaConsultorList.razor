@@ -12,28 +12,29 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
-            TItem="AgendaConsultorExt"
-            AllowFiltering="true"
-            AllowColumnResize="true"
-            FilterMode="FilterMode.SimpleWithMenu"
-            PageSize="7"
-            AllowPaging="true"
-            AllowSorting="true"
-            AllowMultiColumnSorting="true"
-            ShowMultiColumnSortingIndex="true"
-            Data="@dataList"
-            ColumnWidth="300px"
-            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-            FilterCleared=@FilterCleared
-            SelectionMode="DataGridSelectionMode.Single"
-            @bind-Value=@selectedData
-            LogicalFilterOperator="LogicalFilterOperator.Or"
-            FilterPopupRenderMode="PopupRenderMode.OnDemand"
-            RowDoubleClick="@OnSelect"
-            AllowColumnPicking="true"
-            AllowColumnReorder="true"
-            RowRender="@RowRender"
-            ColumnReordering="@OnColumnReordering">
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
+                            TItem="AgendaConsultorExt"
+                            AllowFiltering="true"
+                            AllowColumnResize="true"
+                            FilterMode="FilterMode.SimpleWithMenu"
+                            PageSize="7"
+                            AllowPaging="true"
+                            AllowSorting="true"
+                            AllowMultiColumnSorting="true"
+                            ShowMultiColumnSortingIndex="true"
+                            Data="@dataList"
+                            ColumnWidth="300px"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            FilterCleared=@FilterCleared
+                            SelectionMode="DataGridSelectionMode.Single"
+                            @bind-Value=@selectedData
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            RowDoubleClick="@OnSelect"
+                            AllowColumnPicking="true"
+                            AllowColumnReorder="true"
+                            RowRender="@RowRender"
+                            ColumnReordering="@OnColumnReordering">
                 <HeaderTemplate>
                     <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
                         <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Success" Text="Exportar a XLS" Icon="grid_on" Click="@(args => Export("excel"))" />
@@ -51,6 +52,7 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.Fecha)" Title="Fecha" Width="120px" FormatString="{0:d}" />
                     <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.NombreConsultor)" Title="Consultor" Width="200px" />
+                    <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.CodigoProyecto)" Title="Código" Width="100px" />
                     <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.DescProyecto)" Title="Proyecto" Width="200px" /> 
                     <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.DescTarea)" Title="Tarea" Width="200px" />
                     <RadzenDataGridColumn Property="@nameof(AgendaConsultorExt.HoraInicioPlanificada)" Title="Hora Inicio Plan" Width="80px" />
@@ -180,6 +182,9 @@
                                         UsuarioCreacion = e.Proyecto.UsuarioCreacion,
                                         FechaModificacion = e.Proyecto.FechaModificacion,
                                         UsuarioModificacion = e.Proyecto.UsuarioModificacion,
+                                        EtapaId = e.Proyecto.EtapaId,
+                                        BackColorId = e.Proyecto.BackColorId,
+                                        FontColorId = e.Proyecto.FontColorId                                    
                                     },
                              ProyectoDetalle = e.ProyectoDetalle == null ? null :
                                     new ProyectoDetalle
@@ -201,6 +206,7 @@
                              DescProyecto = e.Proyecto!.Descripcion,
                              DescTarea = e.ProyectoDetalle!.Descripcion,
                              DescEstado = st.Descripcion!,
+                             CodigoProyecto = e.Proyecto.Codigo!,
                          }).OrderBy(e => e.Fecha).ToList();
             }
 

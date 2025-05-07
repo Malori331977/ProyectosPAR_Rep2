@@ -28,6 +28,9 @@
     <Reference Include="JtSegEncrypta">
       <HintPath>..\..\..\Librerias\JtSegEncrypta\JtSegEncrypta\bin\Release\net7.0\publish\JtSegEncrypta.dll</HintPath>
     </Reference>
+    <Reference Include="LicGeotime">
+      <HintPath>Dll\LicGeotime.dll</HintPath>
+    </Reference>
     <Reference Include="ProyectoParLibs">
       <HintPath>Dll\ProyectoParLibs.dll</HintPath>
     </Reference>

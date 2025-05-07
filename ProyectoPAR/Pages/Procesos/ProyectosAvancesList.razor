@@ -4,6 +4,7 @@
         <RadzenAccordionItem Text=" Avances de la Tarea" Icon="event_available">
             <RadzenStack Gap="0.5rem">
                 <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                                PageSizeOptions="@Utiles.PageSizeOptions()"
                                 TItem="ProyectoAvanceExt"
                                 AllowColumnResize="true"
                                 FilterMode="FilterMode.SimpleWithMenu"
@@ -58,6 +59,7 @@
     RadzenDataGrid<ProyectoAvanceExt> grid;
     IEnumerable<ProyectoAvanceExt> dataList;
     IList<ProyectoAvanceExt> selectedData;
+    
 
     protected override async Task OnInitializedAsync()
     {

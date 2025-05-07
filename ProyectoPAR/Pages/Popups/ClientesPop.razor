@@ -10,7 +10,8 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
-                            TItem="Cliente"
+                            TItem="Cliente" 
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
                             AllowFiltering="true" 
                             AllowColumnResize="true" 
                             FilterMode="FilterMode.SimpleWithMenu" 
@@ -61,6 +62,7 @@
     RadzenDataGrid<Cliente> grid;
     IEnumerable<Cliente> dataList;
     IList<Cliente> selectedData;
+   
 
     protected override async Task OnInitializedAsync()
     {

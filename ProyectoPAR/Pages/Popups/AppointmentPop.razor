@@ -1,0 +1,512 @@
+﻿@inject DialogService DialogService
+@inherits DialogSettingLayout
+
+
+@if (InProcess)
+{
+    <SpinnerControl></SpinnerControl>
+}
+@if (agendaConsultor is not null)
+{
+
+    <div class="card-body">
+        <RadzenTemplateForm Data="@agendaConsultor" Submit="@((AgendaConsultorExt args) => { Guardar(args); })">
+            <RadzenRow Gap="0.3rem" class="rz-p-0 rz-p-lg-2">
+                <RadzenColumn Size="12" SizeMD="12">
+                    <RadzenStack>
+                        <RadzenFieldset Text="@Titulo">
+                            <RadzenStack Gap="0.3rem">
+
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="5">
+                                        <RadzenLabel Text="Proyecto" Component="ProyectoId" />
+                                        <RadzenRow AlignItems="AlignItems.Center">
+                                            <RadzenColumn Size="12" SizeMD="1">
+                                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="search" class="rounded-circle rz-my-1 rz-ms-1" Disabled="@soloLecturaAdd" Size="Radzen.ButtonSize.Medium" Click=@OnShowModalProyecto></RadzenButton>
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="2">
+                                                <RadzenNumeric Style="width: 100%;" Name="ProyectoId" @bind-Value="agendaConsultor!.ProyectoId" Disabled="@soloLecturaAdd"
+                                                               @onfocusout="BuscarProyecto" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="9">
+                                                <RadzenTextBox Style="width: 100%;" Disabled="true" @bind-Value="agendaConsultor!.DescProyecto" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="5">
+                                        <RadzenLabel Text="Tarea" Component="ProyectoDetId" />
+                                        <RadzenRow AlignItems="AlignItems.Center">
+                                            <RadzenColumn Size="12" SizeMD="1">
+                                                <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="search" class="rounded-circle rz-my-1 rz-ms-1" Disabled="@soloLecturaAdd" Size="Radzen.ButtonSize.Medium" Click=@OnShowModalProyectoDetalle></RadzenButton>
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="2">
+                                                <RadzenNumeric Style="width: 100%;" Name="ProyectoDetId" @bind-Value="agendaConsultor!.TareaId" Disabled="@soloLecturaAdd"
+                                                               @onfocusout="BuscarProyectoDetalle" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="9">
+                                                <RadzenTextBox Style="width: 100%;" Disabled="true" @bind-Value="agendaConsultor!.DescTarea" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="2">
+                                        <RadzenLabel Text="Estado" Component="EstadoId" />
+                                        <RadzenDropDown @bind-Value="agendaConsultor!.EstadoId"
+                                                        Placeholder="Seleccione Estado"
+                                                        Data="@listEstadoTarea" Style="width: 100%;"
+                                                        ValueProperty="Id"
+                                                        TextProperty="Descripcion"
+                                                        Name="EstadoId" Disabled="@soloLectura">
+                                        </RadzenDropDown>
+                                    </RadzenColumn>
+                                </RadzenRow>
+
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="2">
+                                        <RadzenLabel Text="Fecha Inicio de Tarea" Component="ftar" />
+                                        <RadzenDatePicker Style="width: 100%;" Name="ftar" @bind-Value="agendaConsultor!.Fecha" Disabled="@soloLecturaAdd"
+                                                          ShowCalendarWeek DateFormat="dd/MM/yyyy" Max="DateTime.MaxValue" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="2">
+                                        <RadzenLabel Text="Fecha Final de Tarea" Component="fftar" />
+                                        <RadzenDatePicker Style="width: 100%;" Name="fftar" @bind-Value="agendaConsultor!.FechaFinal" Disabled="@soloLecturaAdd"
+                                                          ShowCalendarWeek DateFormat="dd/MM/yyyy" Max="DateTime.MaxValue" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="2">
+                                        <RadzenLabel Text="Hora Inicio Plan" Component="hInicioPlan" />
+                                        <RadzenDatePicker @bind-Value=@agendaConsultor!.HoraInicioPlanificada ShowTime="true" TimeOnly="true"
+                                                          DateFormat="HH:mm" Name="hInicioPlan" Disabled="@soloLectura" Style="width: 100%;" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="2">
+                                        <RadzenLabel Text="Hora Fin Plan" Component="hFinPlan" />
+                                        <RadzenDatePicker @bind-Value=@agendaConsultor!.HoraFinalPlanificada ShowTime="true" TimeOnly="true"
+                                                          DateFormat="HH:mm" Name="hFinPlan" Disabled="@soloLectura" Style="width: 100%;" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="2">
+                                        <RadzenLabel Text="Hora Inicio Real" Component="hInicioReal" />
+                                        <RadzenDatePicker @bind-Value=@agendaConsultor!.HoraInicioReal ShowTime="true" TimeOnly="true"
+                                                          DateFormat="HH:mm" Name="hInicioReal" Disabled="true" Style="width: 100%;" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="2">
+                                        <RadzenLabel Text="Hora Fin Plan" Component="hFinReal" />
+                                        <RadzenDatePicker @bind-Value=@agendaConsultor!.HoraFinalReal ShowTime="true" TimeOnly="true"
+                                                          DateFormat="HH:mm" Name="hFinReal" Disabled="true" Style="width: 100%;" />
+
+                                    </RadzenColumn>
+                                </RadzenRow>
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="12">
+                                        <RadzenLabel Text="Observaciones" Component="obs" />
+                                        <RadzenTextBox Name="obs" @bind-Value="agendaConsultor!.Observaciones" Disabled="@soloLectura" Style="width: 100%" />
+                                    </RadzenColumn>
+                                </RadzenRow>
+
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+            </RadzenRow>
+            <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
+            </RadzenStack>
+        </RadzenTemplateForm>
+    </div>
+    
+}
+
+@code {
+    [Parameter] public EventCallback<bool> OnSaveAgenda { get; set; }
+    [Parameter] public Appointment Appointment { get; set; }
+
+    Appointment model = new Appointment();
+
+    private string Titulo = "Agenda de Consultor";
+    private bool InProcess = true;
+    private bool soloLectura = false;
+    private bool soloLecturaAdd = false;
+    private bool soloLecturaIdCons = false;
+    private AgendaConsultorExt? agendaConsultor = null;
+    int sizeCli = 12;
+    private Consultor? consultor;
+    private Proyecto? proyecto;
+    private ProyectoDetalle? proyectoDetalle;
+    private IEnumerable<CatalogoGenerico>? listEstadoTarea;
+
+    private async Task LoadEstadoTarea() => listEstadoTarea = await configService.GetCatalogoGenerico("ESTADO_PROYECTO_TAREA");
+
+    private async Task LoadAgenda()
+    {
+        if (Appointment.Modo != 1)
+        {
+
+            var repo = await processService.GetAgendaConsultor(Appointment.AgendaId);
+
+            if (repo is not null)
+            {
+
+                agendaConsultor = new AgendaConsultorExt
+                {
+                    Id = repo.Id,
+                    ConsultorId = repo.ConsultorId,
+                    Fecha = repo.Fecha,
+                    FechaFinal = repo.Fecha,
+                    ProyectoId = repo.ProyectoId,
+                    TareaId = repo.TareaId,
+                    ItemId = repo.ItemId,
+                    HoraInicioPlanificada = repo.HoraInicioPlanificada,
+                    HoraFinalPlanificada = repo.HoraFinalPlanificada,
+                    HoraInicioReal = repo.HoraInicioReal,
+                    HoraFinalReal = repo.HoraFinalReal,
+                    Observaciones = repo.Observaciones,
+                    FechaCreacion = repo.FechaCreacion,
+                    UsuarioCreacion = repo.UsuarioCreacion,
+                    FechaModificacion = repo.FechaModificacion,
+                    UsuarioModificacion = repo.UsuarioModificacion,
+                    EstadoId = repo.EstadoId,
+                    Consultor = repo.Consultor == null ? null :
+                                    new Consultor
+                                    {
+                                        Id = repo.Consultor.Id,
+                                        Usuario = repo.Consultor.Usuario,
+                                        Nombre = repo.Consultor.Nombre,
+                                        PrimerApellido = repo.Consultor.PrimerApellido,
+                                        SegundoApellido = repo.Consultor.SegundoApellido,
+                                        Email = repo.Consultor.Email,
+                                        Telefono = repo.Consultor.Telefono,
+                                        Activo = repo.Consultor.Activo,
+                                        FechaCreacion = repo.Consultor.FechaCreacion,
+                                        UsuarioCreacion = repo.Consultor.UsuarioCreacion,
+                                        FechaModificacion = repo.Consultor.FechaModificacion,
+                                        UsuarioModificacion = repo.Consultor.UsuarioModificacion,
+                                    },
+                    Proyecto = repo.Proyecto == null ? null :
+                                    new Proyecto
+                                    {
+                                        Id = repo.Proyecto.Id,
+                                        Descripcion = repo.Proyecto.Descripcion,
+                                        ClienteId = repo.Proyecto.ClienteId,
+                                        FechaInicio = repo.Proyecto.FechaInicio,
+                                        FechaFin = repo.Proyecto.FechaFin,
+                                        EstadoId = repo.Proyecto.EstadoId,
+                                        Observaciones = repo.Proyecto.Observaciones,
+                                        FechaCreacion = repo.Proyecto.FechaCreacion,
+                                        UsuarioCreacion = repo.Proyecto.UsuarioCreacion,
+                                        FechaModificacion = repo.Proyecto.FechaModificacion,
+                                        UsuarioModificacion = repo.Proyecto.UsuarioModificacion,
+                                    },
+                    ProyectoDetalle = repo.ProyectoDetalle == null ? null :
+                                    new ProyectoDetalle
+                                    {
+                                        ProyectoId = repo.ProyectoDetalle.ProyectoId,
+                                        TareaId = repo.ProyectoDetalle.TareaId,
+                                        ItemId = repo.ProyectoDetalle.ItemId,
+                                        Descripcion = repo.ProyectoDetalle.Descripcion,
+                                        CantidadHorasEstimada = repo.ProyectoDetalle.CantidadHorasEstimada,
+                                        CantidadHorasConsumida = repo.ProyectoDetalle.CantidadHorasConsumida,
+                                        EstadoId = repo.ProyectoDetalle.EstadoId,
+                                        Facturable = repo.ProyectoDetalle.Facturable,
+                                        FechaCreacion = repo.ProyectoDetalle.FechaCreacion,
+                                        UsuarioCreacion = repo.ProyectoDetalle.UsuarioCreacion,
+                                        FechaModificacion = repo.ProyectoDetalle.FechaModificacion,
+                                        UsuarioModificacion = repo.ProyectoDetalle.UsuarioModificacion,
+                                    },
+                    NombreConsultor = $"{repo.Consultor!.Nombre} {repo.Consultor!.PrimerApellido}",
+                    DescProyecto = repo.Proyecto!.Descripcion,
+                    DescTarea = repo.ProyectoDetalle!.Descripcion,
+                };
+
+            }
+        }
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        sizeCli = Appointment.Modo == 1 ? 12 : 10;
+        soloLectura = Appointment.Modo == 3;
+
+        try
+        {
+            await LoadEstadoTarea();
+            //Modos= 1:Insertar 2:Actualizar 3:Borrar 0:Consulta
+            if (Appointment.Modo != 1)
+            {
+                soloLecturaAdd = true;
+                soloLecturaIdCons = true;
+                await LoadAgenda();
+
+                if (agendaConsultor!.EstadoId != "P" && agendaConsultor!.EstadoId != "D") soloLectura = true;
+
+            }
+            else
+            {
+                agendaConsultor = new AgendaConsultorExt
+                {
+                    Id = 0,
+                    ConsultorId = loginState.User.consultor!.Id,
+                    Fecha = Appointment.Start,
+                    FechaFinal = Appointment.End,
+                    ProyectoId = 0,
+                    TareaId = 0,
+                    ItemId = 0,
+                    HoraInicioPlanificada = TimeOnly.FromDateTime(Appointment.Start),
+                    HoraFinalPlanificada = TimeOnly.FromDateTime(Appointment.End),
+                    HoraInicioReal = new TimeOnly(0, 0),
+                    HoraFinalReal = new TimeOnly(0, 0),
+                    Observaciones = "",
+                    FechaCreacion = DateTime.Now,
+                    UsuarioCreacion = loginState.User.consultor!.Id.ToString(),
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModificacion = loginState.User.consultor!.Id.ToString(),
+                    NombreConsultor = "",
+                    DescProyecto = "",
+                    DescTarea = "",
+                    EstadoId = "P"
+
+                };
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
+        }
+
+        InProcess = false;
+        StateHasChanged();
+    }
+
+    private async Task Guardar(AgendaConsultor arg)
+    {
+        InProcess = true;
+        try
+        {
+            if (await Validaciones())
+            {
+                arg.Proyecto = null;
+                arg.Consultor = null;
+
+                EventResponse respuesta;
+                if (Appointment.Modo == 3)
+                {
+                    SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Atención",
+                        Text = $"¿Está seguro(a) que desea eliminar item de agenda del consultor actual?",
+                        Icon = SweetAlertIcon.Error,
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "Sí",
+                        CancelButtonText = "No"
+                    });
+
+
+                    if (result.IsConfirmed)
+                    {
+                        respuesta = await genericService.Delete("AgendaConsultor", arg.Id.ToString());
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    List<AgendaConsultor> listAdd = new();
+                    DateTime day = agendaConsultor!.Fecha;
+
+                    while (day <= agendaConsultor.FechaFinal)
+                    {
+                        arg.Fecha = day;
+                        listAdd.Add(new AgendaConsultor
+                        {
+                            Id = arg.Id,
+                            ConsultorId = arg.ConsultorId,
+                            Fecha = arg.Fecha,
+                            ProyectoId = arg.ProyectoId,
+                            TareaId = arg.TareaId,
+                            ItemId = arg.ItemId,
+                            HoraInicioPlanificada = arg.HoraInicioPlanificada,
+                            HoraFinalPlanificada = arg.HoraFinalPlanificada,
+                            HoraInicioReal = arg.HoraInicioReal,
+                            HoraFinalReal = arg.HoraFinalReal,
+                            Observaciones = arg.Observaciones,
+                            FechaCreacion = arg.FechaCreacion,
+                            UsuarioCreacion = arg.UsuarioCreacion,
+                            FechaModificacion = arg.FechaModificacion,
+                            UsuarioModificacion = arg.UsuarioModificacion,
+                            EstadoId = arg.EstadoId,
+                        });
+                        day = day.AddDays(1);
+                    }
+
+
+                    respuesta = await genericService.Post("AgendaConsultor", listAdd);
+                }
+
+                if (respuesta.Id == "0")
+                {
+                    await OnSaveItemAgenda(true);
+                }
+                else
+                {
+                    await swal.FireAsync("Error", respuesta.Descripcion, SweetAlertIcon.Error);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+        finally
+        {
+            InProcess = false;
+        }
+
+    }
+
+
+    private async Task<bool> Validaciones()
+    {
+
+
+        if (Appointment.Modo != 3)
+        {
+            if (agendaConsultor!.ConsultorId <= 0)
+            {
+                await swal.FireAsync("Atención", "Debe indicar el consultor.", SweetAlertIcon.Info);
+                return false;
+            }
+
+            if (agendaConsultor!.ProyectoId <= 0)
+            {
+                await swal.FireAsync("Atención", "Debe indicar la tarea del proyecto a agendar.", SweetAlertIcon.Info);
+                return false;
+            }
+
+            if (agendaConsultor!.Fecha > agendaConsultor.FechaFinal)
+            {
+                await swal.FireAsync("Atención", "La fecha inicial de la tarea no puede ser mayor que la fecha final.", SweetAlertIcon.Info);
+                return false;
+            }
+
+        }
+
+
+        return true;
+    }
+
+    protected async Task OnSaveItemAgenda(bool args)
+    {
+        await OnSaveAgenda.InvokeAsync(args);
+    }
+
+    private async Task BuscarProyecto()
+    {
+
+        proyecto = await processService.GetProyecto(agendaConsultor!.ProyectoId);
+        if (proyecto is not null)
+        {
+            agendaConsultor.ProyectoId = proyecto!.Id;
+            agendaConsultor.DescProyecto = proyecto.Descripcion;
+        }
+        else
+        {
+            await swal.FireAsync("Atención", "El proyecto no existe", SweetAlertIcon.Info);
+            agendaConsultor!.DescProyecto = "";
+            agendaConsultor.ProyectoId = 0;
+
+
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnShowModalProyecto()
+    {
+        if (agendaConsultor!.ConsultorId == 0)
+        {
+            return;
+        }
+
+        await dialogService.OpenAsync<ProyectosByConsultorPop>("Proyectos",
+              new Dictionary<string, object>()
+                {
+                    { "OnItemSelected", EventCallback.Factory.Create<ProyectoExt>(this, HideModalproyecto)},
+                    { "ConsultorId", agendaConsultor!.ConsultorId }
+                },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
+                  Resize = base.OnResize,
+                  Drag = base.OnDrag,
+                  Width = Settings != null ? Settings.Width : "1200px",
+                  Height = Settings != null ? Settings.Height : "512px",
+                  Left = Settings != null ? Settings.Left : null,
+                  Top = Settings != null ? Settings.Top : null
+              });
+    }
+
+    private async Task HideModalproyecto(ProyectoExt args)
+    {
+        agendaConsultor!.ProyectoId = args.Id;
+        agendaConsultor.DescProyecto = args.Descripcion;
+
+        dialogService.Close(true);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task BuscarProyectoDetalle()
+    {
+        if (agendaConsultor!.ProyectoId <= 0)
+            return;
+
+        proyectoDetalle = await processService.GetProyectoDetalle(agendaConsultor!.ProyectoId, agendaConsultor.TareaId, agendaConsultor.ItemId);
+        if (proyectoDetalle is not null)
+        {
+            agendaConsultor.ItemId = proyectoDetalle.ItemId;
+            agendaConsultor.TareaId = proyectoDetalle.TareaId;
+            agendaConsultor.DescTarea = proyectoDetalle.Descripcion;
+        }
+        else
+        {
+            await swal.FireAsync("Atención", "La tarea del proyecto indicada no existe", SweetAlertIcon.Info);
+            agendaConsultor.ItemId = 0;
+            agendaConsultor.TareaId = 0;
+            agendaConsultor.DescTarea = "";
+
+
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnShowModalProyectoDetalle()
+    {
+
+        await dialogService.OpenAsync<ProyectoDetallePopAgenda>("Tareas del Proyecto",
+              new Dictionary<string, object>()
+                {
+                    { "OnItemSelected", EventCallback.Factory.Create<ProyectoDetalleExt>(this, HideModalProyectoDetalle)},
+                    { "ProyectoId", agendaConsultor!.ProyectoId }
+                },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
+                  Resize = base.OnResize,
+                  Drag = base.OnDrag,
+                  Width = Settings != null ? Settings.Width : "1200px",
+                  Height = Settings != null ? Settings.Height : "512px",
+                  Left = Settings != null ? Settings.Left : null,
+                  Top = Settings != null ? Settings.Top : null
+              });
+    }
+
+    private async Task HideModalProyectoDetalle(ProyectoDetalleExt args)
+    {
+        agendaConsultor!.ItemId = args.ItemId;
+        agendaConsultor.TareaId = args.TareaId;
+        agendaConsultor.DescTarea = args.Descripcion;
+
+        dialogService.Close(true);
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

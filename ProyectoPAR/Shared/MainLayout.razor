@@ -8,15 +8,18 @@
             <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
                 <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
 
-                    <RadzenRow class="w-100" JustifyContent="JustifyContent.Center">
-                        <RadzenColumn Size="11" class="rz-text-align-lg-left w-100">
-                            <h2>Sistema de Reportes PARv3</h2>
-                        </RadzenColumn>
-                        <RadzenColumn Size="1" class="rz-text-align-lg-center w-100">
-                            <RadzenButton Click=@(args => OnCerrarSesion()) Icon="logout" ButtonStyle="ButtonStyle.Base" class="rounded-circle rz-my-1 rz-ms-1" />
-                        </RadzenColumn>
-                    </RadzenRow>
-           
+                <RadzenRow class="w-100" JustifyContent="JustifyContent.Center">
+                    <RadzenColumn Size="11" class="rz-text-align-lg-left">
+                        <a href="./principal">
+                            <RadzenImage Path="./img/logotransparente.png" Style="width: 2.5rem;" />
+                            <RadzenLabel Text="Sistema de Reportes {PAR}v3" class="rz-text-h5 rz-text-secondary-color"></RadzenLabel>
+                        </a>                        
+                    </RadzenColumn>
+                    <RadzenColumn Size="1" class="rz-text-align-lg-center w-100">
+                        <RadzenButton Click=@(args => OnCerrarSesion()) Icon="logout" ButtonStyle="ButtonStyle.Base" class="rounded-circle rz-my-1 rz-ms-1" />
+                    </RadzenColumn>
+                </RadzenRow>
+
             </RadzenStack>
         </RadzenHeader>
         <RadzenSidebar Responsive="false" Style="width: max-content">

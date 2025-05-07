@@ -9,6 +9,7 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
             TItem="AgendaConsultorExt"
             AllowFiltering="true"
             AllowColumnResize="true"
@@ -58,6 +59,7 @@
     [Parameter] public EventCallback<AgendaConsultorExt> OnItemSelected { get; set; }
     [Parameter] public int IdConsultor { get; set; }
     [Parameter] public string IdCliente { get; set; }
+    
 
     private bool InProcess = true; 
 

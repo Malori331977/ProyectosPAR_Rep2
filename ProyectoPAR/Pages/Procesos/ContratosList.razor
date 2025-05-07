@@ -12,6 +12,7 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
             TItem="ContratoExt"
             AllowFiltering="true"
             AllowColumnResize="true"
@@ -88,7 +89,7 @@
     RadzenDataGrid<ContratoExt> grid;
     IEnumerable<ContratoExt> dataList;
     IList<ContratoExt> selectedData;
-
+    
 
     private IEnumerable<CatalogoGenerico>? listEstadoContrato;
     private IEnumerable<CatalogoGenerico>? listNivelContrato;

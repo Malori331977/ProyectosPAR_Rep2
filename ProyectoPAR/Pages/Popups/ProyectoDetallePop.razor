@@ -10,27 +10,28 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
-            TItem="ProyectoDetalleExt"
-            AllowFiltering="true" 
-            AllowColumnResize="true" 
-            FilterMode="FilterMode.SimpleWithMenu" 
-            PageSize="8"
-            AllowPaging="true"
-            AllowSorting="true" 
-            AllowMultiColumnSorting="false" 
-            ShowMultiColumnSortingIndex="true"
-            Data="@dataList"
-            ColumnWidth="300px"
-            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"                           
-            FilterCleared=@FilterCleared
-            AllowRowSelectOnRowClick=@allowRowSelect
-            SelectionMode="DataGridSelectionMode.Multiple" 
-            @bind-Value=@selectedData
-            LogicalFilterOperator="LogicalFilterOperator.Or"
-            FilterPopupRenderMode="PopupRenderMode.OnDemand"
-            AllowColumnPicking="true"
-            AllowColumnReorder="true"
-            ColumnReordering="@OnColumnReordering">  
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
+                            TItem="ProyectoDetalleExt"
+                            AllowFiltering="true" 
+                            AllowColumnResize="true" 
+                            FilterMode="FilterMode.SimpleWithMenu" 
+                            PageSize="8"
+                            AllowPaging="true"
+                            AllowSorting="true" 
+                            AllowMultiColumnSorting="false" 
+                            ShowMultiColumnSortingIndex="true"
+                            Data="@dataList"
+                            ColumnWidth="300px"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"                           
+                            FilterCleared=@FilterCleared
+                            AllowRowSelectOnRowClick=@allowRowSelect
+                            SelectionMode="DataGridSelectionMode.Multiple" 
+                            @bind-Value=@selectedData
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            AllowColumnPicking="true"
+                            AllowColumnReorder="true"
+                            ColumnReordering="@OnColumnReordering">  
                 <HeaderTemplate>
                     <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
                         <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Primary" Text="Seleccionar" Icon="how_to_reg" Click="@(args => OnSelect())" />

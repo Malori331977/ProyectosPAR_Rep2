@@ -58,7 +58,7 @@
             </RadzenTemplateForm>
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
-            PageSizeOptions="@pageSizeOptions"
+            PageSizeOptions="@Utiles.PageSizeOptions()"
             TItem="ReporteExt"
             AllowFiltering="true"
             AllowColumnResize="true"

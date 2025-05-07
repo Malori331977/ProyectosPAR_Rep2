@@ -9,27 +9,28 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
-            TItem="ProyectoExt"
-            AllowFiltering="true"
-            AllowColumnResize="true"
-            FilterMode="FilterMode.SimpleWithMenu"
-            PageSize="7"
-            AllowPaging="true"
-            AllowSorting="true"
-            AllowMultiColumnSorting="true"
-            ShowMultiColumnSortingIndex="true"
-            Data="@dataList"
-            ColumnWidth="300px"
-            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-            FilterCleared=@FilterCleared
-            SelectionMode="DataGridSelectionMode.Single"
-            @bind-Value=@selectedData
-            LogicalFilterOperator="LogicalFilterOperator.Or"
-            FilterPopupRenderMode="PopupRenderMode.OnDemand"
-            RowDoubleClick="@OnSelect"
-            AllowColumnPicking="true"
-            AllowColumnReorder="true"
-            ColumnReordering="@OnColumnReordering">
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
+                            TItem="ProyectoExt"
+                            AllowFiltering="true"
+                            AllowColumnResize="true"
+                            FilterMode="FilterMode.SimpleWithMenu"
+                            PageSize="7"
+                            AllowPaging="true"
+                            AllowSorting="true"
+                            AllowMultiColumnSorting="true"
+                            ShowMultiColumnSortingIndex="true"
+                            Data="@dataList"
+                            ColumnWidth="300px"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            FilterCleared=@FilterCleared
+                            SelectionMode="DataGridSelectionMode.Single"
+                            @bind-Value=@selectedData
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            RowDoubleClick="@OnSelect"
+                            AllowColumnPicking="true"
+                            AllowColumnReorder="true"
+                            ColumnReordering="@OnColumnReordering">
                 <Columns>
 
                     <RadzenDataGridColumn Property="@nameof(ProyectoExt.Id)"
@@ -39,6 +40,7 @@
                                           Width="100px"
                                           TextAlign="TextAlign.Center">
                     </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(ProyectoExt.Codigo)" Title="Código" Width="100px" />
                     <RadzenDataGridColumn Property="@nameof(ProyectoExt.ClienteId)" Title="Cliente" Width="100px" />
                     <RadzenDataGridColumn Property="@nameof(ProyectoExt.NombreCliente)" Title="Nombre de Cliente" Width="300px" />
                     <RadzenDataGridColumn Property="@nameof(ProyectoExt.Descripcion)" Title="Nombre de Proyecto" Width="300px" />
@@ -123,6 +125,7 @@
                          select new ProyectoExt
                          {
                              Id = e.Id,
+                             Codigo = e.Codigo,
                              ClienteId = e.ClienteId,
                              Descripcion = e.Descripcion,
                              FechaInicio = e.FechaInicio,

@@ -73,5 +73,10 @@ namespace ProyectoPAR.Models
             return System.Text.Encoding.UTF8.GetString(bytes);
         }
 
+        public static IEnumerable<int> PageSizeOptions()
+        {
+            return new int[] { 7, 10, 25, 50, 100, 500 };
+        }
+
     }
 }

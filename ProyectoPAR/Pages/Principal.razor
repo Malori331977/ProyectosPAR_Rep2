@@ -1,23 +1,93 @@
 ﻿@page "/principal"
+@inject DialogService DialogService
+@inherits DialogSettingLayout
 
 @layout MainLayout
 
 <style>
 
     .card_img {
-        width: 10rem;
-        height: 10rem;
-        overflow: hidden;
-        border-radius: 100%;
-        max-width: 10rem;
+    width: 10rem;
+    height: 10rem;
+    overflow: hidden;
+    border-radius: 100%;
+    max-width: 10rem;
     }
 </style>
 
 <PageTitle>Principal</PageTitle>
 
+<RadzenScheduler @ref=@scheduler 
+SlotRender=@OnSlotRender 
+style="height: 768px;" 
+TItem="Appointment" 
+Data=@appointments 
+StartProperty="Start" 
+EndProperty="End" 
+ShowHeader=@showHeader
+TextProperty="Text" 
+SelectedIndex="2"
+SlotSelect=@OnSlotSelect 
+AppointmentSelect=@OnAppointmentSelect 
+AppointmentRender=@OnAppointmentRender 
+DaySelect="@OnDaySelect"
+AppointmentMove=@OnAppointmentMove>
+    <RadzenDayView />
+    <RadzenWeekView />
+    <RadzenMonthView />
+</RadzenScheduler>
+
+
 
 @code {
 
+    RadzenScheduler<Appointment> scheduler;
+
+    Dictionary<DateTime, string> events = new Dictionary<DateTime, string>();
+    bool showHeader = true;
+    private List<AgendaConsultor> agendaConsultor = new();
+
+    IList<Appointment>? appointments;
+
+    private async Task LoadAgendaConsultor()
+    {
+        try
+        {
+
+            var agenda = await processService.GetAgendaConsultorByConsultor(loginState.User.consultor.Id,
+                                                                            DateTime.Now.AddMonths(-6).ToString("yyyyMMdd"),
+                                                                            DateTime.Now.AddMonths(6).ToString("yyyyMMdd"));
+
+            if (agenda is not null)
+            {
+                appointments = (from a in agenda
+                                select new Appointment
+                                {
+                                    Start = new DateTime(a.Fecha.Year, a.Fecha.Month, a.Fecha.Day, a.HoraInicioPlanificada.Hour, a.HoraInicioPlanificada.Minute, a.HoraInicioPlanificada.Second),
+                                    End = new DateTime(a.Fecha.Year, a.Fecha.Month, a.Fecha.Day, a.HoraFinalPlanificada.Hour, a.HoraFinalPlanificada.Minute, a.HoraFinalPlanificada.Second),
+                                    Text = $"{a.Proyecto!.Codigo}: {a.ProyectoDetalle!.Descripcion}",
+                                    AgendaId = a.Id,
+                                    Background = a.Proyecto.BackColorId!,
+                                    Color = a.Proyecto.FontColorId!,
+                                    ProyectoId = a.ProyectoId,
+                                    TareaId = a.TareaId,
+                                    ItemId = a.ItemId,
+                                    HoraFinalReal = a.HoraFinalReal,
+                                    HoraInicioReal = a.HoraInicioReal,
+                                    Observaciones = a.Observaciones,
+                                    EstadoId = a.EstadoId,
+                                    Modo = 2,
+                                }).ToList();
+            }
+
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Atención", "Se presentó un error al cargar la agenda del consultor: " + e.Message, SweetAlertIcon.Error);
+            NavigationManager.NavigateTo("./");
+            Console.WriteLine(e.Message);
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -31,12 +101,14 @@
             }
             else
             {
-                if (loginState.User.consultor.Id == null)
+                if (loginState!.User!.consultor!.Id! == 0)
                 {
                     NavigationManager.NavigateTo("./");
                     return;
                 }
             }
+
+            await LoadAgendaConsultor();
 
         }
         catch (Exception e)
@@ -49,7 +121,165 @@
         StateHasChanged();
     }
 
+    /***********************************************************/
 
+    void OnDaySelect(SchedulerDaySelectEventArgs args)
+    {
+
+    }
+
+    void OnSlotRender(SchedulerSlotRenderEventArgs args)
+    {
+        // Highlight today in month view
+        if (args.View.Text == "Month" && args.Start.Date == DateTime.Today)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
+
+        // Highlight working hours (8-17)
+        if ((args.View.Text == "Week" || args.View.Text == "Day") && args.Start.Hour >= 7 && args.Start.Hour < 18)
+        {
+            args.Attributes["style"] = "background: var(--rz-scheduler-highlight-background-color, rgba(255,220,40,.2));";
+        }
+    }
+
+    async Task OnSlotSelect(SchedulerSlotSelectEventArgs args)
+    {
+        if (args.View.Text != "Year")
+        {
+            var copy = new Appointment
+            {
+                Start = args.Start,
+                End = args.End,
+                Text = "",
+                AgendaId = 0,
+                Modo = 1,
+                Background = "#FFFFFF",
+                Color = "#000000",
+
+            };
+
+            await dialogService.OpenAsync<AppointmentPop>("Agregar Agenda",
+                  new Dictionary<string, object>()
+                    {
+                    { "OnSaveAgenda", EventCallback.Factory.Create<bool>(this, HideModalAgenda)},
+                    { "Appointment", copy }
+                    },
+                  new DialogOptions()
+                  {
+                      Resizable = true,
+                      Draggable = true,
+                      Resize = base.OnResize,
+                      Drag = base.OnDrag,
+                      Width = Settings != null ? Settings.Width : "1200px",
+                      Height = Settings != null ? Settings.Height : "512px",
+                      Left = Settings != null ? Settings.Left : null,
+                      Top = Settings != null ? Settings.Top : null
+                  });
+
+        }
+    }
+
+    async Task OnAppointmentSelect(SchedulerAppointmentSelectEventArgs<Appointment> args)
+    {
+        var copy = new Appointment
+        {
+            Start = args.Data.Start,
+            End = args.Data.End,
+            Text = args.Data.Text,
+            AgendaId = args.Data.AgendaId,
+            Modo = 2,
+            Background = args.Data.Background,
+            Color = args.Data.Color,
+
+        };
+
+        await dialogService.OpenAsync<AppointmentPop>("Editar Agenda",
+              new Dictionary<string, object>()
+                {
+                    { "OnSaveAgenda", EventCallback.Factory.Create<bool>(this, HideModalAgenda)},
+                    { "Appointment", copy }
+                },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
+                  Resize = base.OnResize,
+                  Drag = base.OnDrag,
+                  Width = Settings != null ? Settings.Width : "1200px",
+                  Height = Settings != null ? Settings.Height : "512px",
+                  Left = Settings != null ? Settings.Left : null,
+                  Top = Settings != null ? Settings.Top : null
+              });
+
+    }
+
+    private async Task HideModalAgenda(bool args)
+    {
+        if (args)
+        {
+            await LoadAgendaConsultor();
+            await scheduler.Reload();
+        }
+        dialogService.Close(true);
+    }
+
+    void OnAppointmentRender(SchedulerAppointmentRenderEventArgs<Appointment> args)
+    {
+        // Never call StateHasChanged in AppointmentRender - would lead to infinite loop
+
+        args.Attributes["style"] = $"background: {args.Data.Background}; color: {args.Data.Color}";
+
+    }
+
+    async Task OnAppointmentMove(SchedulerAppointmentMoveEventArgs args)
+    {
+        var draggedAppointment = appointments.FirstOrDefault(x => x == args.Appointment.Data);
+
+        if (draggedAppointment != null)
+        {
+            var duration = draggedAppointment.End - draggedAppointment.Start;
+
+            if (args.SlotDate.TimeOfDay == TimeSpan.Zero)
+            {
+                draggedAppointment.Start = args.SlotDate.Date.Add(draggedAppointment.Start.TimeOfDay);
+            }
+            else
+            {
+                draggedAppointment.Start = args.SlotDate;
+            }
+
+            draggedAppointment.End = draggedAppointment.Start.Add(duration);
+
+            List<AgendaConsultor> listAdd = new List<AgendaConsultor>()
+            {
+                new AgendaConsultor
+                {
+                    Id = draggedAppointment.AgendaId,
+                    ConsultorId = loginState.User.consultor!.Id,
+                    Fecha = draggedAppointment.Start,
+                    ProyectoId = draggedAppointment.ProyectoId,
+                    TareaId = draggedAppointment.TareaId,
+                    ItemId = draggedAppointment.ItemId,
+                    HoraInicioPlanificada = TimeOnly.FromDateTime(draggedAppointment.Start),
+                    HoraFinalPlanificada = TimeOnly.FromDateTime(draggedAppointment.End),
+                    HoraInicioReal = draggedAppointment.HoraInicioReal,
+                    HoraFinalReal = draggedAppointment.HoraFinalReal,
+                    Observaciones = draggedAppointment.Observaciones,
+                    FechaCreacion = DateTime.Now,
+                    UsuarioCreacion = loginState.User.consultor!.Id.ToString(),
+                    FechaModificacion = DateTime.Now,
+                    UsuarioModificacion = loginState.User.consultor!.Id.ToString(),
+                    EstadoId = draggedAppointment.EstadoId,
+                }
+            
+            };
+            var resp = await genericService.Post("AgendaConsultor", listAdd);
+
+            if (resp.Id =="0")
+                await scheduler.Reload();
+        }
+    }
 
 
 }

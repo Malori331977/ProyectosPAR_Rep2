@@ -13,29 +13,29 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
-                            PageSizeOptions="@pageSizeOptions"
-            TItem="ReporteExt"
-            AllowFiltering="true"
-            AllowColumnResize="true"
-            FilterMode="FilterMode.SimpleWithMenu"
-            PageSize="7"
-            AllowPaging="true"
-            AllowSorting="true"
-            AllowMultiColumnSorting="true"
-            ShowMultiColumnSortingIndex="true"
-            Data="@dataList"
-            ColumnWidth="300px"
-            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-            FilterCleared=@FilterCleared
-            SelectionMode="DataGridSelectionMode.Single"
-            @bind-Value=@selectedData
-            LogicalFilterOperator="LogicalFilterOperator.Or"
-            FilterPopupRenderMode="PopupRenderMode.OnDemand"
-            RowDoubleClick="@OnSelect"
-            AllowColumnPicking="true"
-            AllowColumnReorder="true"
-            RowRender="@RowRender"
-            ColumnReordering="@OnColumnReordering">
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
+                            TItem="ReporteExt"
+                            AllowFiltering="true"
+                            AllowColumnResize="true"
+                            FilterMode="FilterMode.SimpleWithMenu"
+                            PageSize="7"
+                            AllowPaging="true"
+                            AllowSorting="true"
+                            AllowMultiColumnSorting="true"
+                            ShowMultiColumnSortingIndex="true"
+                            Data="@dataList"
+                            ColumnWidth="300px"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            FilterCleared=@FilterCleared
+                            SelectionMode="DataGridSelectionMode.Single"
+                            @bind-Value=@selectedData
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            RowDoubleClick="@OnSelect"
+                            AllowColumnPicking="true"
+                            AllowColumnReorder="true"
+                            RowRender="@RowRender"
+                            ColumnReordering="@OnColumnReordering">
                 <HeaderTemplate>
                     <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
                         <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Success" Text="Exportar a XLS" Icon="grid_on" Click="@(args => Export("excel"))" />
@@ -107,7 +107,7 @@
     IEnumerable<ReporteExt> dataList;
     IList<ReporteExt> selectedData;
     private Modal modalPdf = default!;
-    IEnumerable<int> pageSizeOptions = new int[] { 7, 10, 25, 50, 100, 500 };
+    
 
     protected override async Task OnInitializedAsync()
     {

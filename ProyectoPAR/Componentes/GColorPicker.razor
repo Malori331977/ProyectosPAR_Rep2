@@ -1,0 +1,27 @@
+﻿<input type="color" class="form-control-color br8" @bind-value="@ColorHexCode"/>
+
+@code {
+
+
+        private string m_ColorHexCode;
+
+        [Parameter]
+        public string ColorHexCode
+        {
+            get => m_ColorHexCode;
+            set
+            {
+                if (m_ColorHexCode == value) return;
+
+                m_ColorHexCode = value;
+
+                ColorHexCodeChanged.InvokeAsync(m_ColorHexCode);
+            }
+        }
+
+        [Parameter]
+        public EventCallback<string> ColorHexCodeChanged { get; set; }
+    
+
+
+}

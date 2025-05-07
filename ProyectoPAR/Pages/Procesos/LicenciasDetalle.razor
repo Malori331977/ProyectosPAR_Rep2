@@ -2,6 +2,7 @@
 @using JtSegEncrypta
 @inherits DialogSettingLayout
 @inject IEncriptaService encripta
+@using LicGeo = LicGeotime;
 
 @if (licencia == null)
 {
@@ -50,13 +51,12 @@ else
                                         </RadzenColumn>
                                     </RadzenRow>
 
-
-
                                     <RadzenRow AlignItems="AlignItems.Center">
-                                        <RadzenColumn Size="12" SizeMD="2">
+                                        <RadzenColumn Size="12" SizeMD="3">
                                             <RadzenLabel Text="Producto" Component="ProductoId" />
                                             <RadzenDropDown @bind-Value="licencia.ProductoId"
                                             AllowClear="false"
+                                            Change=@(args => OnChangeProducto(args))
                                             Placeholder="Seleccione el Producto"
                                             Data="@listProductos" Style="width: 100%;"
                                             ValueProperty="Id"
@@ -64,53 +64,99 @@ else
                                             Name="ProductoId" Disabled="@soloLectura">
                                             </RadzenDropDown>
                                         </RadzenColumn>
-                                        <RadzenColumn Size="12" SizeMD="2">
-                                            <RadzenLabel Text="Base de Datos" Component="bd" />
-                                            <RadzenTextBox Name="bd" @bind-Value="licencia.BaseDatos" Disabled="@soloLectura" Style="width: 100%" />
-                                        </RadzenColumn>
-                                        <RadzenColumn Size="12" SizeMD="2">
-                                            <RadzenLabel Text="Fecha de Expiración" Component="fexp" />
-                                            <RadzenDatePicker Style="width: 100%;" Name="fexp" @bind-Value="licencia.FechaExpiracion" Disabled="@soloLectura"
-                                            ShowCalendarWeek DateFormat="dd/MM/yyyy" Max="DateTime.MaxValue" />
-                                        </RadzenColumn>
-                                        <RadzenColumn Size="12" SizeMD="1">
-                                            <RadzenLabel Text="No Expira" Component="noexp" />
-                                            <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
-                                                <RadzenSwitch Placeholder="No Expira" Style="width: 25%;" Name="noexp"
-                                                @bind-Value="licencia.NoExpira" Disabled="@soloLectura" Change=@(args => OnChangeNoExpira(args))
-                                                InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Switch value" } })" />
-                                            </RadzenStack>
-                                        </RadzenColumn>
+
+                                        @if (product is not null)
+                                        {
+                                            @if (product.Tipo == "CA")
+                                            {
+                                                <RadzenColumn Size="12" SizeMD="3">
+                                                    <RadzenLabel Text="Compañía" Component="bd" />
+                                                    <RadzenTextBox Name="bd" @bind-Value="licencia.BaseDatos" Disabled="@soloLectura" Style="width: 100%" />
+                                                </RadzenColumn>
+                                            }
+                                            else
+                                            {
+                                                <RadzenColumn Size="12" SizeMD="3">
+                                                    <RadzenLabel Text="Base de Datos" Component="bd" />
+                                                    <RadzenTextBox Name="bd" @bind-Value="licencia.BaseDatos" Disabled="@soloLectura" Style="width: 100%" />
+                                                </RadzenColumn>
+                                            }
+                                            <RadzenColumn Size="12" SizeMD="2">
+                                                <RadzenLabel Text="Estado de Licencia" Component="estadoId" />
+                                                <RadzenDropDown @bind-Value="licencia.EstadoId"
+                                                AllowClear="false"
+                                                Placeholder="Seleccione el Estado"
+                                                Data="@listEstados" Style="width: 100%;"
+                                                ValueProperty="Id"
+                                                TextProperty="Descripcion"
+                                                Name="estadoId" Disabled="@soloLectura">
+                                                </RadzenDropDown>
+                                            </RadzenColumn>
+
+                                            <RadzenColumn Size="12" SizeMD="2">
+                                                <RadzenLabel Text="Fecha de Expiración" Component="fexp" />
+                                                <RadzenDatePicker Style="width: 100%;" Name="fexp" @bind-Value="licencia.FechaExpiracion" Disabled="@soloLectura"
+                                                ShowCalendarWeek DateFormat="dd/MM/yyyy" Max="DateTime.MaxValue" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="2">
+                                                <RadzenLabel Text="No Expira" Component="noexp" />
+                                                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                                    <RadzenSwitch Placeholder="No Expira" Style="width: 25%;" Name="noexp"
+                                                    @bind-Value="licencia.NoExpira" Disabled="@soloLectura" Change=@(args => OnChangeNoExpira(args))
+                                                    InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Switch value" } })" />
+                                                </RadzenStack>
+                                            </RadzenColumn>
+
+                                        }
+                                    </RadzenRow> 
+
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        @if (product!.Tipo == "CA")
+                                        {
+                                            <RadzenColumn Size="12" SizeMD="3">
+                                                <RadzenLabel Text="Cantidad de Usuarios" Component="canusu" />
+                                                <RadzenNumeric Format="N0" Name="canusu" @bind-Value="licencia.CantidadUsuarios" Disabled="@soloLectura" Style="width: 100%" TextAlign="TextAlign.Right" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="3">
+                                                <RadzenLabel Text="Cantidad de Empleados" Component="canempl" />
+                                                <RadzenNumeric Format="N0" Name="canempl" @bind-Value="licencia.CantidadEmpleados" Disabled="@soloLectura" Style="width: 100%" TextAlign="TextAlign.Right" />
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="1">
+                                                <RadzenLabel Text="Distribuye Usuarios" Component="distusu" />
+                                                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                                    <RadzenSwitch Placeholder="Distribuye Usuarios" Style="width: 25%;" Name="distusu"
+                                                    @bind-Value="licencia.DistUsuarios" Disabled="@soloLectura"
+                                                    InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Switch value" } })" />
+                                                </RadzenStack>
+                                            </RadzenColumn>
+                                            <RadzenColumn Size="12" SizeMD="1">
+                                                <RadzenLabel Text="Distribuye Empleados" Component="distemp" />
+                                                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                                    <RadzenSwitch Placeholder="Distribuye Empleados" Style="width: 25%;" Name="distemp"
+                                                    @bind-Value="licencia.DistEmpleados" Disabled="@soloLectura"
+                                                    InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Switch value" } })" />
+                                                </RadzenStack>
+                                            </RadzenColumn>
+                                        }
+                                        else
+                                        {
+                                            <RadzenColumn Size="12" SizeMD="3">
+                                                <RadzenLabel Text="Cantidad Empleados" Component="canempl" />
+                                                <RadzenNumeric Format="N0" Name="canempl" @bind-Value="licencia.CantidadEmpleados" Disabled="@soloLectura" Style="width: 100%" TextAlign="TextAlign.Right" />
+                                            </RadzenColumn>
+
+                                            <RadzenColumn Size="12" SizeMD="1">
+                                                <RadzenLabel Text="Ilimitado" Component="Ilimitado" />
+                                                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                                    <RadzenSwitch Placeholder="Ilimitado" Style="width: 25%;" Name="Ilimitado"
+                                                    @bind-Value="licencia.Ilimitado" Disabled="@soloLectura" Change=@(args => OnChangeIlimitado(args))
+                                                    InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Switch value" } })" />
 
 
-                                        <RadzenColumn Size="12" SizeMD="2">
-                                            <RadzenLabel Text="# Empleados" Component="canempl" />
-                                            <RadzenNumeric Format="N0" Name="canempl" @bind-Value="licencia.CantidadUsuarios" Disabled="@soloLectura" Style="width: 100%" TextAlign="TextAlign.Right" />
-                                        </RadzenColumn>
-
-                                        <RadzenColumn Size="12" SizeMD="1">
-                                            <RadzenLabel Text="Ilimitado" Component="Ilimitado" />
-                                            <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
-                                                <RadzenSwitch Placeholder="Ilimitado" Style="width: 25%;" Name="Ilimitado"
-                                                @bind-Value="licencia.Ilimitado" Disabled="@soloLectura" Change=@(args => OnChangeIlimitado(args))
-                                                InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Switch value" } })" />
-
-
-                                            </RadzenStack>
-                                        </RadzenColumn>
-                                        <RadzenColumn Size="12" SizeMD="2">
-                                            <RadzenLabel Text="Estado" Component="estadoId" />
-                                            <RadzenDropDown @bind-Value="licencia.EstadoId"
-                                            AllowClear="false"
-                                            Placeholder="Seleccione el Estado"
-                                            Data="@listEstados" Style="width: 100%;"
-                                            ValueProperty="Id"
-                                            TextProperty="Descripcion"
-                                            Name="estadoId" Disabled="@soloLectura">
-                                            </RadzenDropDown>
-                                        </RadzenColumn>
-
-                                    </RadzenRow>  
+                                                </RadzenStack>
+                                            </RadzenColumn>
+                                        }
+                                    </RadzenRow>
 
                                     <RadzenRow AlignItems="AlignItems.Center">
                                         <RadzenColumn Size="12" SizeMD="2">
@@ -184,6 +230,10 @@ else
                     UsuarioCreacion = repo.UsuarioCreacion,
                     FechaModificacion = repo.FechaModificacion,
                     UsuarioModificacion = repo.UsuarioModificacion,
+                    CantidadEmpleados = repo.CantidadEmpleados,
+                    CantidadDispMoviles = repo.CantidadDispMoviles,
+                    DistEmpleados = repo.DistEmpleados,
+                    DistUsuarios = repo.DistUsuarios,
                     Producto = repo.Producto == null ? null :
                                  new Producto
                                  {
@@ -196,6 +246,7 @@ else
                                      UsuarioCreacion = repo.Producto.UsuarioCreacion,
                                      FechaModificacion = repo.Producto.FechaModificacion,
                                      UsuarioModificacion = repo.Producto.UsuarioModificacion,
+                                     Tipo = repo.Producto.Tipo,
                                  },
                     Contrato = repo.Contrato == null ? null :
                                  new Contrato
@@ -295,8 +346,18 @@ else
                     UsuarioModificacion = loginState.User.consultor!.Id.ToString(),                    
                     NombreCliente = "",
                     ClienteId = "",
-                    DescProducto = ""
+                    DescProducto = "",
+                    DistEmpleados = false,
+                    DistUsuarios = false,
+                    CantidadDispMoviles = 0,
+                    CantidadEmpleados = 0,
+
                 };
+                product = new Producto
+                    {
+                        Id = -1,
+                        Tipo = "CA",
+                    };
             }
         }
         catch (Exception e)
@@ -385,9 +446,27 @@ else
                 if (product is null)
                     product = await mtoService.GetProducto(licencia!.ProductoId);
 
-                string strParametros = $"{contract!.Cliente!.Alias}|{licencia!.FechaExpiracion.ToString("yyyyMMdd")}|{licencia.CantidadUsuarios}|{(licencia.NoExpira ? 1 : 0)}|{licencia.BaseDatos}|{product!.Aplicacion}";
+                if (product.Tipo == "AG")
+                {
+                    string strParametros = $"{contract!.Cliente!.Alias}|{licencia!.FechaExpiracion.ToString("yyyyMMdd")}|{licencia.CantidadUsuarios}|{(licencia.NoExpira ? 1 : 0)}|{licencia.BaseDatos}|{product!.Aplicacion}";
 
-                licencia.LicenciaId = encripta.Encrypt(strParametros);
+                    licencia.LicenciaId = encripta.Encrypt(strParametros);
+                }
+                else
+                {
+                    //var licenciaGeo = new LicGeo.Licencia();
+
+                    // licencia!.LicenciaId = licenciaGeo.Genero_Lic(licencia.BaseDatos,
+                    //                                              licencia.CantidadUsuarios,
+                    //                                              licencia.CantidadEmpleados,
+                    //                                              licencia.CantidadDispMoviles,
+                    //                                              licencia.NoExpira ? "Permanente":licencia.FechaExpiracion.ToString("yyyy-MM-dd"),
+                    //                                              licencia.DistEmpleados == true? 'T' : 'F',
+                    //                                              licencia.DistUsuarios == true ? 'T' : 'F');
+
+                }
+
+
 
 
             }
@@ -418,9 +497,16 @@ else
                 return false;
             }
 
+
             if (String.IsNullOrEmpty(licencia!.BaseDatos))
             {
-                await swal.FireAsync("Atención", "Debe indicar el nombre de la Base de Datos.", SweetAlertIcon.Info);
+                await swal.FireAsync("Atención", $"Debe indicar el nombre de la {(product!.Tipo == "AG"?"Base de Datos":"Compañía")}.", SweetAlertIcon.Info);
+                return false;
+            }
+
+            if (String.IsNullOrEmpty(licencia!.EstadoId))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el estado de la licencia.", SweetAlertIcon.Info);
                 return false;
             }
 
@@ -433,42 +519,47 @@ else
                 }
             }
 
-            if (!licencia.Ilimitado)
+            if (product!.Tipo == "AG")
             {
-                if (licencia!.CantidadUsuarios <=0)
+                if (!licencia.Ilimitado)
                 {
-                    await swal.FireAsync("Atención", "Debe indicar la cantidad de empleados asociados a la licencia.", SweetAlertIcon.Info);
-                    return false;
-                }
-
-                var licenciasPorContrato = await processService.GetLicencia(licencia.ProductoId, licencia.ContratoId);
-                int empleadosUtilizados = 0;
-
-                if (licenciasPorContrato is not null)
-                {
-                    if (Modo == 1)
+                    if (licencia!.CantidadUsuarios <= 0)
                     {
-                        empleadosUtilizados = licenciasPorContrato.Sum(e => e.CantidadUsuarios);
-                    }
-                    else
-                    {
-                        empleadosUtilizados = licenciasPorContrato.Where(e=>e.Id!=licencia.Id).Sum(e => e.CantidadUsuarios);
+                        await swal.FireAsync("Atención", "Debe indicar la cantidad de empleados asociados a la licencia.", SweetAlertIcon.Info);
+                        return false;
                     }
 
-                }
+                    var licenciasPorContrato = await processService.GetLicencia(licencia.ProductoId, licencia.ContratoId);
+                    int empleadosUtilizados = 0;
 
-                if ((empleadosUtilizados + licencia.CantidadUsuarios) > contract!.CantidadEmpleadosContrato)
-                {
-                    await swal.FireAsync("Atención", $"La cantidad de empleados asignados a la licencia ({licencia.CantidadUsuarios}) supera la cantidad de empleados disponibles en el contrato ({contract!.CantidadEmpleadosContrato - empleadosUtilizados}).", SweetAlertIcon.Info);
-                    return false;
+                    if (licenciasPorContrato is not null)
+                    {
+                        if (Modo == 1)
+                        {
+                            empleadosUtilizados = licenciasPorContrato.Sum(e => e.CantidadUsuarios);
+                        }
+                        else
+                        {
+                            empleadosUtilizados = licenciasPorContrato.Where(e => e.Id != licencia.Id).Sum(e => e.CantidadUsuarios);
+                        }
+
+                    }
+
+                    if ((empleadosUtilizados + licencia.CantidadUsuarios) > contract!.CantidadEmpleadosContrato)
+                    {
+                        await swal.FireAsync("Atención", $"La cantidad de empleados asignados a la licencia ({licencia.CantidadUsuarios}) supera la cantidad de empleados disponibles en el contrato ({contract!.CantidadEmpleadosContrato - empleadosUtilizados}).", SweetAlertIcon.Info);
+                        return false;
+                    }
                 }
             }
-
-            if (String.IsNullOrEmpty(licencia!.EstadoId))
+            else
             {
-                await swal.FireAsync("Atención", "Debe indicar el estado de la licencia.", SweetAlertIcon.Info);
-                return false;
+                
             }
+
+            
+
+            
 
 
 
@@ -562,6 +653,8 @@ else
 
     void OnChangeIlimitado(bool? value)
     {
+        if (contract is null) return;
+
         if ((bool)value!)
         {
             licencia!.CantidadUsuarios = 0;
@@ -575,6 +668,8 @@ else
 
     void OnChangeNoExpira(bool? value)
     {
+        if (contract is null) return;
+
         if ((bool)value!)
         {
             licencia!.FechaExpiracion = (DateTime)contract!.FechaFin!;
@@ -584,6 +679,11 @@ else
             licencia!.FechaExpiracion = DateTime.Today.AddMonths(1);
         }
 
+    }
+
+    private async Task OnChangeProducto(object args)
+    {
+        product = await mtoService.GetProducto(Int32.Parse(args.ToString()!));
     }
 
 }

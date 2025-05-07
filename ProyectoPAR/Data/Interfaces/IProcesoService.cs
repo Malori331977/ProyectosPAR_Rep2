@@ -60,10 +60,19 @@ namespace ProyectoPAR.Data.Interfaces
         public Task<IEnumerable<AgendaConsultor>> GetAgendaConsultorByConsultor(int consultorId);
 
         /// <summary>
+        /// GetAgendaConsultorByConsultor: Obtiene todos los registros de la tabla AgendaConsultor para un consultor especifico y un rango de fechas
+        /// </summary>
+        /// <param name="consultorId"></param>
+        /// <param name="fechaInicio"></param>
+        /// <param name="fechaFinal"></param>
+        /// <returns>Lista de registros de la tabla AgendaConsultor</returns>
+        public Task<IEnumerable<AgendaConsultor>> GetAgendaConsultorByConsultor(int consultorId, string fechaInicio, string fechaFinal);
+
+        /// <summary>
         /// GetAgendaConsultorByConsultor: Obtiene el registro de la tabla AgendaConsultor para un consultor y ID especifico
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="proyectoId"></param>
+        /// <param name="consultorId"></param>
         /// <returns>Registros de la tabla AgendaConsultor</returns>
         public Task<AgendaConsultor> GetAgendaConsultorByConsultor(int id, int consultorId);
 

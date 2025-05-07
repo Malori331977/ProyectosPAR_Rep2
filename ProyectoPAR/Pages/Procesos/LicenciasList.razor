@@ -12,6 +12,7 @@
             }
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
                             TItem="LicenciaExt"
                             AllowFiltering="true"
                             AllowColumnResize="true"
@@ -94,7 +95,7 @@
     RadzenDataGrid<LicenciaExt> grid;
     IEnumerable<LicenciaExt> dataList;
     IList<LicenciaExt> selectedData;
-
+    
 
     private IEnumerable<CatalogoGenerico>? listEstadoLicencia;
 
