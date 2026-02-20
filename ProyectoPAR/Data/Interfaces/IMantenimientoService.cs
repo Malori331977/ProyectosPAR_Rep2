@@ -14,7 +14,7 @@ namespace ProyectoPAR.Data.Interfaces
         public Task<Tarea> GetTarea(int id);
         public Task<IEnumerable<Producto>> GetProducto();
         public Task<Producto> GetProducto(int id);
-
-
+        public Task<IEnumerable<Partner>> GetPartner();
+        public Task<Partner> GetPartner(int id);
     }
 }

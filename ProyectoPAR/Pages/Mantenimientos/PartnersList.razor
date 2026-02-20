@@ -1,0 +1,202 @@
+﻿@page "/partnerslist"
+@layout MainLayout
+
+<div class="card rz-background-color-base-200">
+    <PageMant Titulo="@Titulo" OnClickAddSelected="OnClickAdd" />
+    <div class="card-body">
+        <RadzenStack Gap="0.5rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+            <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
+                            TItem="PartnerExt"
+                            AllowFiltering="true"
+                            AllowColumnResize="true"
+                            FilterMode="FilterMode.SimpleWithMenu"
+                            PageSize="7"
+                            AllowPaging="true"
+                            AllowSorting="true"
+                            AllowMultiColumnSorting="true"
+                            ShowMultiColumnSortingIndex="true"
+                            Data="@dataList"
+                            ColumnWidth="300px"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            FilterCleared=@FilterCleared
+                            SelectionMode="DataGridSelectionMode.Single"
+                            @bind-Value=@selectedData
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            RowDoubleClick="@OnSelect"
+                            AllowColumnPicking="true"
+                            AllowColumnReorder="true"
+                            ColumnReordering="@OnColumnReordering">
+                <HeaderTemplate>
+                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
+                        <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Success" Text="Exportar a XLS" Icon="grid_on" Click="@(args => Export("excel"))" />
+                        <RadzenButton class="rz-border-radius-6" Shade="Shade.Light" ButtonStyle="ButtonStyle.Secondary" Text="Exportar a CSV" Icon="wrap_text" Click="@(args => Export("csv"))" />
+                    </RadzenStack>
+                </HeaderTemplate>
+                <Columns>
+                    <RadzenDataGridColumn Property="@nameof(PartnerExt.Id)"
+                                          FilterValue="@PartnerID"
+                                          Filterable="true" Title="ID"
+                                          Frozen="true"
+                                          Width="100px"
+                                          TextAlign="TextAlign.Center">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(PartnerExt.Nombre)" Title="Nombre" Width="100px" />
+                    <RadzenDataGridColumn Property="@nameof(PartnerExt.Descripcion)" Title="Descripción" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(PartnerExt.DescEstado)" Title="Estado" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(PartnerExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(PartnerExt.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Context="PartnerExt" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
+                        <Template Context="PartnerExt">
+                            <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger"
+                                          Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
+                                          Click="@(args => OnDelete(PartnerExt))" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenStack>
+    </div>
+</div>
+
+@code {
+    public string Titulo { get; set; }
+    private bool InProcess = true;
+
+    string? PartnerID;
+    RadzenDataGrid<PartnerExt> grid;
+    IEnumerable<PartnerExt> dataList;
+    IList<PartnerExt> selectedData;
+
+    private IEnumerable<CatalogoGenerico>? listEstadoPartner;
+    private async Task LoadEstadoPartner() => listEstadoPartner = await configService.GetCatalogoGenerico("ESTADO_GLOBAL");
+
+    private List<Task> GetLoadTasks()
+    {
+        return new List<Task>
+        {
+            LoadEstadoPartner()
+        };
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (Titulo is null) Titulo = "Partners";
+
+        // Definir la lista de tareas a llamar
+        var tasks = GetLoadTasks();
+
+        // Esperar a que todas las tareas se completen
+        await Task.WhenAll(tasks);
+
+        dataList = await GetDataList();
+    }
+
+    async Task FilterCleared()
+    {
+        PartnerID = null;
+        await grid.FirstPage();
+    }
+
+    void OnRender(DataGridRenderEventArgs<PartnerExt> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
+        }
+    }
+
+    private async Task<IEnumerable<PartnerExt>> GetDataList()
+    {
+        List<PartnerExt> model = new();
+        try
+        {
+            var partners = (await mtoService.GetPartner()).ToList();
+            if (partners is not null && listEstadoPartner is not null)
+            {
+                model = (from p in partners
+                         join e in listEstadoPartner on p.EstadoId equals e.Id
+                         select new PartnerExt
+                         {
+                             Id = p.Id,
+                             Nombre = p.Nombre,
+                             Descripcion = p.Descripcion,
+                             EstadoId = p.EstadoId,
+                             DescEstado = e.Descripcion,
+                             FechaCreacion = p.FechaCreacion,
+                             UsuarioCreacion = p.UsuarioCreacion,
+                             FechaModificacion = p.FechaModificacion,
+                             UsuarioModificacion = p.UsuarioModificacion,
+                         }).ToList();
+            }
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<PartnerExt> args)
+    {
+        if (args.ToColumn.Property == nameof(PartnerExt.Id))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    private async Task OnClickAdd()
+    {
+        NavigationManager.NavigateTo("./partnersdetalle/0/1");
+    }
+
+    protected async Task OnSelect(DataGridRowMouseEventArgs<PartnerExt> args)
+    {
+        NavigationManager.NavigateTo("./partnersdetalle/" + args.Data.Id + "/2");
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+
+    protected async void OnDelete(PartnerExt Partner)
+    {
+        NavigationManager.NavigateTo($"./partnersdetalle/{Partner.Id}/3");
+    }
+
+    public async Task Export(string type)
+    {
+        var queryableList = dataList.AsQueryable();
+
+        var query = new Query()
+        {
+            OrderBy = grid.Query.OrderBy,
+            Filter = grid.Query.Filter,
+            Select = string.Join(",", grid.ColumnsCollection.Where(c => c.GetVisible() && !string.IsNullOrEmpty(c.Property))
+                                .Select(c => c.Property.Contains(".") ? $"{c.Property} as {c.Property.Replace(".", "_")}" : c.Property))
+        };
+        await ExportFile(queryableList, type, query);
+    }
+
+    public async Task ExportFile(IQueryable<PartnerExt> Partner, string type, Radzen.Query? query = null)
+    {
+        string fileName = "Partners";
+        if (type == "csv")
+        {
+            fileName = $"{fileName}.csv";
+            await exportData.ToCSV(exportData.ApplyQuery(Partner, query), fileName);
+        }
+        else
+        {
+            fileName = $"{fileName}.xlsx";
+            await exportData.ToExcel(exportData.ApplyQuery(Partner, query), fileName);
+        }
+    }
+}
+
+

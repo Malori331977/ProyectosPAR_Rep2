@@ -1,0 +1,108 @@
+﻿@page "/partnerspop"
+
+<div class="card">
+    <div class="card-body">
+        <RadzenStack Gap="1rem">
+            @if (InProcess)
+            {
+                <SpinnerControl></SpinnerControl>
+            }
+            <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
+                            TItem="Partner"
+                            PageSizeOptions="@Utiles.PageSizeOptions()"
+                            AllowFiltering="true"
+                            AllowColumnResize="true"
+                            FilterMode="FilterMode.SimpleWithMenu"
+                            PageSize="10"
+                            AllowPaging="true"
+                            AllowSorting="true"
+                            AllowMultiColumnSorting="true"
+                            ShowMultiColumnSortingIndex="true"
+                            Data="@dataList"
+                            ColumnWidth="300px"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            FilterCleared=@FilterCleared
+                            SelectionMode="DataGridSelectionMode.Single"
+                            @bind-Value=@selectedData
+                            LogicalFilterOperator="LogicalFilterOperator.Or"
+                            FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            RowDoubleClick="@OnSelect"
+                            AllowColumnPicking="true"
+                            AllowColumnReorder="true"
+                            ColumnReordering="@OnColumnReordering">
+                <Columns>
+                    <RadzenDataGridColumn Property="@nameof(Partner.Id)"
+                                          FilterValue="@PartnerID"
+                                          Filterable="true" Title="ID"
+                                          Frozen="true"
+                                          Width="100px"
+                                          TextAlign="TextAlign.Center">
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(Partner.Nombre)" Title="Nombre" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(Partner.Descripcion)" Title="Cédula" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(Partner.EstadoId)" Title="Contacto" Width="150px" />
+                </Columns>
+            </RadzenDataGrid>
+        </RadzenStack>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<Partner> OnItemSelected { get; set; }
+    private bool InProcess = true;
+    int? PartnerID;
+    RadzenDataGrid<Partner> grid;
+    IEnumerable<Partner> dataList;
+    IList<Partner> selectedData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        dataList = await GetDataList();
+    }
+
+    async Task FilterCleared()
+    {
+        PartnerID = null;
+        await grid.FirstPage();
+    }
+
+    void OnRender(DataGridRenderEventArgs<Partner> args)
+    {
+        if (args.FirstRender)
+        {
+            args.Grid.Sorts.Add(new SortDescriptor() { Property = "Id", SortOrder = SortOrder.Ascending });
+        }
+    }
+
+    private async Task<IEnumerable<Partner>> GetDataList()
+    {
+        List<Partner> model = new();
+        try
+        {
+            model = (await mtoService.GetPartner()).ToList();
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+        }
+        InProcess = false;
+        StateHasChanged();
+        return model;
+    }
+
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<Partner> args)
+    {
+        if (args.ToColumn.Property == nameof(Partner.Id))
+        {
+            args.Cancel = true;
+        }
+    }
+
+    protected async Task OnSelect(DataGridRowMouseEventArgs<Partner> args)
+    {
+        await OnItemSelected.InvokeAsync(args.Data);
+    }
+}
+
+
