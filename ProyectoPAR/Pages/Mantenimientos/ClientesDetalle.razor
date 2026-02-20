@@ -104,8 +104,22 @@
                                                 </RadzenRow>
                                             </RadzenColumn>
                                         }
-
-
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">                               
+                                        <RadzenColumn Size="12" SizeMD="11">
+                                            <RadzenLabel Text="Partner al que pertenece el cliente" Component="PartnerCliente" />
+                                            <RadzenRow AlignItems="AlignItems.Center">
+                                                <RadzenColumn Size="12" SizeMD="1">
+                                                    <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="search" class="rounded-circle rz-my-1 rz-ms-1" Disabled="@soloLectura" Size="Radzen.ButtonSize.Medium" Click=@OnShowModalPartners></RadzenButton>
+                                                </RadzenColumn>
+                                                <RadzenColumn Size="12" SizeMD="2">
+                                                    <RadzenNumeric Style="width: 100%;" Name="PartnerId" Disabled="true" @bind-Value="cliente.PartnerId" />
+                                                </RadzenColumn>
+                                                <RadzenColumn Size="12" SizeMD="9">
+                                                    <RadzenTextBox Style="width: 100%;" Name="NombrePartnerCliente" Disabled="true" @bind-Value="NombrePartnerCliente" />
+                                                </RadzenColumn>
+                                            </RadzenRow>
+                                        </RadzenColumn>
                                     </RadzenRow>
                                 </RadzenStack>
                             </RadzenFieldset>
@@ -143,6 +157,7 @@
     private Cliente cliente = new();
     private IEnumerable<CatalogoGenerico>? listEstado;
     string NombreClientePadre = "";
+    string NombrePartnerCliente = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -157,6 +172,7 @@
                 soloLecturaAdd = true;
                 cliente = await mtoService.GetCliente(Id);
                 await BuscarPadre();
+                await BuscarPartner();
             }
             else
             {
@@ -176,6 +192,7 @@
                     UsuarioModificacion = "",
                     Subsidiaria = false,
                     ClientePadre = null,
+                    PartnerId = 0
                 };
             }
         }
@@ -299,6 +316,16 @@
                 await swal.FireAsync("Atención", "Debe indicar el cliente de la compañia a la que pertenece como subsidiaria.", SweetAlertIcon.Info);
                 return false;
             }
+            if (cliente.Subsidiaria && String.IsNullOrEmpty(cliente.ClientePadre))
+            {
+                await swal.FireAsync("Atención", "Debe indicar el cliente de la compañia a la que pertenece como subsidiaria.", SweetAlertIcon.Info);
+                return false;
+            }
+            if (cliente.PartnerId == 0 || cliente.PartnerId == null)
+            {
+                await swal.FireAsync("Atención", "Debe indicar el partner del cliente.", SweetAlertIcon.Info);
+                return false;
+            }
         }
         
         
@@ -306,8 +333,7 @@
     }
 
     private async Task BuscarPadre()
-    {
-       
+    {    
         if (String.IsNullOrEmpty(cliente.ClientePadre))
         {
             NombreClientePadre = "";
@@ -318,6 +344,24 @@
         if (clientePadre is not null)
         {
             NombreClientePadre = clientePadre.Nombre;
+        }
+        StateHasChanged();
+    }
+
+    private async Task BuscarPartner()
+    {
+        if (String.IsNullOrEmpty(cliente.PartnerId.ToString()))
+        {
+            NombrePartnerCliente = "";
+            return;
+        }
+
+        var partnerClienteId = cliente.PartnerId ?? 0;
+
+        var partnerCliente = await mtoService.GetPartner(partnerClienteId);
+        if (partnerCliente is not null)
+        {
+            NombrePartnerCliente = partnerCliente.Nombre;
         }
         StateHasChanged();
     }
@@ -357,5 +401,36 @@
     void Cancelar()
     {
         NavigationManager.NavigateTo(UrlRetorno);
+    }
+
+    private async Task OnShowModalPartners()
+    {
+        Dictionary<string, object> pd = new Dictionary<string, object>();
+        pd.Add("OnItemSelected", HideModalPartners);
+
+        await dialogService.OpenAsync<PartnerPop>("Partners",
+              new Dictionary<string, object>()
+                {
+                    { "OnItemSelected", EventCallback.Factory.Create<Partner>(this, HideModalPartners)}
+                },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
+                  Resize = base.OnResize,
+                  Drag = base.OnDrag,
+                  Width = Settings != null ? Settings.Width : "900px",
+                  Height = Settings != null ? Settings.Height : "512px",
+                  Left = Settings != null ? Settings.Left : null,
+                  Top = Settings != null ? Settings.Top : null
+              });
+    }
+
+    private async Task HideModalPartners(Partner args)
+    {
+        cliente!.PartnerId = args.Id;
+        NombrePartnerCliente = args.Nombre;
+        dialogService.Close(true);
+        await InvokeAsync(StateHasChanged);
     }
 }

@@ -57,6 +57,12 @@ else
                                             <RadzenTextBox @bind-Value=@parametro.UrlAplicacion Style="width: 100%" Name="urlapp" />
                                         </RadzenColumn>
                                     </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Último Id Cliente" Component="UltimoIdCliente" />
+                                            <RadzenTextBox @bind-Value=@parametro.UltimoIdCliente Style="width: 100%" Name="UltimoIdCliente" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
                                 </RadzenStack>
                             </RadzenFieldset>
                         </RadzenStack>
@@ -69,9 +75,6 @@ else
             </RadzenTemplateForm>
         </div>
     </div>
-
-
-
 }
 
 @code {
@@ -96,6 +99,7 @@ else
                     PaisCompania = "",
                     EmailCompania = "",
                     TelefonoCompania = "",
+                    UltimoIdCliente = "",
                     FechaCreacion = DateTime.Now,
                     FechaModificacion = DateTime.Now,
                     UsuarioCreacion = loginState.User.userLogin!.Id.ToString(),

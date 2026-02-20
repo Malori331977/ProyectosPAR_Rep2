@@ -238,5 +238,54 @@ namespace ProyectoPAR.Data
             return model!;
         }
 
+        public async Task<IEnumerable<Partner>> GetPartner()
+        {
+            IEnumerable<Partner>? model = null;
+            HttpResponseMessage? result = null;
+            try
+            {
+                var method = $"/Partner/";
+                result = await _genericService.Get(method);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readJob = result.Content.ReadFromJsonAsync<IList<Partner>>();
+                    readJob.Wait();
+                    model = readJob.Result;
+                }
+            }
+            catch (Exception e)
+            {
+                //devuelve el codigo de error
+                model = Enumerable.Empty<Partner>();
+                string error = e.InnerException is null ? e.Message : e.InnerException.Message;
+                _logger.LogError($"{InterfaceName}.GetPartner: Se ha presentado un error al ejecutar el proceso. Detalle de Error: {error}");
+            }
+            return model!;
+        }
+
+        public async Task<Partner> GetPartner(int id)
+        {
+            Partner? model = null;
+            HttpResponseMessage? result = null;
+            try
+            {
+                var method = $"/Partner/{id}";
+                result = await _genericService.Get(method);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readJob = result.Content.ReadFromJsonAsync<Partner>();
+                    readJob.Wait();
+                    model = readJob.Result;
+                }
+            }
+            catch (Exception e)
+            {
+                string error = e.InnerException is null ? e.Message : e.InnerException.Message;
+                _logger.LogError($"{InterfaceName}.GetPartner: Se ha presentado un error al ejecutar el proceso. Detalle de Error: {error}");
+            }
+            return model!;
+        }
     }
 }
