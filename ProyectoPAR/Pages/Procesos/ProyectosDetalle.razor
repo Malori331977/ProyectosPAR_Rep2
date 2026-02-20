@@ -15,11 +15,11 @@ else
 
             <div class="card-body">
                 <RadzenTemplateForm Data="@proyecto" Submit="@((Proyecto args) => { Guardar(args); })">
-                    <RadzenRow Gap="0.2rem" class="rz-p-0 rz-p-lg-0">
-                        <RadzenColumn Size="12" SizeMD="6">
-                            <RadzenStack>
-                                <RadzenFieldset Text="Datos Generales del Proyecto">
-                                    <RadzenStack Gap="0.3rem">
+                    <RadzenAccordion Multiple="true">
+                        <Items>
+                            <RadzenAccordionItem Text="Datos Generales del Proyecto" Icon="work_history" Selected="@accordionDG" SelectedChanged="(e) => OnSelectedChance(e, 1)">
+                                <RadzenFieldset>
+                                    <RadzenStack Gap="0.1rem">
                                         <RadzenRow AlignItems="AlignItems.Center">
                                             <RadzenColumn Size="12" SizeMD="12">
                                                 <RadzenLabel Text="Cliente" Component="ClienteId" />
@@ -34,12 +34,14 @@ else
                                                     <RadzenColumn Size="12" SizeMD="9">
                                                         <RadzenTextBox Style="width: 100%;" Disabled="true" @bind-Value="proyecto.NombreCliente" />
                                                     </RadzenColumn>
+
                                                 </RadzenRow>
                                             </RadzenColumn>
+
                                         </RadzenRow>
 
                                         <RadzenRow AlignItems="AlignItems.Center">
-                                            <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenColumn Size="12" SizeMD="2">
                                                 <RadzenLabel Text="Fecha de Inicio" Component="FechaInicio" />
                                                 <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
                                                     <RadzenColumn Size="12" SizeMD="12" class="w-100">
@@ -48,7 +50,7 @@ else
                                                     </RadzenColumn>
                                                 </RadzenStack>
                                             </RadzenColumn>
-                                            <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenColumn Size="12" SizeMD="2">
                                                 <RadzenLabel Text="Fecha de Finalización" Component="FechaFin" />
                                                 <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
                                                     <RadzenColumn Size="12" SizeMD="12" class="w-100">
@@ -57,109 +59,108 @@ else
                                                     </RadzenColumn>
                                                 </RadzenStack>
                                             </RadzenColumn>
-                                            <RadzenColumn Size="12" SizeMD="4">
+                                            <RadzenColumn Size="12" SizeMD="2">
                                                 <RadzenLabel Text="Código de Proyecto" Component="CodProy" />
-                                                <RadzenTextBox Style="width: 100%;" Name="CodProy" MaxLength="10" @bind-Value="proyecto.Codigo" Disabled="@soloLectura"/>
+                                                <RadzenTextBox Style="width: 100%;" Name="CodProy" MaxLength="10" @bind-Value="proyecto.Codigo" Disabled="@soloLectura" />
                                             </RadzenColumn>
-                                           
-                                        </RadzenRow>
-                                        <RadzenRow AlignItems="AlignItems.Center">
-                                            <RadzenColumn Size="12" SizeMD="6">
+                                            <RadzenColumn Size="12" SizeMD="3">
                                                 <RadzenLabel Text="Estado" Component="EstadoId" />
                                                 <RadzenDropDown @bind-Value="proyecto.EstadoId"
-                                                                AllowClear="true"
-                                                                Placeholder="Seleccione Estado"
-                                                                Data="@listEstadoProyecto" Style="width: 100%;"
-                                                                ValueProperty="Id"
-                                                                TextProperty="Descripcion"
-                                                                Name="EstadoId" Disabled="@soloLectura">
+                                                AllowClear="true"
+                                                Placeholder="Seleccione Estado"
+                                                Data="@listEstadoProyecto" Style="width: 100%;"
+                                                ValueProperty="Id"
+                                                TextProperty="Descripcion"
+                                                Name="EstadoId" Disabled="@soloLectura">
                                                 </RadzenDropDown>
                                             </RadzenColumn>
-                                            <RadzenColumn Size="12" SizeMD="6">
+                                            <RadzenColumn Size="12" SizeMD="3">
                                                 <RadzenLabel Text="Etapa de Proyecto" Component="EtapaId" />
                                                 <RadzenDropDown @bind-Value="proyecto.EtapaId"
-                                                                AllowClear="true"
-                                                                Placeholder="Seleccione Etapa"
-                                                                Data="@listEtapaProyecto" Style="width: 100%;"
-                                                                ValueProperty="Id"
-                                                                TextProperty="Descripcion"
-                                                                Name="EtapaId" Disabled="@soloLectura">
+                                                AllowClear="true"
+                                                Placeholder="Seleccione Etapa"
+                                                Data="@listEtapaProyecto" Style="width: 100%;"
+                                                ValueProperty="Id"
+                                                TextProperty="Descripcion"
+                                                Name="EtapaId" Disabled="@soloLectura">
                                                 </RadzenDropDown>
                                             </RadzenColumn>
+
                                         </RadzenRow>
+
                                         <RadzenRow AlignItems="AlignItems.Center">
-                                            <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenColumn Size="12" SizeMD="10">
                                                 <RadzenLabel Text="Descripción" Component="desc" />
                                                 <RadzenTextArea @bind-Value=@proyecto.Descripcion Style="width: 100%;height:125px" Name="desc" Disabled="@soloLectura" />
                                             </RadzenColumn>
-                                        </RadzenRow>
+                                            <RadzenColumn Size="12" SizeMD="2">
+                                                <RadzenRow>
+                                                    <RadzenColumn Size="12" SizeMD="12">
+                                                        <RadzenLabel Text="Color de Fondo" Component="BackColorId" />
+                                                        <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                                            <RadzenColumn Size="12" SizeMD="1">
+                                                                <GColorPicker @bind-ColorHexCode="@proyecto.BackColorId" />
+                                                            </RadzenColumn>
+                                                            <RadzenColumn Size="12" SizeMD="11" class="w-100">
+                                                                <RadzenTextBox Style="width: 100%;" Name="BackColorId" @bind-Value="proyecto.BackColorId" Disabled="@soloLectura" />
+                                                            </RadzenColumn>
+                                                        </RadzenStack>
+                                                    </RadzenColumn>
+                                                </RadzenRow>
+                                                <RadzenRow>
+                                                    <RadzenColumn Size="12" SizeMD="12">
+                                                        <RadzenLabel Text="Color de Fuente" Component="FontColorId" />
+                                                        <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                                            <RadzenColumn Size="12" SizeMD="1">
+                                                                <GColorPicker @bind-ColorHexCode="@proyecto.FontColorId" />
+                                                            </RadzenColumn>
+                                                            <RadzenColumn Size="12" SizeMD="11" class="w-100">
+                                                                <RadzenTextBox Style="width: 100%;" Name="FontColorId" @bind-Value="proyecto.FontColorId" Disabled="@soloLectura" />
+                                                            </RadzenColumn>
+                                                        </RadzenStack>
+                                                    </RadzenColumn>
+                                                </RadzenRow>
 
-                                        <RadzenRow AlignItems="AlignItems.Center">                                            
-                                            <RadzenColumn Size="12" SizeMD="6">
-                                                <RadzenLabel Text="Color de Fondo" Component="BackColorId" />
-                                                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
-                                                    <RadzenColumn Size="12" SizeMD="1">
-                                                        <GColorPicker @bind-ColorHexCode="@proyecto.BackColorId" />                                                        
-                                                    </RadzenColumn>
-                                                    <RadzenColumn Size="12" SizeMD="11" class="w-100">
-                                                        <RadzenTextBox Style="width: 100%;" Name="BackColorId" @bind-Value="proyecto.BackColorId" Disabled="@soloLectura" />
-                                                    </RadzenColumn>
-                                                </RadzenStack>
-                                            </RadzenColumn>
-                                            <RadzenColumn Size="12" SizeMD="6">
-                                                <RadzenLabel Text="Color de Fuente" Component="FontColorId" />
-                                                <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
-                                                    <RadzenColumn Size="12" SizeMD="1">
-                                                        <GColorPicker @bind-ColorHexCode="@proyecto.FontColorId" />                                                        
-                                                    </RadzenColumn>
-                                                    <RadzenColumn Size="12" SizeMD="11" class="w-100">
-                                                        <RadzenTextBox Style="width: 100%;" Name="FontColorId" @bind-Value="proyecto.FontColorId" Disabled="@soloLectura" />
-                                                    </RadzenColumn>
-                                                </RadzenStack>
                                             </RadzenColumn>
                                         </RadzenRow>
-
                                     </RadzenStack>
-                                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" class="rz-mt-1 rz-mb-1">
                                         <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
                                         <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
                                     </RadzenStack>
                                 </RadzenFieldset>
-                            </RadzenStack>
 
-                        </RadzenColumn>
-
-                        @if (Modo != 1)
-                        {
-                            <RadzenColumn Size="12" SizeMD="6">
-                                <RadzenStack>
-                                    <RadzenFieldset Text="Consultores asignados">
-                                        <ProyectosConsultores ProyectoId="@proyecto.Id" ModoGlobal="@Modo"></ProyectosConsultores>
-                                    </RadzenFieldset>
-                                </RadzenStack>
-                            </RadzenColumn>
-                        }
-
-
-
-                    </RadzenRow>
-
-                    @if (Modo != 1)
-                    {
-                        <RadzenRow Gap="0.3rem">
-                            <RadzenColumn Size="12" SizeMD="12">
-                                <RadzenStack>
-                                    <RadzenFieldset Text="Tareas del Proyecto">
+                            </RadzenAccordionItem>
+                            @if (Modo != 1)
+                            {
+                                <RadzenAccordionItem Text="Tareas del Proyecto" Icon="assignment_add" Selected="@accordionTareas" SelectedChanged="(e) => OnSelectedChance(e,2)">
+                                    <RadzenFieldset>
                                         <ProyectosDetalleTareas ProyectoId="@proyecto.Id" ModoGlobal="@Modo"></ProyectosDetalleTareas>
                                     </RadzenFieldset>
-                                </RadzenStack>
-                            </RadzenColumn>
-                        </RadzenRow>
+                                </RadzenAccordionItem>
+                                <RadzenAccordionItem Text="Datos Adicionales" Icon="manage_accounts" Selected="@accordionDA" SelectedChanged="(e) => OnSelectedChance(e,3)">
+                                    <RadzenRow Gap="0.2rem">
+                                        <RadzenColumn Size="12" SizeMD="6">
+                                            <RadzenStack>
+                                                <RadzenFieldset Text="Consultores asignados">
+                                                    <ProyectosConsultores ProyectoId="@proyecto.Id" ModoGlobal="@Modo"></ProyectosConsultores>
+                                                </RadzenFieldset>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="6">
+                                            <RadzenStack>
+                                                <RadzenFieldset Text="Documentos Adjuntos">
+                                                    <ProyectosDocsAdjuntos ProyectoId="@proyecto.Id" ModoGlobal="@Modo"></ProyectosDocsAdjuntos>
+                                                </RadzenFieldset>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                </RadzenAccordionItem>
 
-                    }
+                            }
 
-
-
+                        </Items>
+                    </RadzenAccordion>
                 </RadzenTemplateForm>
             </div>
         </div>
@@ -180,6 +181,9 @@ else
     private bool soloLectura = false;
     private bool soloLecturaAdd = false;
     private ProyectoExt? proyecto = new();
+    bool accordionDG = true;
+    bool accordionTareas = true;
+    bool accordionDA = true;
 
     private IEnumerable<CatalogoGenerico>? listEstadoProyecto;
     private IEnumerable<CatalogoGenerico>? listEtapaProyecto;
@@ -448,6 +452,23 @@ else
 
         dialogService.Close(true);
         await InvokeAsync(StateHasChanged);
+    }
+
+    private void OnSelectedChance(bool selected, int index)
+    {
+        switch (index)
+        {
+            case 1:
+                accordionDG = selected;
+                break;
+            case 2:
+                accordionTareas = selected;
+                break;
+            case 3:
+                accordionDA = selected;
+                break;
+        }
+        
     }
 
 }

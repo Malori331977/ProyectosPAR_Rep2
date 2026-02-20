@@ -1,4 +1,4 @@
-﻿@page "/consultareporteslist"
+﻿@page "/reportesfacturacionlist"
 @layout MainLayout
 @inherits DialogSettingLayout
 
@@ -23,7 +23,7 @@
                             <Items>
                                 <RadzenAccordionItem Text="Filtrar reporte por:" Icon="event_available">
                                     <RadzenRow AlignItems="AlignItems.Center">
-                                        <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenColumn Size="12" SizeMD="3">
                                             <RadzenLabel Text="Estado" Component="EstadoId" />
                                             <RadzenDropDown @bind-Value="filtros.EstadoId"
                                             Placeholder="Estado"
@@ -43,11 +43,25 @@
                                             <RadzenDatePicker Style="width: 100%;" Name="FechaFin" @bind-Value="filtros.FechaFinal"
                                             ShowCalendarWeek DateFormat="dd/MM/yyyy" />
                                         </RadzenColumn>
-                                        <RadzenColumn Size="12" SizeMD="4">
-                                            <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                                        <RadzenColumn Size="12" SizeMD="1">
+                                            <RadzenLabel Text="Facturar" Component="facturar" class="rz-text-align-center w-100" />
+                                            <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem">
+                                                <RadzenSwitch @bind-Value=@filtros.Facturar Name="facturar"></RadzenSwitch>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="1" class="rz-text-align-center">
+                                            <RadzenLabel Text="Facturado" Component="facturado" class="rz-text-align-center w-100" />
+                                            <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem">
+                                                <RadzenSwitch @bind-Value=@filtros.Facturado Name="facturado"></RadzenSwitch>
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="3" class="rz-text-align-center">
+                                            <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0">
                                                 <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="search" Text="Buscar Reportes" />
                                             </RadzenStack>
                                         </RadzenColumn>
+
+
                                     </RadzenRow>
 
                                 </RadzenAccordionItem>
@@ -96,19 +110,13 @@
                     Width="100px"
                     TextAlign="TextAlign.Center">
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Property="@nameof(ReporteExt.NombreCliente)" Title="Cliente" Width="300px"/>
-                    <RadzenDataGridColumn Property="@nameof(ReporteExt.NombreConsultor)" Title="Consultor" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(ReporteExt.Fecha)" Title="Fecha" FormatString="{0:d}" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(ReporteExt.ResponsableCliente)" Title="Responsable de Empresa" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(ReporteExt.CorreoCliente)" Title="Email del Responsable" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(ReporteExt.DescEstado)" Title="Estado" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.Fecha)" Title="Fecha" FormatString="{0:d}" Width="100px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.NombreCliente)" Title="Cliente" Width="200px"/>
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.NombreConsultor)" Title="Consultor" Width="100px" />                    
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.ResponsableCliente)" Title="Responsable de Empresa" Width="100px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.DescEstado)" Title="Estado" Width="100px" />
                     <RadzenDataGridColumn Property="@nameof(ReporteExt.CantidadHorasFacturables)" Title="Horas Facturables" Width="80px" />
                     <RadzenDataGridColumn Property="@nameof(ReporteExt.CantidadHorasNoFacturables)" Title="Horas No Facturables" Width="80px" />
-                    <RadzenDataGridColumn Property="@nameof(ReporteExt.Facturar)" Title="Facturar" Width="80px">
-                        <Template Context="ReporteExt">
-                            <RadzenSwitch @bind-Value=@ReporteExt.Facturar Disabled="true"></RadzenSwitch>
-                        </Template>
-                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn Property="@nameof(ReporteExt.Confirmacion)" Title="Confirmado" Width="80px">
                         <Template Context="ReporteExt">
                             <RadzenSwitch @bind-Value=@ReporteExt.Confirmacion Disabled="true"></RadzenSwitch>
@@ -116,19 +124,19 @@
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn Property="@nameof(ReporteExt.Facturado)" Title="Facturado" Width="80px">
                         <Template Context="ReporteExt">
-                            <RadzenSwitch @bind-Value=@ReporteExt.Facturado Disabled="true"></RadzenSwitch>
+                            <RadzenSwitch @bind-Value=@ReporteExt.Facturado Change="@(args => ActualizaEstadoFacturado(ReporteExt,args))"></RadzenSwitch>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Property="@nameof(ReporteExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(ReporteExt.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(ReporteExt.ComentariosFacturacion)" Title="Comentarios" Width="120px" />
                     <RadzenDataGridColumn Context="ReporteExt" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
-                        <Template Context="ReporteExt">                            
-                            <RadzenButton Icon="picture_as_pdf" ButtonStyle="ButtonStyle.Light"
-                            Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
-                            Click="@(args => VerReporte(ReporteExt))" />
+                        <Template Context="ReporteExt">
+                            <RadzenButton Icon="message" ButtonStyle="ButtonStyle.Light"
+                                          Variant="Variant.Flat" Size="Radzen.ButtonSize.Medium" Shade="Shade.Lighter" class="rounded-circle rz-my-1 rz-ms-1"
+                                          Click="@(args => OnShowModalComentarios(ReporteExt))" />
                         </Template>
 
                     </RadzenDataGridColumn>
+
                 </Columns>
             </RadzenDataGrid>
         </RadzenStack>
@@ -189,7 +197,12 @@
         List<ReporteExt> model = new();
         try
         {
-            var reportes = await processService.GetReporte(filtros.EstadoId, filtros.FechaInicial.ToString("yyyyMMdd"), filtros.FechaFinal.ToString("yyyyMMdd"));
+            if (filtros.Facturado)
+                filtros.EstadoId = "X";
+            else
+                filtros.EstadoId = "E";
+
+            var reportes = await processService.GetReporte(filtros.EstadoId, filtros.FechaInicial.ToString("yyyyMMdd"), filtros.FechaFinal.ToString("yyyyMMdd"), filtros.Facturar, filtros.Facturado);
 
             if (reportes is not null)
             {
@@ -227,6 +240,7 @@
                             FechaModificacion = e.FechaModificacion,
                             UsuarioModificacion = e.UsuarioModificacion,
                             Facturar = e.Facturar,
+                            ComentariosFacturacion = e.ComentariosFacturacion,
                             Cliente = e.Cliente == null ? null :
                                 new Cliente
                                 {
@@ -270,7 +284,7 @@
         }
         catch (Exception)
         {
-            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
+            await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Error);
         }
 
         InProcess = false;
@@ -289,7 +303,7 @@
 
     protected async Task OnSelect(DataGridRowMouseEventArgs<ReporteExt> args)
     {
-        NavigationManager.NavigateTo("./reportesdetalle/" + args.Data.Id + "/4");
+        NavigationManager.NavigateTo("./reportesdetalle/" + args.Data.Id + "/5");
         await InvokeAsync(() => { StateHasChanged(); });
     }
 
@@ -343,36 +357,20 @@
 
     }
 
-    protected async void VerReporte(ReporteExt ReporteExt)
+    protected async void AgregarComentario(ReporteExt ReporteExt)
     {
-
-        var param = await configService.GetParametro();
-        var logo = await GetLogo();
-        var pdf = new Blazor_PDF.PDF.Report();
-        string pdfPath = await pdf.GenerarReporteVisita(JSRuntime, true, ReporteExt, logo, param);
-        await OnShowModalPdf(pdfPath);
+        await OnShowModalComentarios(ReporteExt);
     }
 
-    private async Task<byte[]> GetLogo()
-    {
-        string fileName = $"LogoEmpresaHeader.png";
-        var dirBase = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img");
-        string fileSource = Path.Combine(dirBase, fileName);
-        byte[] data = new byte[1];
-        if (System.IO.File.Exists(fileSource))
-        {
-            data = System.IO.File.ReadAllBytes(fileSource);
-        }
-        return data;
-    }
-
-    private async Task OnShowModalPdf(string PdfPath)
+    
+    private async Task OnShowModalComentarios(ReporteExt ReporteExt)
     {
 
-        await dialogService.OpenAsync<VisorPdf>("Reporte de Visita",
+        await dialogService.OpenAsync<ReporteComentariosPop>("Agregar Comentarios a Factura",
               new Dictionary<string, object>()
                 {
-                    { "PdfPath", PdfPath}
+                    { "ReporteExt", ReporteExt},
+                    { "OnSaveSelected", EventCallback.Factory.Create<bool>(this, HideModalComentarios)}
                 },
               new DialogOptions()
               {
@@ -380,11 +378,18 @@
                   Draggable = true,
                   Resize = base.OnResize,
                   Drag = base.OnDrag,
-                  Width = Settings != null ? Settings.Width : "1200px",
-                  Height = Settings != null ? Settings.Height : "900px",
+                  Width = Settings != null ? Settings.Width : "600px",
+                  Height = Settings != null ? Settings.Height : "400px",
                   Left = Settings != null ? Settings.Left : null,
                   Top = Settings != null ? Settings.Top : null
               });
+    }
+
+    private async Task HideModalComentarios(bool args)
+    {
+        dialogService.Close(true);
+        if (args)
+            dataList = await GetDataList();
     }
 
     private async Task FiltrarLista(FiltroReporte arg)
@@ -394,6 +399,35 @@
         dataList=await GetDataList();
         StateHasChanged();
     }
+
+    private async Task ActualizaEstadoFacturado(Reporte reporte,object args)
+    {
+        
+        reporte.Facturado = (bool)args;
+
+        if (reporte.Facturado)
+            reporte.EstadoId = "X";
+        else
+            reporte.EstadoId = "E";
+
+        reporte.Cliente = null;
+        reporte.Consultor = null;
+
+        List<Reporte> listReporte = new List<Reporte>()
+        {
+            reporte,
+        };
+
+        var respuesta = await genericService.Put("ReporteActualizaFacturacion", listReporte);
+
+
+        if (respuesta.Id != "0")
+        {
+            await swal.FireAsync("Error", $"Error al actualizar estado de facturación.  Detalle de error: {respuesta.Descripcion}", SweetAlertIcon.Error);
+        }
+    }
+
+    
 }
 
 

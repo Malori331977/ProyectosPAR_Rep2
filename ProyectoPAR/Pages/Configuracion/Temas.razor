@@ -9,7 +9,13 @@
         <RadzenStack Orientation="Radzen.Orientation.Horizontal" Wrap="FlexWrap.Wrap">
             <RadzenStack Orientation="Radzen.Orientation.Vertical" Gap="0.5rem" class="rz-p-sm-2">
                 <RadzenLabel Text="Change the current theme" />
-                <RadzenDropDown Name="ThemeDropDown" TValue="string" Value="@ThemeService.Theme" ValueChanged="@ChangeTheme" Data="@Themes.All" TextProperty=@nameof(Theme.Text) ValueProperty=@nameof(Theme.Value)>
+                <RadzenDropDown Name="ThemeDropDown" 
+                TValue="string" 
+                Value="@ThemeService.Theme" 
+                ValueChanged="@ChangeTheme"
+                Data="@temas"
+                TextProperty=@nameof(Theme.Text) 
+                ValueProperty=@nameof(Theme.Value)>
                 </RadzenDropDown>
             </RadzenStack>
             <RadzenStack Orientation="Radzen.Orientation.Vertical" Gap="0.5rem" class="rz-p-sm-2">
@@ -25,6 +31,7 @@
 </RadzenStack>
 
 @code {
+    IEnumerable<Radzen.Theme> temas;
 
     void ChangeTheme(string value)
     {
@@ -43,7 +50,10 @@
 
     protected override void OnInitialized()
     {
+        string[] listaTemasExcluir = { "Material 3", "Material 3 Dark", "Fluent", "Fluent Dark" };
+        temas = Themes.All.Where(e => !listaTemasExcluir.Contains(e.Text));
         ThemeService.ThemeChanged += OnThemeChanged;
+        StateHasChanged();
     }
 
     public void Dispose()

@@ -1,0 +1,211 @@
+﻿
+
+<div class="card rounded-border pretty-box">
+    <div class="card-body">
+
+        <RadzenStack Gap="1rem">
+            @if (proyectoDocAdjunto is not null)
+            {
+                <RadzenTemplateForm Data="@proyectoDocAdjunto" Submit="@((ProyectoDocAdjunto args) => { Guardar(args); })">
+                    <RadzenRow Gap="0.3rem" class="rz-p-0 rz-p-lg-2">
+                        <RadzenColumn Size="12" SizeMD="12">
+                            <RadzenStack>
+                                <RadzenFieldset Text="Documento del Proyecto">
+                                    <RadzenStack Gap="0.3rem">
+                                        <RadzenRow AlignItems="AlignItems.Center">
+                                            <RadzenColumn Size="12" SizeMD="12">
+                                                <RadzenLabel Text="Nombre" Component="nombre" />
+                                                <RadzenTextBox @bind-Value=@proyectoDocAdjunto.NombreDocumento Style="width: 100%" Name="nombre" Disabled="@soloLectura" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
+                                        <RadzenRow Gap="0.3rem" class="rz-p-0 rz-p-lg-2">
+                                            <RadzenColumn Size="12" SizeMD="12">
+                                                <InputFile class="custom-file-input text-sm-center" id="inputGroupFile04" accept="application/pdf"
+                                                OnChange="@TakePdf" disabled="@soloLectura" />
+                                                <label class="custom-file-label text-sm-start" for="inputGroupFile04">
+                                                    <i class="fa fa-file-pdf" style="color: darkred; font-size: 1em;"></i>
+                                                    Adjuntar Pdf
+                                                </label>
+                                            </RadzenColumn>
+                                        </RadzenRow>
+
+                                    </RadzenStack>
+                                </RadzenFieldset>
+                            </RadzenStack>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    @if (!soloLectura)
+                    {
+                        <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                            <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
+                            <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
+                        </RadzenStack>
+                    }
+
+                    @if (!String.IsNullOrEmpty(PdfPath))
+                    {
+                        <RadzenFieldset Text="Vista previa del documento">
+                            <RadzenCard class="rz-p-1 rz-text-align-center" style="height: 400px; width: 1200px;">
+                                <embed class="w-100 h-100" type="application/pdf" src="@PdfPath" />
+                            </RadzenCard>
+                        </RadzenFieldset>
+                    }
+
+
+                </RadzenTemplateForm>
+            }
+
+
+        </RadzenStack>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback<bool> OnSaveItem { get; set; }
+    [Parameter] public int ProyectoId { get; set; }
+    [Parameter] public int Id { get; set; }
+    [Parameter] public int ModoGlobal { get; set; }
+    [Parameter] public int Modo { get; set; }
+
+
+    private string Titulo = "Documento del Proyecto";
+    private bool soloLectura = false;
+
+    private ProyectoDocAdjunto proyectoDocAdjunto = new();
+    string PdfPath;
+    byte[] dataPdf = new byte[1];
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            
+            if (Modo == 1)
+                soloLectura = false;
+            else
+            {
+                soloLectura = true;
+                proyectoDocAdjunto = await processService.GetProyectoDocAdjunto(ProyectoId, Id);
+
+                dataPdf = proyectoDocAdjunto.Documento;
+                PdfPath = Convert.ToBase64String(dataPdf);
+                PdfPath = string.Format($"data:application/pdf;base64,{PdfPath}");
+            }
+
+            if (ModoGlobal == 4)
+                soloLectura = false;
+
+
+            
+        }        
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+   
+
+        StateHasChanged();
+    }
+
+    private async Task Guardar(ProyectoDocAdjunto proyectoDocAdjunto)
+    {
+
+        try
+        {
+            proyectoDocAdjunto.Id = 0;
+            proyectoDocAdjunto.ProyectoId = ProyectoId;
+            proyectoDocAdjunto.Documento = dataPdf;
+            proyectoDocAdjunto.FechaCreacion = DateTime.Now;
+            proyectoDocAdjunto.FechaModificacion = DateTime.Now;
+            proyectoDocAdjunto.UsuarioCreacion = loginState.User.consultor!.Id.ToString();
+            proyectoDocAdjunto.UsuarioModificacion = loginState.User.consultor.Id.ToString();
+            proyectoDocAdjunto.Proyecto = null;
+
+            if (await Validaciones())
+            {
+                try
+                {
+                    EventResponse respuesta;
+
+                    respuesta = await genericService.Post("ProyectoDocAdjunto", new List<ProyectoDocAdjunto>() { proyectoDocAdjunto });
+
+                    if (respuesta.Id == "0")
+                    {
+                        await OnSaveItem.InvokeAsync(true);
+                    }
+                    else
+                    {
+                        await swal.FireAsync("Error al adjuntar documento al proyecto.", respuesta.Descripcion, SweetAlertIcon.Error);
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+                }
+
+                
+            }
+
+        }
+        catch (Exception e)
+        {
+            await swal.FireAsync("Error", "Ocurrió un error al ejecutar el proceso. Detalle de Error: " + e.Message, SweetAlertIcon.Error);
+        }
+
+    }
+
+    private async Task<bool> Validaciones()
+    {
+
+        if (String.IsNullOrEmpty(proyectoDocAdjunto.NombreDocumento))
+        {
+            await swal.FireAsync("Atención", "Debe indicar el nombre para el documento adjunto. ", SweetAlertIcon.Warning);
+            return false;
+        }
+        if (string.IsNullOrEmpty(PdfPath))
+        {
+            await swal.FireAsync("Atención", "No hay ningun documento adjunto, por favor verifique. ", SweetAlertIcon.Warning);
+            return false;
+        }
+
+        return true;
+    }
+
+    public async void TakePdf(InputFileChangeEventArgs e)
+    {
+        int maxSizeFile = 1024 * 1024 * 20;
+        var fileStream = e.File.OpenReadStream(maxSizeFile);
+        var ms = new MemoryStream();
+        await fileStream.CopyToAsync(ms);
+        fileStream.Close();
+        ms.Position = 0;
+
+        dataPdf = ms.ToArray();
+
+        PdfPath = Convert.ToBase64String(dataPdf);
+        PdfPath = string.Format($"data:application/pdf;base64,{PdfPath}");
+        StateHasChanged();
+    }
+
+    private async Task Cancelar()
+    {
+        await OnSaveItem.InvokeAsync(false);
+    }
+
+
+    // protected async void OnSelect(MouseEventArgs mouseEventArgs, cPortal_DocMarca docMarca)
+    // {
+    //     if (docMarca.DOCUMENTO is not null)
+    //     {
+    //         MemoryStream sourceStream = new MemoryStream(docMarca.DOCUMENTO);
+    //         var dataDoc = sourceStream.ToArray();
+    //         docPath = Convert.ToBase64String(dataDoc);
+    //         TipoArchivo = docMarca.TIPO;
+    //         if (docMarca.TIPO == 'P')
+    //             docPath = string.Format($"data:application/pdf;base64,{docPath}");
+    //         else
+    //             docPath = string.Format($"data:image/jpeg;base64,{docPath}");
+    //     }       
+    // }
+}

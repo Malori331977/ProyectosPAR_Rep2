@@ -3,7 +3,7 @@
 @layout MainLayout
 
 @inject SweetAlertService swal;
-
+@inherits DialogSettingLayout
 
 <div class="card">
 
@@ -12,211 +12,123 @@
     <div class="card-body">
         @if (cliente is not null)
         {
-            <EditForm Model="@cliente" OnSubmit="GuardarCambios">
-                <div class="row">
+            <RadzenTemplateForm Data="@cliente" Submit="@((Cliente args) => { Guardar(args); })">
+                <RadzenRow Gap="0.3rem" class="rz-p-0 rz-p-lg-2">
+                    <RadzenColumn Size="12" SizeMD="12">
+                        <RadzenStack>
+                            <RadzenFieldset Text="@Titulo">
+                                <RadzenStack Gap="0.3rem">
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="2">
+                                            <RadzenLabel Text="Id de Cliente" Component="id" />
+                                            <RadzenTextBox @bind-Value=@cliente.Id Style="width: 100%" Name="id" Disabled="@soloLecturaAdd" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="2">
+                                            <RadzenLabel Text="Nombre Corto (alias)" Component="alias" />
+                                            <RadzenTextBox @bind-Value=@cliente.Alias Maxlength="10" Style="width: 100%" Name="alias" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="8">
+                                            <RadzenLabel Text="Nombre Completo" Component="nombre" />
+                                            <RadzenTextBox @bind-Value=@cliente.Nombre Maxlength="255" Style="width: 100%" Name="nombre" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
 
-                    <div class="col input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between lbl-xs">
-                                Id de Cliente
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <InputText class="form-control br8 rounded-border"
-                            maxlength="50"
-                            placeholder="Id de Cliente" id="id"
-                            Disabled="@soloLecturaAdd"
-                            @bind-value="cliente.Id" />
-                        </div>
-                    </div>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="3">
+                                            <RadzenLabel Text="Cédula" Component="ced" />
+                                            <RadzenTextBox @bind-Value=@cliente.Cedula Maxlength="25" Style="width: 100%" Name="ced" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="3">
+                                            <RadzenLabel Text="Teléfono" Component="tel" />
+                                            <RadzenTextBox @bind-Value=@cliente.Telefono Maxlength="50" Style="width: 100%" Name="tel" Disabled="@soloLectura" />
+                                        </RadzenColumn>                                        
+                                        <RadzenColumn Size="12" SizeMD="3">
+                                            <RadzenLabel Text="Email" Component="email" />
+                                            <RadzenTextBox @bind-Value=@cliente.Email Maxlength="100" Style="width: 100%" typeof="email"
+                                            Name="email" Disabled="@soloLectura" />
+                                            <RadzenEmailValidator Component="email"  Text="Debe proporcionar un email correcto."  />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="3">
+                                            <RadzenLabel Text="Estado" Component="EstadoId" />
+                                            <RadzenDropDown @bind-Value="cliente.EstadoId"
+                                            AllowClear="true"
+                                            Placeholder="Seleccione Estado del Cliente"
+                                            Disabled="@soloLectura"
+                                            Data="@listEstado" Style="width: 100%;"
+                                            ValueProperty="Id"
+                                            TextProperty="Descripcion"
+                                            Name="EstadoId">
+                                            </RadzenDropDown>
+                                        </RadzenColumn>
+                                    </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Dirección" Component="dir" />
+                                            <RadzenTextArea @bind-Value=@cliente.Direccion Maxlength="500" Style="width: 100%"
+                                            Name="dir" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
 
-                    <div class="col input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between lbl-xs">
-                                Nombre Corto (alias)
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <InputText class="form-control br8 rounded-border"
-                                       maxlength="100"
-                                       placeholder="Nombre Corto" id="nc"
-                                       Disabled="@soloLectura"
-                                       @bind-value="cliente.Alias" />
-                        </div>
-                    </div>
-                    <div class="col input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between lbl-xs">
-                                Nombre Completo
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <InputText class="form-control br8 rounded-border"
-                                maxlength="255"
-                                placeholder="Nombre" id="Nombre"
-                                Disabled="@soloLectura"
-                                @bind-value="cliente.Nombre" />
-                        </div>
-                    </div>
-                    <div class="col input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between lbl-xs">
-                                Teléfono
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <InputText class="form-control br8 rounded-border"
-                                maxlength="50"
-                                placeholder="Telefono" id="Telefono"
-                                Disabled="@soloLectura"
-                                @bind-value="cliente.Telefono" />
-                        </div>
-                    </div>
-                    <div class="col input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between lbl-xs">
-                                Cédula
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <InputText class="form-control br8 rounded-border"
-                                maxlength="25"
-                                placeholder="Cédula" id="Cedula"
-                                Disabled="@soloLectura"
-                                @bind-value="cliente.Cedula" />
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="row">
-                    <div class="col-12 input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between lbl-xs">
-                                Dirección
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <InputText class="form-control br8 rounded-border"
-                                maxlength="500"
-                                placeholder="Dirección" id="Direccion"
-                                Disabled="@soloLectura"
-                                @bind-value="cliente.Direccion" />
-                        </div>
-                    </div>
-                    <div class="col input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between lbl-xs">
-                                Contacto
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <InputText class="form-control br8 rounded-border"
-                                maxlength="100"
-                                placeholder="Contacto" id="Contacto"
-                                Disabled="@soloLectura"
-                                @bind-value="cliente.Contacto" />
-                        </div>
-                    </div>
-                    <div class="col input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between lbl-xs">
-                                Email
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <InputText class="form-control br8 rounded-border"
-                                       maxlength="100"
-                                       placeholder="Email" id="Email"
-                                       Disabled="@soloLectura"
-                                       @bind-value="cliente.Email" />
-                        </div>
-                    </div>
-                    <div class="col input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between ibm-plex-serif-medium">
-                                Estado
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <InputSelect class="form-control ibm-plex-serif-medium selectpicker show-menu-arrow "
-                                         disabled="@soloLectura"
-                                         @bind-Value=cliente.EstadoId>
-
-                                <option value="0">Seleccione Estado</option>
-                                @if (listEstado is not null)
-                                {
-                                    @foreach (var item in listEstado)
-                                    {
-                                        <option value=@item.Id>@item.Descripcion</option>
-                                    }
-                                }
-                            </InputSelect>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-2 input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between lbl-xs">
-                                Subsidiaria
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <div class="d-block text-dark text-decoration-none">
-                                <Switch @bind-Value="@cliente.Subsidiaria" Disabled="@soloLectura" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-10 input-group rounded-border">
-                        <div class="row">
-                            <label class="align-content-between lbl-xs">
-                                Cliente Padre
-                            </label>
-                        </div>
-                        <div class="input-group w-100" id="btnGroupAddon">
-                            <InputNumber class="form-control br8 rounded-border"
-                                       maxlength="100"
-                                       placeholder="ClientePadre" id="ClientePadre"
-                                       Disabled="@soloLectura"
-                                       @bind-value="cliente.ClientePadre" />
-                        </div>
-                    </div>
-                </div>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Contacto" Component="contacto" />
+                                            <RadzenTextBox @bind-Value=@cliente.Contacto Maxlength="100" Style="width: 100%"
+                                            Name="contacto" Disabled="@soloLectura" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
 
 
-                <br />
-                <div class="row">
-                    <div class="col">
-                        @if (Modo == 3)
-                        {
-                            <div class="row" id="btn-borrar">
-                                <button type="submit" class="btn btn-danger w-100">
-                                    Eliminar
-                                    <Icon Name="IconName.Trash" />
-                                </button>
-                            </div>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="1">
+                                            <RadzenLabel Text="Es Subsidiaria" Component="subs" />
+                                            <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                                <RadzenSwitch Disabled="@soloLectura" Placeholder="Facturado" Style="width: 25%;" Name="subs"
+                                                @bind-Value="cliente.Subsidiaria" />
+                                            </RadzenStack>
+                                        </RadzenColumn>
+                                        @if (cliente.Subsidiaria)
+                                        {
+                                            <RadzenColumn Size="12" SizeMD="11">
+                                                <RadzenLabel Text="Compañía a la que pertenece como subsidiaria" Component="ClientePadre" />
+                                                <RadzenRow AlignItems="AlignItems.Center">
+                                                    <RadzenColumn Size="12" SizeMD="1">
+                                                        <RadzenButton ButtonStyle="ButtonStyle.Info" Icon="search" class="rounded-circle rz-my-1 rz-ms-1" Disabled="@soloLectura" Size="Radzen.ButtonSize.Medium" Click=@OnShowModalClientes></RadzenButton>
+                                                    </RadzenColumn>
+                                                    <RadzenColumn Size="12" SizeMD="2">
+                                                        <RadzenTextBox Style="width: 100%;" Name="ClientePadre" @bind-Value="cliente.ClientePadre" Disabled="@soloLectura"
+                                                        @onfocusout="BuscarPadre" />
+                                                    </RadzenColumn>
+                                                    <RadzenColumn Size="12" SizeMD="9">
+                                                        <RadzenTextBox Style="width: 100%;" Disabled="true" @bind-Value="NombreClientePadre" />
+                                                    </RadzenColumn>
+                                                </RadzenRow>
+                                            </RadzenColumn>
+                                        }
 
-                        }
-                        else
-                        {
-                            <div class="row">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    Aceptar
-                                    <Icon Name="IconName.Save" />
-                                </button>
-                            </div>
 
-                        }
-                    </div>
-                </div>
-                <br />
+                                    </RadzenRow>
+                                </RadzenStack>
+                            </RadzenFieldset>
+                        </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+                <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
+                    @if (Modo != 3)
+                    {
+                        <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" ButtonStyle="ButtonStyle.Primary" />
+                    }
+                    else
+                    {
+                        <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="delete" Text="Eliminar" ButtonStyle="ButtonStyle.Danger" />
+                    }
 
-            </EditForm>
+                    <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar"  />
+                </RadzenStack>
+            </RadzenTemplateForm>
         }
     </div>
 </div>
+
 
 
 @code {
@@ -230,6 +142,7 @@
     private bool soloLecturaAdd = false;
     private Cliente cliente = new();
     private IEnumerable<CatalogoGenerico>? listEstado;
+    string NombreClientePadre = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -243,6 +156,7 @@
             {
                 soloLecturaAdd = true;
                 cliente = await mtoService.GetCliente(Id);
+                await BuscarPadre();
             }
             else
             {
@@ -274,19 +188,19 @@
         StateHasChanged();
     }
 
-    private async Task GuardarCambios()
+    private async Task Guardar(Cliente arg)
     {
         InProcess = true;
         try
         {
             if (await Validaciones())
             {
-                cliente.FechaCreacion = DateTime.Now;
-                cliente.FechaModificacion = DateTime.Now;
-                cliente.UsuarioCreacion = loginState.User.consultor!.Id.ToString();
-                cliente.UsuarioModificacion = loginState.User.consultor.Id.ToString();
+                arg.FechaCreacion = DateTime.Now;
+                arg.FechaModificacion = DateTime.Now;
+                arg.UsuarioCreacion = loginState.User.consultor!.Id.ToString();
+                arg.UsuarioModificacion = loginState.User.consultor.Id.ToString();
 
-                List<Cliente> listAdd = new List<Cliente> { cliente };
+                List<Cliente> listAdd = new List<Cliente> { arg };
 
                 EventResponse respuesta;
                 if (Modo == 3)
@@ -336,6 +250,8 @@
         }
     }
 
+    
+
     private async Task<bool> Validaciones()
     {
 
@@ -378,14 +294,68 @@
                 await swal.FireAsync("Atención", "Debe indicar el Estado.", SweetAlertIcon.Info);
                 return false;
             }
-            if (cliente.Subsidiaria && cliente.ClientePadre is null)
+            if (cliente.Subsidiaria && String.IsNullOrEmpty(cliente.ClientePadre))
             {
-                await swal.FireAsync("Atención", "Debe indicar el Cliente Padre.", SweetAlertIcon.Info);
+                await swal.FireAsync("Atención", "Debe indicar el cliente de la compañia a la que pertenece como subsidiaria.", SweetAlertIcon.Info);
                 return false;
             }
         }
         
         
         return true;
+    }
+
+    private async Task BuscarPadre()
+    {
+       
+        if (String.IsNullOrEmpty(cliente.ClientePadre))
+        {
+            NombreClientePadre = "";
+            return;
+        }
+
+        var clientePadre = await mtoService.GetCliente(cliente.ClientePadre);
+        if (clientePadre is not null)
+        {
+            NombreClientePadre = clientePadre.Nombre;
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnShowModalClientes()
+    {
+        Dictionary<string, object> pd = new Dictionary<string, object>();
+        pd.Add("OnItemSelected", HideModalClientes);
+
+        await dialogService.OpenAsync<ClientesPop>("Clientes",
+              new Dictionary<string, object>()
+                {
+                    { "OnItemSelected", EventCallback.Factory.Create<Cliente>(this, HideModalClientes)}
+                },
+              new DialogOptions()
+              {
+                  Resizable = true,
+                  Draggable = true,
+                  Resize = base.OnResize,
+                  Drag = base.OnDrag,
+                  Width = Settings != null ? Settings.Width : "900px",
+                  Height = Settings != null ? Settings.Height : "512px",
+                  Left = Settings != null ? Settings.Left : null,
+                  Top = Settings != null ? Settings.Top : null
+              });
+    }
+
+    private async Task HideModalClientes(Cliente args)
+    {
+        cliente!.ClientePadre = args.Id;
+        NombreClientePadre = args.Nombre;
+
+        dialogService.Close(true);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    void Cancelar()
+    {
+        NavigationManager.NavigateTo(UrlRetorno);
     }
 }

@@ -10,6 +10,7 @@ namespace ProyectoPAR.Data.Interfaces
         public Task<Reporte> GetReporte(int id);
         public Task<IEnumerable<Reporte>> GetReporteConsultor(int id);
         public Task<IEnumerable<Reporte>> GetReporte(string estado, string fechaInicial, string fechaFinal);
+        public Task<IEnumerable<Reporte>> GetReporte(string estado, string fechaInicial, string fechaFinal, bool facturar, bool facturado);
 
         /// <summary>
         /// GetAdendum: Obtiene todos los registros de la tabla Adendums

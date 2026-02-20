@@ -12,7 +12,7 @@
                     <RadzenColumn Size="11" class="rz-text-align-lg-left">
                         <a href="./principal">
                             <RadzenImage Path="./img/logotransparente.png" Style="width: 2.5rem;" />
-                            <RadzenLabel Text="Sistema de Reportes {PAR}v3" class="rz-text-h5 rz-text-secondary-color"></RadzenLabel>
+                            <RadzenLabel Text="@Titulo" class="rz-text-h5 rz-text-secondary-color"></RadzenLabel>
                         </a>                        
                     </RadzenColumn>
                     <RadzenColumn Size="1" class="rz-text-align-lg-center w-100">
@@ -59,6 +59,7 @@
 @code {
     private List<MenuModel> data; 
     bool sidebarExpanded = true;
+    private string Titulo = "Sistema de Reportes {PAR}v3";
 
     protected override async void OnInitialized()
     {

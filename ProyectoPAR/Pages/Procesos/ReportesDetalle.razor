@@ -172,6 +172,19 @@
                                 </RadzenStack>
                             </RadzenFieldset>
 
+                            @if (!String.IsNullOrEmpty(reporte.ComentariosFacturacion))
+                            {
+                                <RadzenFieldset Text="Comentarios de Facturación">
+                                    <RadzenStack Gap="0.3rem">
+                                        <RadzenRow AlignItems="AlignItems.Center">
+                                            <RadzenColumn Size="12" SizeMD="12">
+                                                <RadzenLabel Text="Comentarios" Component="comment" />
+                                                <RadzenTextArea @bind-Value=@reporte.ComentariosFacturacion Style="width: 100%" Name="comment" Disabled="true" />
+                                            </RadzenColumn>
+                                        </RadzenRow>
+                                    </RadzenStack>
+                                </RadzenFieldset>
+                            }
                         </RadzenStack>
                     </RadzenColumn>
                     <RadzenColumn Size="12" SizeMD="12">
@@ -244,6 +257,8 @@
                                         </RadzenAccordionItem>
                                     </Items>
                                 </RadzenAccordion>
+
+
 
                             </RadzenFieldset>
 
@@ -328,6 +343,7 @@
                         FechaModificacion = repo.FechaModificacion,
                         UsuarioModificacion = repo.UsuarioModificacion,
                         EstadoTareaId = repo.EstadoTareaId,
+                        ComentariosFacturacion = repo.ComentariosFacturacion,
                         Cliente = repo.Cliente == null ? null :
                                      new Cliente
                                      {
@@ -411,10 +427,16 @@
                 soloLecturaAddProg = true;
                 soloLectura = reporte!.EstadoId != "R";
 
-                if (Modo==4)
+                switch(Modo)
                 {
-                    soloLectura = true;
-                    UrlRetorno = "./consultareporteslist";
+                    case 4:
+                        soloLectura = true;
+                        UrlRetorno = "./consultareporteslist";
+                        break;
+                    case 5:
+                        soloLectura = true;
+                        UrlRetorno = "./reportesfacturacionlist";
+                        break;
                 }
                     
             }
@@ -451,6 +473,7 @@
                     NombreCliente = "",
                     NombreConsultor="",
                     EstadoTareaId = null,
+                    ComentariosFacturacion = null,
                 };
                 OnChangeProgramado(reporte.Programado);
                 hEntrada = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 07, 00, 00);
@@ -624,8 +647,20 @@
             
             if ((reporte.CantidadHorasFacturables + reporte.CantidadHorasNoFacturables) > CantidadMaxHorasReporte)
             {
-                await swal.FireAsync("Atención", "La cantidad de horas utilizadas (facturables y no facturables) sobrepasan la cantidad de horas del rango establecido, por favor verifique.", SweetAlertIcon.Info);
-                return false;
+                SweetAlertResult result = await swal.FireAsync(new SweetAlertOptions
+                    {
+                        Title = "Atención",
+                        Text = $"La cantidad de horas utilizadas (facturables y no facturables) sobrepasan la cantidad de horas del rango establecido. ¿Desea continuar con el registro?",
+                        Icon = SweetAlertIcon.Warning,
+                        ShowCancelButton = true,
+                        ConfirmButtonText = "Sí",
+                        CancelButtonText = "No"
+                    });
+
+                if (!result.IsConfirmed)
+                {
+                    return false;
+                }                
             }
 
             
@@ -653,10 +688,6 @@
                     return false;
                 }
             }
-
-
-
-
         }
 
 

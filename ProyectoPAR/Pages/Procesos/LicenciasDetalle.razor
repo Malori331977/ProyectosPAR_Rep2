@@ -2,7 +2,9 @@
 @using JtSegEncrypta
 @inherits DialogSettingLayout
 @inject IEncriptaService encripta
-@using LicGeo = LicGeotime;
+@using GeotimeFuncionesLib.Utiles
+@using TextCopy
+
 
 @if (licencia == null)
 {
@@ -162,9 +164,12 @@ else
                                         <RadzenColumn Size="12" SizeMD="2">
                                             <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Secondary" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="generating_tokens" Text="Generar licencia" Click="@GenerarLicencia" />
                                         </RadzenColumn>                                       
-                                        <RadzenColumn Size="12" SizeMD="10">
+                                        <RadzenColumn Size="12" SizeMD="9">
                                             <RadzenLabel Text="Código de Licencia" Component="codlic" />
                                             <RadzenTextArea Name="codlic" @bind-Value="licencia.LicenciaId" Disabled="true" Style="width: 100%" />
+                                        </RadzenColumn>
+                                        <RadzenColumn Size="12" SizeMD="1">
+                                            <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Secondary" Variant="Variant.Flat" Size="Radzen.ButtonSize.Small" Icon="content_copy" Click="@CopyToClipBoard" />
                                         </RadzenColumn>
                                     </RadzenRow>
                                 </RadzenStack>
@@ -174,14 +179,11 @@ else
                 </RadzenRow>
                 <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
                     <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
-                    <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
+                    <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Success" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
                 </RadzenStack>
             </RadzenTemplateForm>
         </div>
     </div>
-
-
-
 }
 
 @code {
@@ -207,6 +209,8 @@ else
 
     private async Task LoadLicencia()
     {
+
+
         if (Modo != 1)
         {
             var repo = await processService.GetLicencia(Id);
@@ -454,15 +458,9 @@ else
                 }
                 else
                 {
-                    //var licenciaGeo = new LicGeo.Licencia();
 
-                    // licencia!.LicenciaId = licenciaGeo.Genero_Lic(licencia.BaseDatos,
-                    //                                              licencia.CantidadUsuarios,
-                    //                                              licencia.CantidadEmpleados,
-                    //                                              licencia.CantidadDispMoviles,
-                    //                                              licencia.NoExpira ? "Permanente":licencia.FechaExpiracion.ToString("yyyy-MM-dd"),
-                    //                                              licencia.DistEmpleados == true? 'T' : 'F',
-                    //                                              licencia.DistUsuarios == true ? 'T' : 'F');
+                    string strLic = $"{licencia!.BaseDatos}°{licencia.CantidadUsuarios}°{(licencia.NoExpira ? "Permanente" : licencia.FechaExpiracion.ToString("yyyy-MM-dd"))}°{licencia.CantidadEmpleados}°{licencia.CantidadDispMoviles}°{(licencia.DistUsuarios == true ? "T" : "F")}°{(licencia.DistEmpleados == true ? "T" : "F")}";
+                    licencia!.LicenciaId = FuncionesGlobales.StringToHexadecimal(FuncionesGlobales.Encrypt(strLic));
 
                 }
 
@@ -554,12 +552,12 @@ else
             }
             else
             {
-                
+
             }
 
-            
 
-            
+
+
 
 
 
@@ -685,6 +683,14 @@ else
     {
         product = await mtoService.GetProducto(Int32.Parse(args.ToString()!));
     }
+
+    private async Task CopyToClipBoard()
+    {
+        await ClipboardService.SetTextAsync(licencia!.LicenciaId);
+    }
+
+
+   
 
 }
 

@@ -56,7 +56,14 @@ else
                     </RadzenColumn>
                 </RadzenRow>
                 <RadzenStack Orientation="Radzen.Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="0.5rem" class="rz-mt-8 rz-mb-4">
-                    <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" />
+                    @if (Modo != 3)
+                    {
+                        <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="save" Text="Guardar" ButtonStyle="ButtonStyle.Primary" />
+                    }
+                    else
+                    {
+                        <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="delete" Text="Eliminar" ButtonStyle="ButtonStyle.Danger" />
+                    }
                     <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar" />
                 </RadzenStack>
             </RadzenTemplateForm>

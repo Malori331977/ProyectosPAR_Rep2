@@ -33,6 +33,7 @@
                             RowDoubleClick="@OnSelect"
                             AllowColumnPicking="true"
                             AllowColumnReorder="true"
+                            RowRender="@RowRender"
                             ColumnReordering="@OnColumnReordering">
                 <HeaderTemplate>
                     <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
@@ -58,6 +59,12 @@
                     <RadzenDataGridColumn Property="@nameof(Cliente.Subsidiaria)" Title="Subsidiaria" Width="80px">
                         <Template Context="Cliente">
                             <RadzenSwitch @bind-Value=@Cliente.Subsidiaria Disabled="true"></RadzenSwitch>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Property="@nameof(Cliente.EstadoId)" Title="Estado" Width="80px">
+                        <Template Context="Cliente">
+                            @{bool bEstado = Cliente.EstadoId == "A";}
+                            <RadzenSwitch @bind-Value=@bEstado Disabled="true"></RadzenSwitch>
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn Property="@nameof(Cliente.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
@@ -184,5 +191,16 @@
             fileName = $"{fileName}.xlsx";
             await exportData.ToExcel(exportData.ApplyQuery(Cliente, query), fileName);
         }
+    }
+
+    void RowRender(RowRenderEventArgs<Cliente> args)
+    {
+        switch (args.Data.EstadoId)
+        {
+            case "I":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+                break;
+        }
+
     }
 }
