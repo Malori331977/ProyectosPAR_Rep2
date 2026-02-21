@@ -1,14 +1,11 @@
 ﻿@page "/clientesdetalle/{Id}/{Modo:int}"
 
 @layout MainLayout
-
 @inject SweetAlertService swal;
 @inherits DialogSettingLayout
 
 <div class="card">
-
     <PageReturn Titulo="@Titulo" UrlRetorno="@UrlRetorno" />
-
     <div class="card-body">
         @if (cliente is not null)
         {
@@ -21,7 +18,7 @@
                                     <RadzenRow AlignItems="AlignItems.Center">
                                         <RadzenColumn Size="12" SizeMD="2">
                                             <RadzenLabel Text="Id de Cliente" Component="id" />
-                                            <RadzenTextBox @bind-Value=@cliente.Id Style="width: 100%" Name="id" Disabled="@soloLecturaAdd" />
+                                            <RadzenTextBox @bind-Value=@cliente.Id Style="width: 100%" Name="id" Disabled="true" />
                                         </RadzenColumn>
                                         <RadzenColumn Size="12" SizeMD="2">
                                             <RadzenLabel Text="Nombre Corto (alias)" Component="alias" />
@@ -32,7 +29,6 @@
                                             <RadzenTextBox @bind-Value=@cliente.Nombre Maxlength="255" Style="width: 100%" Name="nombre" Disabled="@soloLectura" />
                                         </RadzenColumn>
                                     </RadzenRow>
-
                                     <RadzenRow AlignItems="AlignItems.Center">
                                         <RadzenColumn Size="12" SizeMD="3">
                                             <RadzenLabel Text="Cédula" Component="ced" />
@@ -68,7 +64,6 @@
                                             Name="dir" Disabled="@soloLectura" />
                                         </RadzenColumn>
                                     </RadzenRow>
-
                                     <RadzenRow AlignItems="AlignItems.Center">
                                         <RadzenColumn Size="12" SizeMD="12">
                                             <RadzenLabel Text="Contacto" Component="contacto" />
@@ -76,8 +71,6 @@
                                             Name="contacto" Disabled="@soloLectura" />
                                         </RadzenColumn>
                                     </RadzenRow>
-
-
                                     <RadzenRow AlignItems="AlignItems.Center">
                                         <RadzenColumn Size="12" SizeMD="1">
                                             <RadzenLabel Text="Es Subsidiaria" Component="subs" />
@@ -135,15 +128,12 @@
                     {
                         <RadzenButton class="rz-border-radius-6" ButtonType="Radzen.ButtonType.Submit" Size="Radzen.ButtonSize.Large" Icon="delete" Text="Eliminar" ButtonStyle="ButtonStyle.Danger" />
                     }
-
                     <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Light" Variant="Variant.Flat" Size="Radzen.ButtonSize.Large" Icon="cancel" Text="Cancelar" Click="@Cancelar"  />
                 </RadzenStack>
             </RadzenTemplateForm>
         }
     </div>
 </div>
-
-
 
 @code {
     [Parameter] public string Id { get; set; }
@@ -161,7 +151,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-
         soloLectura = Modo == 3;
         try
         {
@@ -178,7 +167,7 @@
             {
                 cliente = new Cliente
                 {
-                    Id = "",
+                    Id = await GetUltimoIdCliente(),
                     Cedula = "",
                     Contacto = "",
                     Direccion = "",                    
@@ -200,7 +189,6 @@
         {
             await swal.FireAsync("Error", e.Message, SweetAlertIcon.Error);
         }
-
         InProcess = false;
         StateHasChanged();
     }
@@ -245,6 +233,8 @@
                 else
                 {
                     respuesta = await genericService.Post("Cliente", listAdd);
+                    if (respuesta.Id == "0" && Modo == 1)
+                        await UpdateParameterClienteId();
                 }
 
                 if (respuesta.Id == "0")
@@ -267,8 +257,6 @@
         }
     }
 
-    
-
     private async Task<bool> Validaciones()
     {
 
@@ -277,10 +265,8 @@
             await swal.FireAsync("Atención", "Debe indicar el código de Cliente.", SweetAlertIcon.Info);
             return false;
         }
-
         if (Modo != 3)
-        {
-            
+        {            
             if (String.IsNullOrEmpty(cliente.Nombre))
             {
                 await swal.FireAsync("Atención", "Debe indicar el Nombre del Cliente.", SweetAlertIcon.Info);
@@ -326,9 +312,7 @@
                 await swal.FireAsync("Atención", "Debe indicar el partner del cliente.", SweetAlertIcon.Info);
                 return false;
             }
-        }
-        
-        
+        }             
         return true;
     }
 
@@ -432,5 +416,47 @@
         NombrePartnerCliente = args.Nombre;
         dialogService.Close(true);
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<string> GetUltimoIdCliente()
+    {
+        string ultimoId = "0";
+        try
+        {
+            var parametro = await configService.GetParametro();
+            if (parametro != null)
+            {
+                string ultimoIdCliente = parametro.UltimoIdCliente ?? "0";
+                int correlativo = int.Parse(ultimoIdCliente.Substring(2)) + 1;
+                ultimoId = $"CL{correlativo:D4}";
+                ultimoId = ultimoId.ToString();               
+            }
+            else
+            {
+                ultimoId = "CL0001";             
+            }
+        }
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al obtener el último Id del Cliente.", SweetAlertIcon.Info);
+        }
+        return ultimoId;
+    }
+
+    private async Task UpdateParameterClienteId()
+    {
+        try
+        {
+            var parametro = await configService.GetParametro();
+            if (parametro != null)
+            {
+                parametro.UltimoIdCliente = cliente.Id;
+                await genericService.Post("Parametro", parametro);
+            }            
+        }     
+        catch (Exception)
+        {
+            await swal.FireAsync("Error", "Error al actualizar el último Id del Cliente.", SweetAlertIcon.Info);
+        }
     }
 }
