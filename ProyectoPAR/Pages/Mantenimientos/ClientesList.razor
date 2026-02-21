@@ -53,6 +53,12 @@
                     <RadzenDataGridColumn Property="@nameof(Cliente.Alias)" Title="Nombre Corto" Width="100px" />
                     <RadzenDataGridColumn Property="@nameof(Cliente.Nombre)" Title="Nombre" Width="300px" />
                     <RadzenDataGridColumn Property="@nameof(Cliente.Cedula)" Title="Cédula" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(Partner.Nombre)" Title="Partner" Width="150px" />
+                    <RadzenDataGridColumn Title="Partner" Width="150px">
+                        <Template 
+                            Context="Cliente">@Cliente.Partner?.Nombre
+                        </Template> 
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn Property="@nameof(Cliente.Contacto)" Title="Contacto" Width="150px" />
                     <RadzenDataGridColumn Property="@nameof(Cliente.Email)" Title="Email" Width="200px" />
                     <RadzenDataGridColumn Property="@nameof(Cliente.Telefono)" Title="Teléfono" Width="150px" />
@@ -76,7 +82,6 @@
                                           Click="@(args => OnDelete(Cliente))" />
 
                         </Template>
-
                     </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
@@ -127,7 +132,6 @@
         try
         {
             model = (await mtoService.GetCliente()).ToList();
-
         }
         catch (Exception)
         {
