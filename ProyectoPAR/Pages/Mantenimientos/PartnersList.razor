@@ -31,6 +31,7 @@
                             RowDoubleClick="@OnSelect"
                             AllowColumnPicking="true"
                             AllowColumnReorder="true"
+                            RowRender="@RowRender"
                             ColumnReordering="@OnColumnReordering">
                 <HeaderTemplate>
                     <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem;" Wrap="FlexWrap.Wrap">
@@ -195,6 +196,16 @@
         {
             fileName = $"{fileName}.xlsx";
             await exportData.ToExcel(exportData.ApplyQuery(Partner, query), fileName);
+        }
+    }
+
+    void RowRender(RowRenderEventArgs<PartnerExt> args)
+    {
+        switch (args.Data.EstadoId)
+        {
+            case "I":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+                break;
         }
     }
 }
