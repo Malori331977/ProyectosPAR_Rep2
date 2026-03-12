@@ -21,11 +21,11 @@
                                             <RadzenTextBox @bind-Value=@cliente.Id Style="width: 100%" Name="id" Disabled="true" />
                                         </RadzenColumn>
                                         <RadzenColumn Size="12" SizeMD="2">
-                                            <RadzenLabel Text="Nombre Corto (alias)" Component="alias" />
-                                            <RadzenTextBox @bind-Value=@cliente.Alias Maxlength="10" Style="width: 100%" Name="alias" Disabled="@soloLectura" />
+                                            <RadzenLabel Text="Nombre de Cliente" Component="alias" />
+                                            <RadzenTextBox @bind-Value=@cliente.Alias Maxlength="255" Style="width: 100%" Name="alias" Disabled="@soloLectura" />
                                         </RadzenColumn>
                                         <RadzenColumn Size="12" SizeMD="8">
-                                            <RadzenLabel Text="Nombre Completo" Component="nombre" />
+                                            <RadzenLabel Text="Nombre Licencia" Component="nombre" />
                                             <RadzenTextBox @bind-Value=@cliente.Nombre Maxlength="255" Style="width: 100%" Name="nombre" Disabled="@soloLectura" />
                                         </RadzenColumn>
                                     </RadzenRow>

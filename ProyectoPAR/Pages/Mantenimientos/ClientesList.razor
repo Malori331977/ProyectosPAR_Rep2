@@ -50,14 +50,13 @@
                                           Width="100px"
                                           TextAlign="TextAlign.Center">
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Alias)" Title="Nombre Corto" Width="100px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Nombre)" Title="Nombre" Width="300px" />
-                    <RadzenDataGridColumn Property="@nameof(Cliente.Cedula)" Title="Cédula" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(Partner.Nombre)" Title="Partner" Width="150px" />
-                    <RadzenDataGridColumn Title="Partner" Width="150px">
-                        <Template 
-                            Context="Cliente">@Cliente.Partner?.Nombre
-                        </Template> 
+                    <RadzenDataGridColumn Property="@nameof(Cliente.Alias)" Title="Nombre Cliente" Width="250px" />
+                    <RadzenDataGridColumn Property="@nameof(Cliente.Nombre)" Title="Nombre Licencia" Width="250px" />
+                    <RadzenDataGridColumn Property="@nameof(Cliente.Cedula)" Title="Cédula" Width="150px" /> 
+                    <RadzenDataGridColumn Property="Partner.Nombre" Title="Partner" Width="150px" Filterable="true">
+                        <Template Context="Cliente">
+                            @Cliente.Partner?.Nombre
+                        </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn Property="@nameof(Cliente.Contacto)" Title="Contacto" Width="150px" />
                     <RadzenDataGridColumn Property="@nameof(Cliente.Email)" Title="Email" Width="200px" />

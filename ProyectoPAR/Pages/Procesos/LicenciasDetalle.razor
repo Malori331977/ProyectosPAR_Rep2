@@ -75,6 +75,11 @@ else
                                                     <RadzenLabel Text="Compañía" Component="bd" />
                                                     <RadzenTextBox Name="bd" @bind-Value="licencia.BaseDatos" Disabled="@soloLectura" Style="width: 100%" />
                                                 </RadzenColumn>
+
+                                                <RadzenColumn Size="12" SizeMD="3">
+                                                    <RadzenLabel Text="Compañía" Component="bd" />
+                                                    <RadzenTextBox Name="bd" @bind-Value="licencia.BaseDatos" Disabled="@soloLectura" Style="width: 100%" />
+                                                </RadzenColumn>
                                             }
                                             else
                                             {
@@ -172,6 +177,12 @@ else
                                             <RadzenButton class="rz-border-radius-6" ButtonStyle="Radzen.ButtonStyle.Secondary" Variant="Variant.Flat" Size="Radzen.ButtonSize.Small" Icon="content_copy" Click="@CopyToClipBoard" />
                                         </RadzenColumn>
                                     </RadzenRow>
+                                    <RadzenRow AlignItems="AlignItems.Center">
+                                        <RadzenColumn Size="12" SizeMD="12">
+                                            <RadzenLabel Text="Licencia Geo V3.X.X" Component="licgeo" />
+                                            <RadzenTextArea Name="licgeo" @bind-Value="licencia.LicenciaIdGeo" Disabled="true" Style="width: 100%" />
+                                        </RadzenColumn>
+                                    </RadzenRow>
                                 </RadzenStack>
                             </RadzenFieldset>
                         </RadzenStack>
@@ -238,6 +249,7 @@ else
                     CantidadDispMoviles = repo.CantidadDispMoviles,
                     DistEmpleados = repo.DistEmpleados,
                     DistUsuarios = repo.DistUsuarios,
+                    LicenciaIdGeo = repo.LicenciaIdGeo,
                     Producto = repo.Producto == null ? null :
                                  new Producto
                                  {
@@ -355,6 +367,7 @@ else
                     DistUsuarios = false,
                     CantidadDispMoviles = 0,
                     CantidadEmpleados = 0,
+                    LicenciaIdGeo = "",
 
                 };
                 product = new Producto
@@ -554,15 +567,6 @@ else
             {
 
             }
-
-
-
-
-
-
-
-
-
         }
 
 
