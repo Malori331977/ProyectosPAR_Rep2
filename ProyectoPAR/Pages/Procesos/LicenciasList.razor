@@ -103,9 +103,9 @@
 
     int? DiasVencimiento = 15;
 
-    async Task OnDiasVencimientoChanged()
+    void OnDiasVencimientoChanged()
     {
-        await grid.Reload();
+        StateHasChanged();
     }
 
     private IEnumerable<CatalogoGenerico>? listEstadoLicencia;
