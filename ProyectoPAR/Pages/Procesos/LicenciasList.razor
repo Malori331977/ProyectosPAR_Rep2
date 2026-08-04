@@ -304,13 +304,27 @@
 
     void RowRender(RowRenderEventArgs<LicenciaExt> args)
     {
-        switch (args.Data.EstadoId)
+        if (args.Data.EstadoId == "I")
         {
-            case "I":
-                args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
-                break;
+            args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+            return;
         }
 
+        if (args.Data.NoExpira || !DiasVencimiento.HasValue)
+        {
+            return;
+        }
+
+        var diasRestantes = (args.Data.FechaExpiracion.Date - DateTime.Today).Days;
+
+        if (diasRestantes < 0)
+        {
+            args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+        }
+        else if (diasRestantes <= DiasVencimiento.Value)
+        {
+            args.Attributes.Add("class", "radzen-grid-row-background-color-orange-light rz-data-row");
+        }
     }
 }
 
@@ -326,5 +340,9 @@
 
     .radzen-grid-row-background-color-green-light > td {
         background-color: #44FF47 !important;
+    }
+
+    .radzen-grid-row-background-color-orange-light > td {
+        background-color: #FF9F40 !important;
     }
 </style>
