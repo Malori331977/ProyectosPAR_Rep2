@@ -11,6 +11,11 @@
                 <SpinnerControl></SpinnerControl>
             }
 
+            <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenLabel Text="Días para vencimiento" Component="diasVencimiento" />
+                <RadzenNumeric TValue="int?" Name="diasVencimiento" @bind-Value="DiasVencimiento" Min="0" Style="width: 100px" Change="@OnDiasVencimientoChanged" />
+            </RadzenStack>
+
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
                             PageSizeOptions="@Utiles.PageSizeOptions()"
                             TItem="LicenciaExt"
@@ -95,7 +100,13 @@
     RadzenDataGrid<LicenciaExt> grid;
     IEnumerable<LicenciaExt> dataList;
     IList<LicenciaExt> selectedData;
-    
+
+    int? DiasVencimiento = 15;
+
+    async Task OnDiasVencimientoChanged()
+    {
+        await grid.Reload();
+    }
 
     private IEnumerable<CatalogoGenerico>? listEstadoLicencia;
 
