@@ -307,6 +307,28 @@
         }
     }
 
+    string GetEstadoVencimiento(LicenciaExt licencia)
+    {
+        if (licencia.NoExpira || !DiasVencimiento.HasValue)
+        {
+            return "OK";
+        }
+
+        var diasRestantes = (licencia.FechaExpiracion.Date - DateTime.Today).Days;
+
+        if (diasRestantes < 0)
+        {
+            return "VENCIDA";
+        }
+
+        if (diasRestantes <= DiasVencimiento.Value)
+        {
+            return "PRONTO_A_VENCER";
+        }
+
+        return "OK";
+    }
+
     void RowRender(RowRenderEventArgs<LicenciaExt> args)
     {
         if (args.Data.EstadoId == "I")
@@ -315,20 +337,14 @@
             return;
         }
 
-        if (args.Data.NoExpira || !DiasVencimiento.HasValue)
+        switch (GetEstadoVencimiento(args.Data))
         {
-            return;
-        }
-
-        var diasRestantes = (args.Data.FechaExpiracion.Date - DateTime.Today).Days;
-
-        if (diasRestantes < 0)
-        {
-            args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
-        }
-        else if (diasRestantes <= DiasVencimiento.Value)
-        {
-            args.Attributes.Add("class", "radzen-grid-row-background-color-orange-light rz-data-row");
+            case "VENCIDA":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+                break;
+            case "PRONTO_A_VENCER":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-orange-light rz-data-row");
+                break;
         }
     }
 }
