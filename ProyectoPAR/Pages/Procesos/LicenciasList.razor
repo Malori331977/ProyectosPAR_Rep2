@@ -17,7 +17,8 @@
                 <RadzenLabel Text="Estatus" Component="estadoVencimiento" />
                 <RadzenDropDown TValue="string" Name="estadoVencimiento" @bind-Value="EstadoVencimientoFiltro"
                                 Data="@listEstadoVencimiento" ValueProperty="Value" TextProperty="Text"
-                                AllowClear="true" Placeholder="Todos los estatus" Style="width: 200px" />
+                                AllowClear="true" Placeholder="Todos los estatus" Style="width: 200px"
+                                Change="@OnEstadoVencimientoFiltroChanged" />
             </RadzenStack>
 
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
@@ -31,7 +32,7 @@
                             AllowSorting="true"
                             AllowMultiColumnSorting="true"
                             ShowMultiColumnSortingIndex="true"
-                            Data="@FilteredDataList"
+                            Data="@filteredDataList"
                             ColumnWidth="300px"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             FilterCleared=@FilterCleared
@@ -119,7 +120,14 @@
             DiasVencimiento = 7;
         }
 
+        ApplyEstadoFilter();
         StateHasChanged();
+    }
+
+    async Task OnEstadoVencimientoFiltroChanged()
+    {
+        ApplyEstadoFilter();
+        await grid.FirstPage();
     }
 
     string? EstadoVencimientoFiltro;
@@ -137,10 +145,14 @@
         new EstadoVencimientoOption { Value = "PRONTO_A_VENCER", Text = "PRONTO A VENCER" },
     };
 
-    IEnumerable<LicenciaExt> FilteredDataList =>
-        string.IsNullOrEmpty(EstadoVencimientoFiltro)
+    IEnumerable<LicenciaExt>? filteredDataList;
+
+    void ApplyEstadoFilter()
+    {
+        filteredDataList = string.IsNullOrEmpty(EstadoVencimientoFiltro)
             ? dataList
-            : dataList?.Where(l => GetEstadoVencimiento(l) == EstadoVencimientoFiltro);
+            : dataList?.Where(l => GetEstadoVencimiento(l) == EstadoVencimientoFiltro).ToList();
+    }
 
     private IEnumerable<CatalogoGenerico>? listEstadoLicencia;
 
@@ -167,6 +179,7 @@
         await Task.WhenAll(tasks);
 
         dataList = await GetDataList();
+        ApplyEstadoFilter();
     }
 
 
@@ -308,7 +321,7 @@
 
     public async Task Export(string type)
     {
-        var queryableList = FilteredDataList.AsQueryable();
+        var queryableList = filteredDataList.AsQueryable();
 
         var query=new Query()
             {
