@@ -11,6 +11,16 @@
                 <SpinnerControl></SpinnerControl>
             }
 
+            <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                <RadzenLabel Text="Días para vencimiento" Component="diasVencimiento" />
+                <RadzenNumeric TValue="int?" Name="diasVencimiento" @bind-Value="DiasVencimiento" Min="7" Style="width: 100px" Change="@OnDiasVencimientoChanged" />
+                <RadzenLabel Text="Estatus" Component="estadoVencimiento" />
+                <RadzenDropDown TValue="string" Name="estadoVencimiento" @bind-Value="EstadoVencimientoFiltro"
+                                Data="@listEstadoVencimiento" ValueProperty="Value" TextProperty="Text"
+                                AllowClear="true" Placeholder="Todos los estatus" Style="width: 200px"
+                                Change="@OnEstadoVencimientoFiltroChanged" />
+            </RadzenStack>
+
             <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
                             PageSizeOptions="@Utiles.PageSizeOptions()"
                             TItem="LicenciaExt"
@@ -22,7 +32,7 @@
                             AllowSorting="true"
                             AllowMultiColumnSorting="true"
                             ShowMultiColumnSortingIndex="true"
-                            Data="@dataList"
+                            Data="@filteredDataList"
                             ColumnWidth="300px"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             FilterCleared=@FilterCleared
@@ -71,12 +81,6 @@
                     <RadzenDataGridColumn Property="@nameof(LicenciaExt.DescEstado)" Title="Estado" Width="100px" />
                    @*  <RadzenDataGridColumn Property="@nameof(LicenciaExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" /> *@
                     <RadzenDataGridColumn Property="@nameof(LicenciaExt.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
-                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.LicCodeId)" Title="Identificador" Width="300px" />
-                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.Usada)" Title="Usada" Width="100px">
-                        <Template Context="LicenciaExt">
-                            <RadzenSwitch @bind-Value=@LicenciaExt.Usada Disabled="true"></RadzenSwitch>
-                        </Template>
-                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn Context="LicenciaExt" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
                         <Template Context="LicenciaExt">
                             <RadzenButton  Icon="delete" ButtonStyle="ButtonStyle.Danger"
@@ -102,7 +106,49 @@
     RadzenDataGrid<LicenciaExt> grid;
     IEnumerable<LicenciaExt> dataList;
     IList<LicenciaExt> selectedData;
-    
+
+    int? DiasVencimiento = 15;
+
+    void OnDiasVencimientoChanged()
+    {
+        if (!DiasVencimiento.HasValue || DiasVencimiento.Value < 7)
+        {
+            DiasVencimiento = 7;
+        }
+
+        ApplyEstadoFilter();
+        StateHasChanged();
+    }
+
+    async Task OnEstadoVencimientoFiltroChanged()
+    {
+        ApplyEstadoFilter();
+        await grid.FirstPage();
+    }
+
+    string? EstadoVencimientoFiltro;
+
+    private class EstadoVencimientoOption
+    {
+        public string Value { get; set; }
+        public string Text { get; set; }
+    }
+
+    private static readonly List<EstadoVencimientoOption> listEstadoVencimiento = new()
+    {
+        new EstadoVencimientoOption { Value = "OK", Text = "OK" },
+        new EstadoVencimientoOption { Value = "VENCIDA", Text = "VENCIDAS" },
+        new EstadoVencimientoOption { Value = "PRONTO_A_VENCER", Text = "PRONTO A VENCER" },
+    };
+
+    IEnumerable<LicenciaExt>? filteredDataList;
+
+    void ApplyEstadoFilter()
+    {
+        filteredDataList = string.IsNullOrEmpty(EstadoVencimientoFiltro)
+            ? dataList
+            : dataList?.Where(l => GetEstadoVencimiento(l) == EstadoVencimientoFiltro).ToList();
+    }
 
     private IEnumerable<CatalogoGenerico>? listEstadoLicencia;
 
@@ -129,6 +175,7 @@
         await Task.WhenAll(tasks);
 
         dataList = await GetDataList();
+        ApplyEstadoFilter();
     }
 
 
@@ -272,7 +319,7 @@
 
     public async Task Export(string type)
     {
-        var queryableList = dataList.AsQueryable();
+        var queryableList = filteredDataList.AsQueryable();
 
         var query=new Query()
             {
@@ -300,15 +347,45 @@
         }
     }
 
-    void RowRender(RowRenderEventArgs<LicenciaExt> args)
+    string GetEstadoVencimiento(LicenciaExt licencia)
     {
-        switch (args.Data.EstadoId)
+        if (licencia.NoExpira || !DiasVencimiento.HasValue)
         {
-            case "I":
-                args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
-                break;
+            return "OK";
         }
 
+        var diasRestantes = (licencia.FechaExpiracion.Date - DateTime.Today).Days;
+
+        if (diasRestantes < 0)
+        {
+            return "VENCIDA";
+        }
+
+        if (diasRestantes <= DiasVencimiento.Value)
+        {
+            return "PRONTO_A_VENCER";
+        }
+
+        return "OK";
+    }
+
+    void RowRender(RowRenderEventArgs<LicenciaExt> args)
+    {
+        if (args.Data.EstadoId == "I")
+        {
+            args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+            return;
+        }
+
+        switch (GetEstadoVencimiento(args.Data))
+        {
+            case "VENCIDA":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-red-light rz-data-row");
+                break;
+            case "PRONTO_A_VENCER":
+                args.Attributes.Add("class", "radzen-grid-row-background-color-orange-light rz-data-row");
+                break;
+        }
     }
 }
 
@@ -324,5 +401,9 @@
 
     .radzen-grid-row-background-color-green-light > td {
         background-color: #44FF47 !important;
+    }
+
+    .radzen-grid-row-background-color-orange-light > td {
+        background-color: #FF9F40 !important;
     }
 </style>
