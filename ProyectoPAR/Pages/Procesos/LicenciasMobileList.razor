@@ -19,7 +19,8 @@
             <RadzenStack Gap="0.5rem">
                 <RadzenDataGrid @ref="grid" Render="@OnRender" class="rz-border-radius-2"
                                 PageSizeOptions="@Utiles.PageSizeOptions()"
-                                TItem="LicenciaMobile"
+                                TItem="LicenciaMobileExt"
+                                AllowFiltering="true"
                                 AllowColumnResize="true"
                                 FilterMode="FilterMode.SimpleWithMenu"
                                 PageSize="10"
@@ -41,12 +42,12 @@
                                 ColumnReordering="@OnColumnReordering">
                     <Columns>
 
-                        <RadzenDataGridColumn Property="@nameof(LicenciaMobile.Id)" Filterable="true" Title="ID" Frozen="true" Width="100px" TextAlign="TextAlign.Center"/>
-                        <RadzenDataGridColumn Property="@nameof(LicenciaMobile.ClienteId)" Title="Id Cliente" Width="150px" />
-                        <RadzenDataGridColumn Property="@nameof(LicenciaMobile.ApiClientId)" Title="Alias" Width="200px" />
-                        <RadzenDataGridColumn Property="@nameof(LicenciaMobile.ApiDataBase)" Title="Nombre" Width="200px" />                        
-                        <RadzenDataGridColumn Property="@nameof(LicenciaMobile.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
-                        <RadzenDataGridColumn Property="@nameof(LicenciaMobile.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
+                        <RadzenDataGridColumn Property="@nameof(LicenciaMobileExt.Id)" Filterable="true" Title="ID" Frozen="true" Width="100px" TextAlign="TextAlign.Center"/>
+                        <RadzenDataGridColumn Property="@nameof(LicenciaMobileExt.ClienteId)" Title="Id Cliente" Width="150px" />
+                        <RadzenDataGridColumn Property="@nameof(LicenciaMobileExt.AliasCliente)" Title="Alias" Width="200px" />
+                        <RadzenDataGridColumn Property="@nameof(LicenciaMobileExt.NombreCliente)" Title="Nombre" Width="200px" />
+                        <RadzenDataGridColumn Property="@nameof(LicenciaMobileExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
+                        <RadzenDataGridColumn Property="@nameof(LicenciaMobileExt.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
                             <RadzenDataGridColumn Context="LicenciaMobile" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
                                 <Template Context="LicenciaMobile">
                                     <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger"
@@ -68,9 +69,9 @@
 
 @code {
 
-    RadzenDataGrid<LicenciaMobile> grid;
-    IEnumerable<LicenciaMobile> dataList;
-    IList<LicenciaMobile> selectedData;
+    RadzenDataGrid<LicenciaMobileExt> grid;
+    IEnumerable<LicenciaMobileExt> dataList;
+    IList<LicenciaMobileExt> selectedData;
 
     public string Titulo { get; set; } = "Licencias Móviles";
     private bool InProcess = true;
@@ -87,7 +88,7 @@
         await grid.FirstPage();
     }
 
-    void OnRender(DataGridRenderEventArgs<LicenciaMobile> args)
+    void OnRender(DataGridRenderEventArgs<LicenciaMobileExt> args)
     {
         if (args.FirstRender)
         {
@@ -96,9 +97,9 @@
     }
 
 
-    private async Task<IEnumerable<LicenciaMobile>> GetDataList()
+    private async Task<IEnumerable<LicenciaMobileExt>> GetDataList()
     {
-        List<LicenciaMobile> model = new();
+        List<LicenciaMobileExt> model = new();
         try
         {
 
@@ -107,7 +108,7 @@
             if (licencias is not null)
             {
                 model = (from e in licencias
-                         select new LicenciaMobile
+                         select new LicenciaMobileExt
                              {
                                  Id = e.Id,
                                  ClienteId = e.ClienteId,
@@ -121,13 +122,13 @@
                                             FechaModificacion = e.Cliente.FechaModificacion,
                                             UsuarioModificacion = e.Cliente.UsuarioModificacion,
                                         },
-                                 ApiClientId = e.Cliente == null ? "" : e.Cliente.Alias,
-                                 ApiDataBase = e.Cliente == null ? "" : e.Cliente.Nombre!,
+                                 AliasCliente = e.Cliente == null ? "" : e.Cliente.Alias,
+                                 NombreCliente = e.Cliente == null ? "" : e.Cliente.Nombre!,
                                  FechaCreacion = e.FechaCreacion,
                                  UsuarioCreacion = e.UsuarioCreacion,
                                  FechaModificacion = e.FechaModificacion,
                                  UsuarioModificacion = e.UsuarioModificacion,
-                                 
+
                              }).ToList();
 
             }
@@ -136,13 +137,14 @@
         {
             await swal.FireAsync("Error", "Error al cargar la información solicitada.", SweetAlertIcon.Info);
         }
+        InProcess = false;
         StateHasChanged();
         return model;
     }
 
-    void OnColumnReordering(DataGridColumnReorderingEventArgs<LicenciaMobile> args)
+    void OnColumnReordering(DataGridColumnReorderingEventArgs<LicenciaMobileExt> args)
     {
-        if (args.ToColumn.Property == nameof(LicenciaMobile.Id))
+        if (args.ToColumn.Property == nameof(LicenciaMobileExt.Id))
         {
             args.Cancel = true;
         }
@@ -153,13 +155,13 @@
         NavigationManager.NavigateTo("./licenciasmobiledetalle/0/1");
     }
 
-    protected async Task OnSelect(DataGridRowMouseEventArgs<LicenciaMobile> args)
+    protected async Task OnSelect(DataGridRowMouseEventArgs<LicenciaMobileExt> args)
     {
         NavigationManager.NavigateTo("./licenciasmobiledetalle/" + args.Data.Id + "/2");
         await InvokeAsync(() => { StateHasChanged(); });
     }
 
-    protected async void OnDelete(LicenciaMobile LicenciaMobile)
+    protected async void OnDelete(LicenciaMobileExt LicenciaMobile)
     {
         NavigationManager.NavigateTo($"./licenciasmobiledetalle/{LicenciaMobile.Id}/3");
     }
