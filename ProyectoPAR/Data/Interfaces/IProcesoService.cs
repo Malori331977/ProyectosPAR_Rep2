@@ -281,5 +281,8 @@ namespace ProyectoPAR.Data.Interfaces
         /// <param name="docId"></param>
         /// <returns></returns>
         public Task<ProyectoDocAdjunto> GetProyectoDocAdjunto(int id, int docId);
+
+        public Task<IEnumerable<LicenciaMobile>> GetLicenciaMobile();
+        public Task<LicenciaMobile> GetLicenciaMobile(int id);
     }
 }

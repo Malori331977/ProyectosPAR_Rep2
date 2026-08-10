@@ -60,16 +60,23 @@
                             <RadzenSwitch @bind-Value=@LicenciaExt.NoExpira Disabled="true"></RadzenSwitch>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.CantidadUsuarios)" Title="Empleados Contratados" FormatString="{0:N0}" Width="100px" TextAlign="TextAlign.Right" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.CantidadUsuarios)" Title="Usuarios" FormatString="{0:N0}" Width="100px" TextAlign="TextAlign.Right" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.CantidadEmpleados)" Title="Empleados" FormatString="{0:N0}" Width="100px" TextAlign="TextAlign.Right" />
                     <RadzenDataGridColumn Property="@nameof(LicenciaExt.Ilimitado)" Title="Ilimitado" Width="100px">
                         <Template Context="LicenciaExt">
                             <RadzenSwitch @bind-Value=@LicenciaExt.Ilimitado Disabled="true"></RadzenSwitch>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.BaseDatos)" Title="Base de Datos" Width="100px"/>
+  @*                   <RadzenDataGridColumn Property="@nameof(LicenciaExt.BaseDatos)" Title="Base de Datos" Width="100px"/> *@
                     <RadzenDataGridColumn Property="@nameof(LicenciaExt.DescEstado)" Title="Estado" Width="100px" />
-                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" />
+                   @*  <RadzenDataGridColumn Property="@nameof(LicenciaExt.FechaCreacion)" Title="Creado" FormatString="{0:d}" Width="150px" /> *@
                     <RadzenDataGridColumn Property="@nameof(LicenciaExt.FechaModificacion)" Title="Modificado" FormatString="{0:d}" Width="150px" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.LicCodeId)" Title="Identificador" Width="300px" />
+                    <RadzenDataGridColumn Property="@nameof(LicenciaExt.Usada)" Title="Usada" Width="100px">
+                        <Template Context="LicenciaExt">
+                            <RadzenSwitch @bind-Value=@LicenciaExt.Usada Disabled="true"></RadzenSwitch>
+                        </Template>
+                    </RadzenDataGridColumn>
                     <RadzenDataGridColumn Context="LicenciaExt" Width="50px" Filterable="false" Sortable="false" TextAlign="TextAlign.Right" Frozen="true" FrozenPosition="FrozenColumnPosition.Left">
                         <Template Context="LicenciaExt">
                             <RadzenButton  Icon="delete" ButtonStyle="ButtonStyle.Danger"
@@ -168,6 +175,8 @@
                              UsuarioCreacion = e.UsuarioCreacion,
                              FechaModificacion = e.FechaModificacion,
                              UsuarioModificacion = e.UsuarioModificacion,
+                             LicCodeId = e.LicCodeId,
+                             Usada = e.Usada,
                              Producto = e.Producto == null ? null :
                                  new Producto
                                  {

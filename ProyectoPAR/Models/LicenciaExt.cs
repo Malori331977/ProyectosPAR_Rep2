@@ -9,5 +9,6 @@ namespace ProyectoPAR.Models
         public string DescProducto { get; set; }
         public string DescEstado { get; set; }
         public string AliasCliente { get; set; }
+        public string LicCodeStr { get; set; }
     }
 }

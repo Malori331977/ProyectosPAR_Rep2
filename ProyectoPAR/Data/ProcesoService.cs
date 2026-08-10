@@ -1097,5 +1097,58 @@ namespace ProyectoPAR.Data
             }
             return model!;
         }
+
+
+        public async Task<IEnumerable<LicenciaMobile>> GetLicenciaMobile()
+        {
+            IEnumerable<LicenciaMobile>? model = null;
+            HttpResponseMessage? result = null;
+            try
+            {
+                var method = $"/LicenciaMobile/";
+                result = await _genericService.Get(method);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readJob = result.Content.ReadFromJsonAsync<IList<LicenciaMobile>>();
+                    readJob.Wait();
+                    model = readJob.Result;
+                }
+            }
+            catch (Exception e)
+            {
+                //devuelve el codigo de error
+                model = Enumerable.Empty<LicenciaMobile>();
+                string error = e.InnerException is null ? e.Message : e.InnerException.Message;
+                _logger.LogError($"{InterfaceName}.GetLicenciaMobile: Se ha presentado un error al ejecutar el proceso. Detalle de Error: {error}");
+            }
+            return model!;
+        }
+
+        public async Task<LicenciaMobile> GetLicenciaMobile(int id)
+        {
+            LicenciaMobile? model = null;
+            HttpResponseMessage? result = null;
+            try
+            {
+                var method = $"/LicenciaMobile/{id}";
+                result = await _genericService.Get(method);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var readJob = result.Content.ReadFromJsonAsync<LicenciaMobile>();
+                    readJob.Wait();
+                    model = readJob.Result;
+                }
+            }
+            catch (Exception e)
+            {
+                //devuelve el codigo de error
+                string error = e.InnerException is null ? e.Message : e.InnerException.Message;
+                _logger.LogError($"{InterfaceName}.GetLicenciaMobile: Se ha presentado un error al ejecutar el proceso. Detalle de Error: {error}");
+            }
+            return model!;
+        }
+
     }
 }
